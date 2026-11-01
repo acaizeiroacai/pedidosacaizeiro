@@ -57,7 +57,50 @@
     </div>
   </footer>
 
-  <!-- Modal Checkout -->
+  <!-- MODAL: Montar Copo & Escolher Complementos -->
+  <div id="modal-produto" class="fixed inset-0 bg-black/60 hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto p-5 space-y-4">
+      <div class="flex justify-between items-start border-b pb-3">
+        <div>
+          <h2 class="text-lg font-black text-[#5c1380]" id="modal-prod-nome">Nome do Açaí</h2>
+          <p class="text-xs text-gray-500 mt-0.5" id="modal-prod-desc">Descrição</p>
+        </div>
+        <button onclick="fecharModalProduto()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none">&times;</button>
+      </div>
+
+      <!-- Seção de Complementos / Adicionais -->
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="text-sm font-bold text-gray-800">Deseja adicionar Complementos?</h3>
+          <span class="text-[11px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full font-semibold">Opcional</span>
+        </div>
+        <p class="text-xs text-gray-500 mb-3">Selecione frutas, caldas e coberturas especiais para o seu açaí:</p>
+        
+        <div class="space-y-2" id="lista-adicionais-modal">
+          <!-- Complementos carregados via JS -->
+        </div>
+      </div>
+
+      <!-- Observação do Copo -->
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Alguma observação para este item?</label>
+        <input type="text" id="modal-prod-obs" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600" placeholder="Ex: Caprichar no leite em pó, sem granola...">
+      </div>
+
+      <!-- Total do Copo + Botão de Adicionar à Sacola -->
+      <div class="pt-2 border-t flex items-center justify-between gap-4">
+        <div>
+          <p class="text-[11px] text-gray-500">Valor do Item</p>
+          <p class="text-lg font-black text-[#5c1380]" id="modal-prod-total">R$ 0,00</p>
+        </div>
+        <button onclick="confirmarAdicionarItem()" class="flex-1 bg-[#5c1380] hover:bg-purple-900 text-white font-bold py-3 px-4 rounded-xl shadow-md active:scale-95 transition text-sm">
+          Adicionar ao Pedido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Finalizar Pedido (Checkout) -->
   <div id="modal-checkout" class="fixed inset-0 bg-black/60 hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
     <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto p-5 space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
@@ -67,7 +110,7 @@
         <button onclick="fecharModalCheckout()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none">&times;</button>
       </div>
 
-      <div id="itens-carrinho" class="divide-y divide-gray-100 text-sm max-h-44 overflow-y-auto pr-1"></div>
+      <div id="itens-carrinho" class="divide-y divide-gray-100 text-sm max-h-48 overflow-y-auto pr-1"></div>
 
       <div class="bg-purple-50/70 p-3.5 rounded-xl space-y-1.5 text-sm border border-purple-100">
         <div class="flex justify-between text-gray-600">
@@ -106,8 +149,8 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Observações do Pedido (Ex: Adicionais, retirar itens, troco)</label>
-          <textarea id="cliente-obs" rows="2" class="w-full border border-gray-300 rounded-xl p-2 text-sm outline-purple-600" placeholder="Ex: Caprichar no leite em pó, troco para 50..."></textarea>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Observações Gerais para a Entrega</label>
+          <textarea id="cliente-obs" rows="2" class="w-full border border-gray-300 rounded-xl p-2 text-sm outline-purple-600" placeholder="Ex: Troco para R$ 50, tocar campainha..."></textarea>
         </div>
 
         <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition">
@@ -124,36 +167,48 @@
       taxaEntrega: 10.00
     };
 
-    // Nomes padronizados das categorias
+    // Categorias com a nova aba "Complementos"
     const categorias = [
       "Todos", 
       "Copos Açaí Puro", 
       "Copos Moranguete", 
       "Copo Açaí Tradicional", 
       "Copos Kids", 
-      "Ninho c/ Creme de Avelã"
+      "Ninho c/ Creme de Avelã",
+      "Complementos"
     ];
     let categoriaAtiva = "Todos";
 
-    // Produtos com nomes de categorias correspondentes e imagens
+    // Lista de Complementos solicitados
+    const complementosDisponiveis = [
+      { id: "c1", nome: "Morango", preco: 5.00 },
+      { id: "c2", nome: "Banana", preco: 2.00 },
+      { id: "c3", nome: "Uva", preco: 3.00 },
+      { id: "c4", nome: "Leite Condensado", preco: 3.00 },
+      { id: "c5", nome: "Leite em Pó", preco: 3.00 }
+    ];
+
+    // Cardápio Completo
     const produtos = [
       {
         id: 1,
         categoria: "Copos Açaí Puro",
         nome: "Copo Açaí Puro P - Monte o Seu",
-        desc: "Açaí Puro 300ml - Servido com açaí puro. Opção para tomar puro ou adicionar seus complementos.",
+        desc: "Açaí Puro 300ml - Servido com açaí puro. Adicione seus complementos favoritos.",
         preco: 18.40,
         imagem: "puro.png",
-        icone: "🍇"
+        icone: "🍇",
+        permiteComplementos: true
       },
       {
         id: 2,
         categoria: "Copos Açaí Puro",
         nome: "Copo Açaí Puro M - Monte o Seu",
-        desc: "Açaí Puro 500ml - Servido com açaí puro. Opção para tomar puro ou adicionar seus complementos.",
+        desc: "Açaí Puro 500ml - Servido com açaí puro. Adicione seus complementos favoritos.",
         preco: 27.99,
         imagem: "puro.png",
-        icone: "🍇"
+        icone: "🍇",
+        permiteComplementos: true
       },
       {
         id: 3,
@@ -162,7 +217,8 @@
         desc: "Copo 300ml - Servido com açaí, creme de morango e chocolate moranguete.",
         preco: 22.60,
         imagem: "moranguete.png",
-        icone: "🍓"
+        icone: "🍓",
+        permiteComplementos: true
       },
       {
         id: 4,
@@ -171,7 +227,8 @@
         desc: "Copo 500ml - Servido com açaí, creme de morango e chocolate moranguete.",
         preco: 28.30,
         imagem: "moranguete.png",
-        icone: "🍓"
+        icone: "🍓",
+        permiteComplementos: true
       },
       {
         id: 5,
@@ -180,7 +237,8 @@
         desc: "Copo 300ml - Servido com açaí, leite condensado e leite em pó.",
         preco: 19.80,
         imagem: "tradicional.png",
-        icone: "🥛"
+        icone: "🥛",
+        permiteComplementos: true
       },
       {
         id: 6,
@@ -189,25 +247,28 @@
         desc: "Copo 500ml - Servido com açaí, leite condensado e leite em pó.",
         preco: 25.70,
         imagem: "tradicional.png",
-        icone: "🥛"
+        icone: "🥛",
+        permiteComplementos: true
       },
       {
         id: 7,
         categoria: "Copos Kids",
         nome: "Copo Kids P",
-        desc: "Copo 300ml - Servido com açaí, leite condensado, leite em pó e Confete (chocolates coloridos).",
+        desc: "Copo 300ml - Servido com açaí, leite condensado, leite em pó e Confete.",
         preco: 24.50,
         imagem: "kids.png",
-        icone: "🍬"
+        icone: "🍬",
+        permiteComplementos: true
       },
       {
         id: 8,
         categoria: "Copos Kids",
         nome: "Copo Kids G",
-        desc: "Copo 500ml - Servido com açaí, leite condensado, leite em pó e Confete (chocolates).",
+        desc: "Copo 500ml - Servido com açaí, leite condensado, leite em pó e Confete.",
         preco: 34.50,
         imagem: "kids.png",
-        icone: "🍬"
+        icone: "🍬",
+        permiteComplementos: true
       },
       {
         id: 9,
@@ -216,7 +277,8 @@
         desc: "Copo 300ml - Servido com açaí, creme de avelã e creme de Ninho.",
         preco: 29.50,
         imagem: "ninho avela.png",
-        icone: "🍫"
+        icone: "🍫",
+        permiteComplementos: true
       },
       {
         id: 10,
@@ -225,11 +287,59 @@
         desc: "Copo 500ml - Servido com açaí, creme de avelã e creme de Ninho.",
         preco: 39.15,
         imagem: "ninho avela.png",
-        icone: "🍫"
+        icone: "🍫",
+        permiteComplementos: true
+      },
+      // Complementos como itens avulsos na categoria
+      {
+        id: 101,
+        categoria: "Complementos",
+        nome: "Porção Extra de Morango",
+        desc: "Pote adicional com morangos frescos picados.",
+        preco: 5.00,
+        icone: "🍓",
+        permiteComplementos: false
+      },
+      {
+        id: 102,
+        categoria: "Complementos",
+        nome: "Porção Extra de Banana",
+        desc: "Pote adicional com banana fresca fatiada.",
+        preco: 2.00,
+        icone: "🍌",
+        permiteComplementos: false
+      },
+      {
+        id: 103,
+        categoria: "Complementos",
+        nome: "Porção Extra de Uva",
+        desc: "Pote adicional de uvas frescas sem semente.",
+        preco: 3.00,
+        icone: "🍇",
+        permiteComplementos: false
+      },
+      {
+        id: 104,
+        categoria: "Complementos",
+        nome: "Porção Extra de Leite Condensado",
+        desc: "Dose extra de leite condensado Moça/Piracanjuba.",
+        preco: 3.00,
+        icone: "🥛",
+        permiteComplementos: false
+      },
+      {
+        id: 105,
+        categoria: "Complementos",
+        nome: "Porção Extra de Leite em Pó",
+        desc: "Dose extra de leite em pó integral.",
+        preco: 3.00,
+        icone: "🥄",
+        permiteComplementos: false
       }
     ];
 
-    let carrinho = {};
+    let carrinho = []; // Array de itens para permitir copos iguais com adicionais diferentes
+    let produtoEmEdicao = null;
 
     function renderizarCategorias() {
       const container = document.getElementById('lista-categorias');
@@ -253,18 +363,21 @@
         : produtos.filter(p => p.categoria.trim().toLowerCase() === categoriaAtiva.trim().toLowerCase());
 
       container.innerHTML = filtrados.map(prod => `
-        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-purple-100 flex gap-3.5 items-center">
-          <!-- Bloco da Imagem com fallback para ícone caso a foto ainda não tenha sido enviada -->
+        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-purple-100 flex gap-3.5 items-center cursor-pointer hover:border-purple-300 transition" onclick="iniciarAdicaoProduto(${prod.id})">
           <div class="w-20 h-20 rounded-xl overflow-hidden bg-purple-50 flex items-center justify-center flex-shrink-0 border border-purple-100">
-            <img src="${encodeURI(prod.imagem)}" alt="${prod.nome}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-            <span style="display:none;" class="w-full h-full text-3xl items-center justify-center">${prod.icone}</span>
+            ${prod.imagem ? `
+              <img src="${encodeURI(prod.imagem)}" alt="${prod.nome}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              <span style="display:none;" class="w-full h-full text-3xl items-center justify-center">${prod.icone}</span>
+            ` : `
+              <span class="w-full h-full text-3xl flex items-center justify-center">${prod.icone}</span>
+            `}
           </div>
           <div class="flex-1 min-w-0">
             <h3 class="font-bold text-gray-900 text-sm leading-snug">${prod.nome}</h3>
             <p class="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">${prod.desc}</p>
             <div class="flex items-center justify-between mt-2">
               <span class="font-black text-[#5c1380] text-sm">R$ ${prod.preco.toFixed(2).replace('.', ',')}</span>
-              <button onclick="adicionarAoCarrinho(${prod.id})" class="bg-purple-50 hover:bg-purple-100 text-[#5c1380] font-bold px-3 py-1.5 rounded-lg border border-purple-200 text-xs active:scale-95 transition">
+              <button onclick="event.stopPropagation(); iniciarAdicaoProduto(${prod.id})" class="bg-purple-50 hover:bg-purple-100 text-[#5c1380] font-bold px-3 py-1.5 rounded-lg border border-purple-200 text-xs active:scale-95 transition">
                 + Adicionar
               </button>
             </div>
@@ -273,15 +386,98 @@
       `).join('');
     }
 
-    function adicionarAoCarrinho(id) {
-      carrinho[id] = (carrinho[id] || 0) + 1;
+    // Abertura do modal de complementos
+    function iniciarAdicaoProduto(id) {
+      const prod = produtos.find(p => p.id === id);
+      if (!prod) return;
+
+      produtoEmEdicao = { ...prod, complementosEscolhidos: [], obs: "" };
+
+      // Se for apenas porção avulsa (categoria complementos), vai direto para o carrinho
+      if (!prod.permiteComplementos) {
+        carrinho.push({
+          cartId: Date.now() + Math.random(),
+          produtoId: prod.id,
+          nome: prod.nome,
+          precoBase: prod.preco,
+          complementos: [],
+          obs: "",
+          precoTotal: prod.preco,
+          qtd: 1
+        });
+        atualizarBarra();
+        return;
+      }
+
+      document.getElementById('modal-prod-nome').innerText = prod.nome;
+      document.getElementById('modal-prod-desc').innerText = prod.desc;
+      document.getElementById('modal-prod-obs').value = "";
+
+      const container = document.getElementById('lista-adicionais-modal');
+      container.innerHTML = complementosDisponiveis.map(comp => `
+        <label class="flex items-center justify-between p-2.5 rounded-xl border border-gray-200 hover:border-purple-300 bg-gray-50/50 cursor-pointer text-sm">
+          <div class="flex items-center gap-2.5">
+            <input type="checkbox" value="${comp.id}" onchange="toggleComplementoModal('${comp.id}')" class="w-4 h-4 text-purple-700 rounded focus:ring-purple-500">
+            <span class="font-medium text-gray-800">${comp.nome}</span>
+          </div>
+          <span class="font-bold text-xs text-purple-900">+ R$ ${comp.preco.toFixed(2).replace('.', ',')}</span>
+        </label>
+      `).join('');
+
+      atualizarTotalModal();
+      document.getElementById('modal-produto').classList.remove('hidden');
+    }
+
+    function toggleComplementoModal(compId) {
+      const index = produtoEmEdicao.complementosEscolhidos.findIndex(c => c.id === compId);
+      if (index >= 0) {
+        produtoEmEdicao.complementosEscolhidos.splice(index, 1);
+      } else {
+        const comp = complementosDisponiveis.find(c => c.id === compId);
+        if (comp) produtoEmEdicao.complementosEscolhidos.push(comp);
+      }
+      atualizarTotalModal();
+    }
+
+    function atualizarTotalModal() {
+      let total = produtoEmEdicao.preco;
+      produtoEmEdicao.complementosEscolhidos.forEach(c => total += c.preco);
+      document.getElementById('modal-prod-total').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    }
+
+    function fecharModalProduto() {
+      document.getElementById('modal-produto').classList.add('hidden');
+      produtoEmEdicao = null;
+    }
+
+    function confirmarAdicionarItem() {
+      if (!produtoEmEdicao) return;
+
+      let totalItem = produtoEmEdicao.preco;
+      produtoEmEdicao.complementosEscolhidos.forEach(c => totalItem += c.preco);
+
+      carrinho.push({
+        cartId: Date.now() + Math.random(),
+        produtoId: produtoEmEdicao.id,
+        nome: produtoEmEdicao.nome,
+        precoBase: produtoEmEdicao.preco,
+        complementos: [...produtoEmEdicao.complementosEscolhidos],
+        obs: document.getElementById('modal-prod-obs').value.trim(),
+        precoTotal: totalItem,
+        qtd: 1
+      });
+
+      fecharModalProduto();
       atualizarBarra();
     }
 
-    function alterarQtd(id, delta) {
-      if (!carrinho[id]) return;
-      carrinho[id] += delta;
-      if (carrinho[id] <= 0) delete carrinho[id];
+    function alterarQtd(cartId, delta) {
+      const item = carrinho.find(i => i.cartId === cartId);
+      if (!item) return;
+      item.qtd += delta;
+      if (item.qtd <= 0) {
+        carrinho = carrinho.filter(i => i.cartId !== cartId);
+      }
       atualizarBarra();
       renderizarItensCheckout();
     }
@@ -289,13 +485,10 @@
     function calcularTotais() {
       let subtotal = 0;
       let totalQtd = 0;
-      for (const id in carrinho) {
-        const prod = produtos.find(p => p.id == id);
-        if (prod) {
-          subtotal += prod.preco * carrinho[id];
-          totalQtd += carrinho[id];
-        }
-      }
+      carrinho.forEach(item => {
+        subtotal += item.precoTotal * item.qtd;
+        totalQtd += item.qtd;
+      });
       const total = subtotal > 0 ? (subtotal + config.taxaEntrega) : 0;
       return { subtotal, total, totalQtd };
     }
@@ -311,19 +504,26 @@
       const { subtotal, total } = calcularTotais();
       const container = document.getElementById('itens-carrinho');
       
-      const itensHtml = Object.keys(carrinho).map(id => {
-        const prod = produtos.find(p => p.id == id);
-        const qtd = carrinho[id];
+      const itensHtml = carrinho.map(item => {
+        const complTexto = item.complementos.length > 0 
+          ? `<p class="text-[11px] text-purple-700 font-medium mt-0.5">+ ${item.complementos.map(c => c.nome).join(', ')}</p>` 
+          : '';
+        const obsTexto = item.obs 
+          ? `<p class="text-[11px] text-gray-500 italic">Obs: ${item.obs}</p>` 
+          : '';
+
         return `
           <div class="flex justify-between items-center py-2.5">
-            <div class="pr-2">
-              <p class="font-semibold text-gray-800 leading-tight">${prod.nome}</p>
-              <p class="text-xs text-gray-500">R$ ${prod.preco.toFixed(2).replace('.', ',')} cada</p>
+            <div class="pr-2 flex-1">
+              <p class="font-bold text-gray-800 text-sm leading-tight">${item.nome}</p>
+              ${complTexto}
+              ${obsTexto}
+              <p class="text-xs text-gray-500 mt-0.5">R$ ${item.precoTotal.toFixed(2).replace('.', ',')} cada</p>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="alterarQtd(${prod.id}, -1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 font-bold text-gray-700 text-sm flex items-center justify-center">-</button>
-              <span class="font-bold text-sm w-4 text-center">${qtd}</span>
-              <button onclick="alterarQtd(${prod.id}, 1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 font-bold text-gray-700 text-sm flex items-center justify-center">+</button>
+              <button onclick="alterarQtd(${item.cartId}, -1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 font-bold text-gray-700 text-sm flex items-center justify-center">-</button>
+              <span class="font-bold text-sm w-4 text-center">${item.qtd}</span>
+              <button onclick="alterarQtd(${item.cartId}, 1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 font-bold text-gray-700 text-sm flex items-center justify-center">+</button>
             </div>
           </div>
         `;
@@ -357,22 +557,28 @@
       const nome = document.getElementById('cliente-nome').value.trim();
       const endereco = document.getElementById('cliente-endereco').value.trim();
       const pagamento = document.getElementById('forma-pagamento').value;
-      const obs = document.getElementById('cliente-obs').value.trim();
+      const obsGeral = document.getElementById('cliente-obs').value.trim();
       const { subtotal, total } = calcularTotais();
 
       let texto = `*🍇 NOVO PEDIDO - AÇAIZEIRO*\n\n`;
       texto += `*Cliente:* ${nome}\n`;
       texto += `*Endereço:* ${endereco}\n`;
       texto += `*Pagamento:* ${pagamento}\n`;
-      if (obs) texto += `*Observação:* ${obs}\n`;
+      if (obsGeral) texto += `*Obs Entrega:* ${obsGeral}\n`;
       texto += `\n*📋 ITENS SOLICITADOS:*\n`;
 
-      for (const id in carrinho) {
-        const prod = produtos.find(p => p.id == id);
-        const qtd = carrinho[id];
-        const sub = prod.preco * qtd;
-        texto += `• ${qtd}x ${prod.nome} — R$ ${sub.toFixed(2).replace('.', ',')}\n`;
-      }
+      carrinho.forEach(item => {
+        const sub = item.precoTotal * item.qtd;
+        texto += `\n• *${item.qtd}x ${item.nome}* — R$ ${sub.toFixed(2).replace('.', ',')}\n`;
+        if (item.complementos.length > 0) {
+          item.complementos.forEach(c => {
+            texto += `   └ + ${c.nome} (R$ ${c.preco.toFixed(2).replace('.', ',')})\n`;
+          });
+        }
+        if (item.obs) {
+          texto += `   └ Obs item: ${item.obs}\n`;
+        }
+      });
 
       texto += `\n*Subtotal:* R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
       texto += `*Taxa de Entrega:* R$ ${config.taxaEntrega.toFixed(2).replace('.', ',')}\n`;
