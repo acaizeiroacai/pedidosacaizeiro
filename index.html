@@ -48,9 +48,9 @@
     <div class="max-w-xl mx-auto flex items-center justify-between gap-3">
       <div>
         <p class="text-[11px] text-gray-500 uppercase font-semibold">Total do Pedido</p>
-        <p class="text-xl font-black text-[#5c1380]" id="total-barra">R$ 0,00</p>
+        <p class="text-xl font-black text-[#411564]" id="total-barra">R$ 0,00</p>
       </div>
-      <button onclick="abrirModalCheckout()" id="btn-sacola" class="bg-[#5c1380] hover:bg-purple-900 active:scale-95 text-white font-bold px-5 py-3 rounded-xl flex items-center gap-2.5 shadow-md transition disabled:opacity-40 disabled:pointer-events-none">
+      <button onclick="abrirModalCheckout()" id="btn-sacola" class="bg-[#411564] hover:bg-purple-900 active:scale-95 text-white font-bold px-5 py-3 rounded-xl flex items-center gap-2.5 shadow-md transition disabled:opacity-40 disabled:pointer-events-none">
         <i class="fa-solid fa-bag-shopping"></i>
         <span>Ver Sacola (<span id="qtd-itens">0</span>)</span>
       </button>
@@ -62,7 +62,7 @@
     <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto p-5 space-y-4">
       <div class="flex justify-between items-start border-b pb-3">
         <div>
-          <h2 class="text-lg font-black text-[#5c1380]" id="modal-prod-nome">Nome do Açaí</h2>
+          <h2 class="text-lg font-black text-[#411564]" id="modal-prod-nome">Nome do Açaí</h2>
           <p class="text-xs text-gray-500 mt-0.5" id="modal-prod-desc">Descrição</p>
         </div>
         <button onclick="fecharModalProduto()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none">&times;</button>
@@ -91,9 +91,9 @@
       <div class="pt-2 border-t flex items-center justify-between gap-4">
         <div>
           <p class="text-[11px] text-gray-500">Valor do Item</p>
-          <p class="text-lg font-black text-[#5c1380]" id="modal-prod-total">R$ 0,00</p>
+          <p class="text-lg font-black text-[#411564]" id="modal-prod-total">R$ 0,00</p>
         </div>
-        <button onclick="confirmarAdicionarItem()" class="flex-1 bg-[#5c1380] hover:bg-purple-900 text-white font-bold py-3 px-4 rounded-xl shadow-md active:scale-95 transition text-sm">
+        <button onclick="confirmarAdicionarItem()" class="flex-1 bg-[#411564] hover:bg-purple-900 text-white font-bold py-3 px-4 rounded-xl shadow-md active:scale-95 transition text-sm">
           Adicionar ao Pedido
         </button>
       </div>
@@ -105,7 +105,7 @@
     <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto p-5 space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
         <h2 class="text-lg font-black text-gray-900 flex items-center gap-2">
-          <i class="fa-solid fa-receipt text-[#5c1380]"></i> Finalizar Pedido
+          <i class="fa-solid fa-receipt text-[#411564]"></i> Finalizar Pedido
         </h2>
         <button onclick="fecharModalCheckout()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none">&times;</button>
       </div>
@@ -121,7 +121,7 @@
           <span>Taxa de Entrega:</span>
           <span id="resumo-taxa" class="font-semibold">R$ 0,00</span>
         </div>
-        <div class="flex justify-between font-black text-base text-[#5c1380] border-t border-purple-200/80 pt-2">
+        <div class="flex justify-between font-black text-base text-[#411564] border-t border-purple-200/80 pt-2">
           <span>Total Geral:</span>
           <span id="resumo-total">R$ 0,00</span>
         </div>
@@ -376,8 +376,8 @@
             <h3 class="font-bold text-gray-900 text-sm leading-snug">${prod.nome}</h3>
             <p class="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">${prod.desc}</p>
             <div class="flex items-center justify-between mt-2">
-              <span class="font-black text-[#5c1380] text-sm">R$ ${prod.preco.toFixed(2).replace('.', ',')}</span>
-              <button onclick="event.stopPropagation(); iniciarAdicaoProduto(${prod.id})" class="bg-purple-50 hover:bg-purple-100 text-[#5c1380] font-bold px-3 py-1.5 rounded-lg border border-purple-200 text-xs active:scale-95 transition">
+              <span class="font-black text-[#411564] text-sm">R$ ${prod.preco.toFixed(2).replace('.', ',')}</span>
+              <button onclick="event.stopPropagation(); iniciarAdicaoProduto(${prod.id})" class="bg-purple-50 hover:bg-purple-100 text-[#411564] font-bold px-3 py-1.5 rounded-lg border border-purple-200 text-xs active:scale-95 transition">
                 + Adicionar
               </button>
             </div>
