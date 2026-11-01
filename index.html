@@ -17,9 +17,10 @@
   <header class="bg-[#5c1380] text-white p-4 shadow-md sticky top-0 z-30">
     <div class="max-w-xl mx-auto flex justify-between items-center">
       <div class="flex items-center gap-3">
-        <!-- Logotipo com fallback automático se a foto não for encontrada -->
-        <div class="w-11 h-11 rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-purple-300 shadow-sm flex-shrink-0">
-         <img src="LOGO PNG.png" alt="Açaizeiro" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <!-- Logotipo oficial -->
+        <div class="w-12 h-12 rounded-full bg-black flex items-center justify-center overflow-hidden border-2 border-purple-300 shadow-md flex-shrink-0">
+          <img src="LOGO PNG.png" alt="Açaizeiro" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='logo.jpg'; this.onerror=() => { this.style.display='none'; this.nextElementSibling.style.display='block'; };">
+          <span style="display:none;" class="text-xl"></span>
         </div>
         <div>
           <h1 class="text-lg font-black tracking-tight leading-tight">Açaizeiro</h1>
@@ -35,7 +36,7 @@
   </header>
 
   <!-- Filtro de Categorias -->
-  <nav class="max-w-xl mx-auto px-4 pt-4 pb-2 sticky top-[69px] bg-[#fcfaff]/95 backdrop-blur-sm z-20">
+  <nav class="max-w-xl mx-auto px-4 pt-4 pb-2 sticky top-[73px] bg-[#fcfaff]/95 backdrop-blur-sm z-20">
     <div class="flex gap-2 overflow-x-auto hide-scrollbar py-1" id="lista-categorias"></div>
   </nav>
 
@@ -105,8 +106,8 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Observações do Pedido</label>
-          <textarea id="cliente-obs" rows="2" class="w-full border border-gray-300 rounded-xl p-2 text-sm outline-purple-600" placeholder="Ex: Tirar granola, troco para 50..."></textarea>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Observações do Pedido (Ex: Adicionais, retirar itens, troco)</label>
+          <textarea id="cliente-obs" rows="2" class="w-full border border-gray-300 rounded-xl p-2 text-sm outline-purple-600" placeholder="Ex: Caprichar no leite em pó, troco para 50..."></textarea>
         </div>
 
         <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition">
@@ -118,54 +119,104 @@
   </div>
 
   <script>
+    // Configurações da Loja
     let config = {
-      whatsapp: "5516999999999",
+      whatsapp: "5516999999999", // Altere aqui ou pelo ícone de engrenagem
       taxaEntrega: 5.00
     };
 
-    const categorias = ["Todos", "Mais Pedidos", "Copos Montados", "Bebidas"];
+    // Categorias Oficiais
+    const categorias = [
+      "Todos", 
+      "Copos Açaí Puro", 
+      "Copos Moranguete", 
+      "Copo Açaí Tradicional", 
+      "Copos Kids", 
+      "Ninho c/ Creme de Avelã"
+    ];
     let categoriaAtiva = "Todos";
 
+    // Produtos Oficiais Extraídos do seu Cardápio
     const produtos = [
       {
         id: 1,
-        categoria: "Mais Pedidos",
-        nome: "Açaí Tradicional 500ml",
-        desc: "Banana fresca fatiada, leite em pó e granola crocante.",
-        preco: 22.00,
-        icone: "🥣"
+        categoria: "Copos Açaí Puro",
+        nome: "Copo Açaí Puro P - Monte o Seu",
+        desc: "Açaí Puro 300ml - Servido com açaí puro. Opção para tomar puro ou adicionar seus complementos.",
+        preco: 18.40,
+        icone: "🍇"
       },
       {
         id: 2,
-        categoria: "Mais Pedidos",
-        nome: "Açaí Especial Trufado 500ml",
-        desc: "Nutella pura, morangos frescos e leite condensado.",
-        preco: 28.00,
-        icone: "🍓"
+        categoria: "Copos Açaí Puro",
+        nome: "Copo Açaí Puro M - Monte o Seu",
+        desc: "Açaí Puro 500ml - Servido com açaí puro. Opção para tomar puro ou adicionar seus complementos.",
+        preco: 27.99,
+        icone: "🍇"
       },
       {
         id: 3,
-        categoria: "Copos Montados",
-        nome: "Copo da Felicidade 400ml",
-        desc: "Brigadeiro gourmet, pedaços de brownie e raspas de chocolate.",
-        preco: 20.00,
-        icone: "🍫"
+        categoria: "Copos Moranguete",
+        nome: "Copo Moranguete P",
+        desc: "Copo 300ml - Servido com açaí, creme de morango e chocolate moranguete.",
+        preco: 22.60,
+        icone: "🍓"
       },
       {
         id: 4,
-        categoria: "Copos Montados",
-        nome: "Açaí Fit 400ml",
-        desc: "Açaí puro zero açúcar, acompanhado de mel, kiwi e chia.",
-        preco: 21.00,
-        icone: "🥝"
+        categoria: "Copos Moranguete",
+        nome: "Copo Moranguete M",
+        desc: "Copo 500ml - Servido com açaí, creme de morango e chocolate moranguete.",
+        preco: 28.30,
+        icone: "🍓"
       },
       {
         id: 5,
-        categoria: "Bebidas",
-        nome: "Água Mineral 500ml",
-        desc: "Sem gás, servida gelada.",
-        preco: 4.50,
-        icone: "💧"
+        categoria: "Copo Açaí Tradicional",
+        nome: "Copo Açaí Tradicional P",
+        desc: "Copo 300ml - Servido com açaí, leite condensado e leite em pó.",
+        preco: 19.80,
+        icone: "🥛"
+      },
+      {
+        id: 6,
+        categoria: "Copo Açaí Tradicional",
+        nome: "Copo Açaí Tradicional M",
+        desc: "Copo 500ml - Servido com açaí, leite condensado e leite em pó.",
+        preco: 25.70,
+        icone: "🥛"
+      },
+      {
+        id: 7,
+        categoria: "Copos Kids",
+        nome: "Copo Kids P",
+        desc: "Copo 300ml - Servido com açaí, leite condensado, leite em pó e Confete (chocolates coloridos).",
+        preco: 24.50,
+        icone: "🍬"
+      },
+      {
+        id: 8,
+        categoria: "Copos Kids",
+        nome: "Copo Kids G",
+        desc: "Copo 500ml - Servido com açaí, leite condensado, leite em pó e Confete (chocolates).",
+        preco: 34.50,
+        icone: "🍬"
+      },
+      {
+        id: 9,
+        categoria: "Ninho c/ Creme de Avelã",
+        nome: "Copo Ninho Com Creme de Avelã P",
+        desc: "Copo 300ml - Servido com açaí, creme de avelã e creme de Ninho.",
+        preco: 29.50,
+        icone: "🍫"
+      },
+      {
+        id: 10,
+        categoria: "Ninho c/ Creme de Avelã",
+        nome: "Copo Ninho com Creme de Avelã M",
+        desc: "Copo 500ml - Servido com açaí, creme de avelã e creme de Ninho.",
+        preco: 39.15,
+        icone: "🍫"
       }
     ];
 
@@ -298,7 +349,7 @@
       const obs = document.getElementById('cliente-obs').value.trim();
       const { subtotal, total } = calcularTotais();
 
-      let texto = `*🍇 NOVO PEDIDO - AÇAIZEIRO*\n\n`;
+      let texto = `* NOVO PEDIDO - AÇAIZEIRO*\n\n`;
       texto += `*Cliente:* ${nome}\n`;
       texto += `*Endereço:* ${endereco}\n`;
       texto += `*Pagamento:* ${pagamento}\n`;
