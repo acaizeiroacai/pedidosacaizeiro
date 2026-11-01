@@ -144,7 +144,7 @@
         nome: "Copo Açaí Puro P - Monte o Seu",
         desc: "Açaí Puro 300ml - Servido com açaí puro. Opção para tomar puro ou adicionar seus complementos.",
         preco: 18.40,
-        icone: "🍇"
+        imagem: "puro.png" // Nome exato do arquivo que você carregou no GitHub
       },
       {
         id: 2,
@@ -152,7 +152,7 @@
         nome: "Copo Açaí Puro M - Monte o Seu",
         desc: "Açaí Puro 500ml - Servido com açaí puro. Opção para tomar puro ou adicionar seus complementos.",
         preco: 27.99,
-        icone: "🍇"
+        imagem: "puro.png"
       },
       {
         id: 3,
@@ -160,7 +160,7 @@
         nome: "Copo Moranguete P",
         desc: "Copo 300ml - Servido com açaí, creme de morango e chocolate moranguete.",
         preco: 22.60,
-        icone: "🍓"
+        imagem: "moranguete.png"
       },
       {
         id: 4,
@@ -168,7 +168,7 @@
         nome: "Copo Moranguete M",
         desc: "Copo 500ml - Servido com açaí, creme de morango e chocolate moranguete.",
         preco: 28.30,
-        icone: "🍓"
+        imagem: "moranguete.png"
       },
       {
         id: 5,
@@ -176,7 +176,7 @@
         nome: "Copo Açaí Tradicional P",
         desc: "Copo 300ml - Servido com açaí, leite condensado e leite em pó.",
         preco: 19.80,
-        icone: "🥛"
+        imagem: "tradicional.png"
       },
       {
         id: 6,
@@ -184,7 +184,7 @@
         nome: "Copo Açaí Tradicional M",
         desc: "Copo 500ml - Servido com açaí, leite condensado e leite em pó.",
         preco: 25.70,
-        icone: "🥛"
+        imagem: "tradicional.png"
       },
       {
         id: 7,
@@ -192,7 +192,7 @@
         nome: "Copo Kids P",
         desc: "Copo 300ml - Servido com açaí, leite condensado, leite em pó e Confete (chocolates coloridos).",
         preco: 24.50,
-        icone: "🍬"
+        imagem: "kids.png"
       },
       {
         id: 8,
@@ -200,7 +200,7 @@
         nome: "Copo Kids G",
         desc: "Copo 500ml - Servido com açaí, leite condensado, leite em pó e Confete (chocolates).",
         preco: 34.50,
-        icone: "🍬"
+        imagem: "kids.png"
       },
       {
         id: 9,
@@ -208,7 +208,7 @@
         nome: "Copo Ninho Com Creme de Avelã P",
         desc: "Copo 300ml - Servido com açaí, creme de avelã e creme de Ninho.",
         preco: 29.50,
-        icone: "🍫"
+        imagem: "ninho.png"
       },
       {
         id: 10,
@@ -216,7 +216,7 @@
         nome: "Copo Ninho com Creme de Avelã M",
         desc: "Copo 500ml - Servido com açaí, creme de avelã e creme de Ninho.",
         preco: 39.15,
-        icone: "🍫"
+        imagem: "ninho.png"
       }
     ];
 
@@ -245,8 +245,9 @@
 
       container.innerHTML = filtrados.map(prod => `
         <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-purple-100 flex gap-3.5 items-center">
-          <div class="w-16 h-16 rounded-xl bg-purple-50 flex items-center justify-center text-3xl flex-shrink-0 border border-purple-100">
-            ${prod.icone}
+          <!-- Imagem do Produto com borda arredondada -->
+          <div class="w-20 h-20 rounded-xl overflow-hidden bg-purple-50 flex-shrink-0 border border-purple-100">
+            <img src="${prod.imagem}" alt="${prod.nome}" class="w-full h-full object-cover">
           </div>
           <div class="flex-1 min-w-0">
             <h3 class="font-bold text-gray-900 text-sm leading-snug">${prod.nome}</h3>
