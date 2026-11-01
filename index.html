@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Açaizeiro - Delivery de Açaí</title>
+  <title>Açaizeiro - Delivery</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -11,28 +11,32 @@
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="bg-purple-50 text-gray-800 pb-28 antialiased">
+<body class="bg-[#fcfaff] text-gray-800 pb-28 antialiased">
 
-  <!-- Topo / Cabeçalho -->
-  <header class="bg-gradient-to-r from-purple-900 via-purple-800 to-indigo-950 text-white p-4 shadow-lg sticky top-0 z-30">
+  <!-- Topo -->
+  <header class="bg-[#5c1380] text-white p-4 shadow-md sticky top-0 z-30">
     <div class="max-w-xl mx-auto flex justify-between items-center">
       <div class="flex items-center gap-3">
-        <img src="logo.jpg" alt="Açaizeiro" class="w-12 h-12 rounded-full object-cover border-2 border-purple-300 shadow-md">
+        <!-- Logotipo com fallback automático se a foto não for encontrada -->
+        <div class="w-11 h-11 rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-purple-300 shadow-sm flex-shrink-0">
+          <img src="logo.jpg" alt="Açaizeiro" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+          <span style="display:none;" class="text-xl">🍇</span>
+        </div>
         <div>
           <h1 class="text-lg font-black tracking-tight leading-tight">Açaizeiro</h1>
           <p class="text-xs text-purple-200 flex items-center gap-1.5 font-medium">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span> Aberto para Pedidos
+            <span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span> Aberto para Pedidos
           </p>
         </div>
       </div>
-      <button onclick="abrirConfig()" class="text-purple-200 hover:text-white p-2 text-base bg-purple-800/80 rounded-xl border border-purple-700" title="Configurar Loja">
+      <button onclick="abrirConfig()" class="text-purple-200 hover:text-white p-2 text-base bg-purple-900/60 rounded-xl" title="Configurar Loja">
         <i class="fa-solid fa-gear"></i>
       </button>
     </div>
   </header>
 
   <!-- Filtro de Categorias -->
-  <nav class="max-w-xl mx-auto px-4 pt-3 pb-1 sticky top-[69px] bg-purple-50/95 backdrop-blur-sm z-20">
+  <nav class="max-w-xl mx-auto px-4 pt-4 pb-2 sticky top-[69px] bg-[#fcfaff]/95 backdrop-blur-sm z-20">
     <div class="flex gap-2 overflow-x-auto hide-scrollbar py-1" id="lista-categorias"></div>
   </nav>
 
@@ -40,13 +44,13 @@
   <main class="max-w-xl mx-auto p-4 space-y-3" id="lista-produtos"></main>
 
   <!-- Barra Fixa Inferior (Sacola) -->
-  <footer class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-purple-100 p-3.5 shadow-2xl z-30">
+  <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-purple-100 p-3.5 shadow-2xl z-30">
     <div class="max-w-xl mx-auto flex items-center justify-between gap-3">
       <div>
         <p class="text-[11px] text-gray-500 uppercase font-semibold">Total do Pedido</p>
-        <p class="text-xl font-black text-purple-900" id="total-barra">R$ 0,00</p>
+        <p class="text-xl font-black text-[#5c1380]" id="total-barra">R$ 0,00</p>
       </div>
-      <button onclick="abrirModalCheckout()" id="btn-sacola" class="bg-purple-700 hover:bg-purple-800 active:scale-95 text-white font-bold px-5 py-3 rounded-xl flex items-center gap-2.5 shadow-md shadow-purple-900/20 transition disabled:opacity-40 disabled:pointer-events-none">
+      <button onclick="abrirModalCheckout()" id="btn-sacola" class="bg-[#5c1380] hover:bg-purple-900 active:scale-95 text-white font-bold px-5 py-3 rounded-xl flex items-center gap-2.5 shadow-md transition disabled:opacity-40 disabled:pointer-events-none">
         <i class="fa-solid fa-bag-shopping"></i>
         <span>Ver Sacola (<span id="qtd-itens">0</span>)</span>
       </button>
@@ -57,8 +61,8 @@
   <div id="modal-checkout" class="fixed inset-0 bg-black/60 hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
     <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto p-5 space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
-        <h2 class="text-lg font-black text-purple-950 flex items-center gap-2">
-          <i class="fa-solid fa-receipt text-purple-700"></i> Finalizar Pedido
+        <h2 class="text-lg font-black text-gray-900 flex items-center gap-2">
+          <i class="fa-solid fa-receipt text-[#5c1380]"></i> Finalizar Pedido
         </h2>
         <button onclick="fecharModalCheckout()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none">&times;</button>
       </div>
@@ -74,5 +78,251 @@
           <span>Taxa de Entrega:</span>
           <span id="resumo-taxa" class="font-semibold">R$ 0,00</span>
         </div>
-        <div class="flex justify-between font-black text-base text-purple-950 border-t border-purple-200/80 pt-2">
+        <div class="flex justify-between font-black text-base text-[#5c1380] border-t border-purple-200/80 pt-2">
           <span>Total Geral:</span>
+          <span id="resumo-total">R$ 0,00</span>
+        </div>
+      </div>
+
+      <form id="form-pedido" class="space-y-3" onsubmit="enviarPedido(event)">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Seu Nome *</label>
+          <input type="text" id="cliente-nome" required class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-purple-600" placeholder="Ex: Maria Santos">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Endereço de Entrega (Rua, Nº e Bairro) *</label>
+          <input type="text" id="cliente-endereco" required class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-purple-600" placeholder="Ex: Rua São Domingos, 120">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Forma de Pagamento *</label>
+          <select id="forma-pagamento" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-purple-600">
+            <option value="Pix">Pix (Chave informada no WhatsApp)</option>
+            <option value="Cartão de Crédito">Cartão de Crédito (Levar maquininha)</option>
+            <option value="Cartão de Débito">Cartão de Débito (Levar maquininha)</option>
+            <option value="Dinheiro">Dinheiro</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Observações do Pedido</label>
+          <textarea id="cliente-obs" rows="2" class="w-full border border-gray-300 rounded-xl p-2 text-sm outline-purple-600" placeholder="Ex: Tirar granola, troco para 50..."></textarea>
+        </div>
+
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition">
+          <i class="fa-brands fa-whatsapp text-xl"></i>
+          <span>Confirmar e Enviar Pedido</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let config = {
+      whatsapp: "5516999999999",
+      taxaEntrega: 5.00
+    };
+
+    const categorias = ["Todos", "Mais Pedidos", "Copos Montados", "Bebidas"];
+    let categoriaAtiva = "Todos";
+
+    const produtos = [
+      {
+        id: 1,
+        categoria: "Mais Pedidos",
+        nome: "Açaí Tradicional 500ml",
+        desc: "Banana fresca fatiada, leite em pó e granola crocante.",
+        preco: 22.00,
+        icone: "🥣"
+      },
+      {
+        id: 2,
+        categoria: "Mais Pedidos",
+        nome: "Açaí Especial Trufado 500ml",
+        desc: "Nutella pura, morangos frescos e leite condensado.",
+        preco: 28.00,
+        icone: "🍓"
+      },
+      {
+        id: 3,
+        categoria: "Copos Montados",
+        nome: "Copo da Felicidade 400ml",
+        desc: "Brigadeiro gourmet, pedaços de brownie e raspas de chocolate.",
+        preco: 20.00,
+        icone: "🍫"
+      },
+      {
+        id: 4,
+        categoria: "Copos Montados",
+        nome: "Açaí Fit 400ml",
+        desc: "Açaí puro zero açúcar, acompanhado de mel, kiwi e chia.",
+        preco: 21.00,
+        icone: "🥝"
+      },
+      {
+        id: 5,
+        categoria: "Bebidas",
+        nome: "Água Mineral 500ml",
+        desc: "Sem gás, servida gelada.",
+        preco: 4.50,
+        icone: "💧"
+      }
+    ];
+
+    let carrinho = {};
+
+    function renderizarCategorias() {
+      const container = document.getElementById('lista-categorias');
+      container.innerHTML = categorias.map(cat => `
+        <button onclick="selecionarCategoria('${cat}')" class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${categoriaAtiva === cat ? 'bg-[#5c1380] text-white shadow-sm' : 'bg-white text-gray-600 border border-purple-100 hover:bg-purple-50'}">
+          ${cat}
+        </button>
+      `).join('');
+    }
+
+    function selecionarCategoria(cat) {
+      categoriaAtiva = cat;
+      renderizarCategorias();
+      carregarProdutos();
+    }
+
+    function carregarProdutos() {
+      const container = document.getElementById('lista-produtos');
+      const filtrados = categoriaAtiva === "Todos" 
+        ? produtos 
+        : produtos.filter(p => p.categoria === categoriaAtiva);
+
+      container.innerHTML = filtrados.map(prod => `
+        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-purple-100 flex gap-3.5 items-center">
+          <div class="w-16 h-16 rounded-xl bg-purple-50 flex items-center justify-center text-3xl flex-shrink-0 border border-purple-100">
+            ${prod.icone}
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-bold text-gray-900 text-sm leading-snug">${prod.nome}</h3>
+            <p class="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">${prod.desc}</p>
+            <div class="flex items-center justify-between mt-2">
+              <span class="font-black text-[#5c1380] text-sm">R$ ${prod.preco.toFixed(2).replace('.', ',')}</span>
+              <button onclick="adicionarAoCarrinho(${prod.id})" class="bg-purple-50 hover:bg-purple-100 text-[#5c1380] font-bold px-3 py-1.5 rounded-lg border border-purple-200 text-xs active:scale-95 transition">
+                + Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function adicionarAoCarrinho(id) {
+      carrinho[id] = (carrinho[id] || 0) + 1;
+      atualizarBarra();
+    }
+
+    function alterarQtd(id, delta) {
+      if (!carrinho[id]) return;
+      carrinho[id] += delta;
+      if (carrinho[id] <= 0) delete carrinho[id];
+      atualizarBarra();
+      renderizarItensCheckout();
+    }
+
+    function calcularTotais() {
+      let subtotal = 0;
+      let totalQtd = 0;
+      for (const id in carrinho) {
+        const prod = produtos.find(p => p.id == id);
+        if (prod) {
+          subtotal += prod.preco * carrinho[id];
+          totalQtd += carrinho[id];
+        }
+      }
+      const total = subtotal > 0 ? (subtotal + config.taxaEntrega) : 0;
+      return { subtotal, total, totalQtd };
+    }
+
+    function atualizarBarra() {
+      const { subtotal, totalQtd } = calcularTotais();
+      document.getElementById('total-barra').innerText = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
+      document.getElementById('qtd-itens').innerText = totalQtd;
+      document.getElementById('btn-sacola').disabled = totalQtd === 0;
+    }
+
+    function renderizarItensCheckout() {
+      const { subtotal, total } = calcularTotais();
+      const container = document.getElementById('itens-carrinho');
+      
+      const itensHtml = Object.keys(carrinho).map(id => {
+        const prod = produtos.find(p => p.id == id);
+        const qtd = carrinho[id];
+        return `
+          <div class="flex justify-between items-center py-2.5">
+            <div class="pr-2">
+              <p class="font-semibold text-gray-800 leading-tight">${prod.nome}</p>
+              <p class="text-xs text-gray-500">R$ ${prod.preco.toFixed(2).replace('.', ',')} cada</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="alterarQtd(${prod.id}, -1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 font-bold text-gray-700 text-sm flex items-center justify-center">-</button>
+              <span class="font-bold text-sm w-4 text-center">${qtd}</span>
+              <button onclick="alterarQtd(${prod.id}, 1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 font-bold text-gray-700 text-sm flex items-center justify-center">+</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = itensHtml || '<p class="text-center py-4 text-gray-400 text-sm">Sua sacola está vazia</p>';
+      document.getElementById('resumo-subtotal').innerText = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
+      document.getElementById('resumo-taxa').innerText = `R$ ${config.taxaEntrega.toFixed(2).replace('.', ',')}`;
+      document.getElementById('resumo-total').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    }
+
+    function abrirModalCheckout() {
+      renderizarItensCheckout();
+      document.getElementById('modal-checkout').classList.remove('hidden');
+    }
+
+    function fecharModalCheckout() {
+      document.getElementById('modal-checkout').classList.add('hidden');
+    }
+
+    function abrirConfig() {
+      const novoZap = prompt("Digite seu WhatsApp com DDD (somente números, ex: 5516999999999):", config.whatsapp);
+      if (novoZap) config.whatsapp = novoZap.replace(/\D/g, '');
+      const novaTaxa = prompt("Digite o valor da taxa de entrega padrão (ex: 5.00):", config.taxaEntrega);
+      if (novaTaxa) config.taxaEntrega = parseFloat(novaTaxa) || 0;
+      atualizarBarra();
+    }
+
+    function enviarPedido(e) {
+      e.preventDefault();
+      const nome = document.getElementById('cliente-nome').value.trim();
+      const endereco = document.getElementById('cliente-endereco').value.trim();
+      const pagamento = document.getElementById('forma-pagamento').value;
+      const obs = document.getElementById('cliente-obs').value.trim();
+      const { subtotal, total } = calcularTotais();
+
+      let texto = `*🍇 NOVO PEDIDO - AÇAIZEIRO*\n\n`;
+      texto += `*Cliente:* ${nome}\n`;
+      texto += `*Endereço:* ${endereco}\n`;
+      texto += `*Pagamento:* ${pagamento}\n`;
+      if (obs) texto += `*Observação:* ${obs}\n`;
+      texto += `\n*📋 ITENS SOLICITADOS:*\n`;
+
+      for (const id in carrinho) {
+        const prod = produtos.find(p => p.id == id);
+        const qtd = carrinho[id];
+        const sub = prod.preco * qtd;
+        texto += `• ${qtd}x ${prod.nome} — R$ ${sub.toFixed(2).replace('.', ',')}\n`;
+      }
+
+      texto += `\n*Subtotal:* R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
+      texto += `*Taxa de Entrega:* R$ ${config.taxaEntrega.toFixed(2).replace('.', ',')}\n`;
+      texto += `*TOTAL DO PEDIDO:* R$ ${total.toFixed(2).replace('.', ',')}\n`;
+
+      const linkWhatsapp = `https://wa.me/${config.whatsapp}?text=${encodeURIComponent(texto)}`;
+      window.open(linkWhatsapp, '_blank');
+    }
+
+    renderizarCategorias();
+    carregarProdutos();
+  </script>
+</body>
+</html>
