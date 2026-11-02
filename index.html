@@ -18,6 +18,8 @@
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
+  <!-- Biblioteca Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-[#fcfaff] text-gray-800 pb-28 antialiased">
 
@@ -162,6 +164,44 @@
   </div>
 
   <script>
+    // Configuração do Supabase com as suas chaves oficiais
+const SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+const dbSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// A lista começa vazia e será preenchida diretamente pela base de dados
+let produtos = [];
+    async function carregarProdutosDoBanco() {
+  try {
+    const { data, error } = await dbSupabase
+      .from('produtos')
+      .select('*')
+      .eq('ativo', true);
+
+    if (error) {
+      console.error("Erro ao procurar produtos no Supabase:", error);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      // Converte os dados do Supabase para o formato do catálogo
+      produtos = data.map(item => ({
+        id: item.id,
+        categoria: item.categoria,
+        nome: item.nome,
+        desc: item.descricao || "",
+        preco: parseFloat(item.preco),
+        imagem: item.imagem_url || "",
+        permiteComplementos: item.categoria !== "Complementos"
+      }));
+
+      // Atualiza o ecrã com os produtos vindos da base de dados
+      carregarProdutos();
+    }
+  } catch (err) {
+    console.error("Erro inesperado:", err);
+  }
+}
     const config = {
       whatsapp: "5516981065241",
       taxaEntrega: 10.00
@@ -616,7 +656,7 @@
     }
 
     renderizarCategorias();
-    carregarProdutos();
+carregarProdutosDoBanco();
   </script>
 </body>
 </html>
