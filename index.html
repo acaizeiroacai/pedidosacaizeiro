@@ -608,11 +608,11 @@
       window.open(linkWhatsapp, '_blank');
     }
 
-    // 1. RENDERIZAÇÃO IMEDIATA (Aparece em 0 segundos)
+    // 1. RENDERIZAÇÃO IMEDIATA (Exibe tudo perfeitamente)
     renderizarCategorias();
     carregarProdutos();
 
-    // 2. BUSCA NO SUPABASE (Não sobrescreve os produtos existentes, apenas adiciona ou atualiza)
+    // 2. BUSCA NO SUPABASE (Blindada contra duplicação e sem apagar produtos)
     setTimeout(function() {
       var s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
@@ -627,15 +627,27 @@
             if (res.data && res.data.length > 0) {
               res.data.forEach(function(item) {
                 if (!item.nome) return;
-                var existe = produtos.find(function(p) { return p.id === item.id; });
+
+                // Evita sobrescrever itens locais por colisão de ID numérico
+                var idSupabase = "sb_" + item.id;
+                var existe = produtos.find(function(p) { 
+                  return p.id === idSupabase || p.nome.trim().toLowerCase() === item.nome.trim().toLowerCase(); 
+                });
+
+                var categoriaAjustada = item.categoria ? item.categoria.trim() : "Copos Açaí Tradicional";
+                // Corrige erro de digitação caso no banco esteja "Copos Tracionais"
+                if (categoriaAjustada.toLowerCase().includes("traciona")) {
+                  categoriaAjustada = "Copos Açaí Tradicional";
+                }
+
                 var formatado = {
-                  id: item.id,
-                  categoria: item.categoria || "Copos Açaí Tradicional",
+                  id: existe ? existe.id : idSupabase,
+                  categoria: categoriaAjustada,
                   nome: item.nome,
                   desc: item.descricao || "Item cadastrado no banco de dados.",
                   preco: parseFloat(item.preco) || 16.50,
                   imagem: item.imagem_url || "TRADICIONAL.png",
-                  permiteComplementos: (item.categoria || "").toLowerCase() !== "complementos"
+                  permiteComplementos: categoriaAjustada.toLowerCase() !== "complementos"
                 };
 
                 if (existe) {
@@ -643,11 +655,15 @@
                 } else {
                   produtos.push(formatado);
                 }
+
+                // Adiciona a categoria caso ela ainda não exista na barra de filtros
+                if (categorias.indexOf(categoriaAjustada) === -1) {
+                  categorias.push(categoriaAjustada);
+                }
               });
 
               renderizarCategorias();
               carregarProdutos();
-              console.log("Produtos do Supabase integrados com sucesso!");
             }
           }).catch(function(e) {
             console.warn("Aviso na consulta ao Supabase:", e);
