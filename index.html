@@ -169,39 +169,43 @@ const SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
 const dbSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// A lista começa vazia e será preenchida diretamente pela base de dados
-let produtos = [];
+// Leitura direta da sua tabela "CARDAPIO ACAIZEIRO" no Supabase
     async function carregarProdutosDoBanco() {
-  try {
-    const { data, error } = await dbSupabase
-      .from('produtos')
-      .select('*')
-      .eq('ativo', true);
+      if (!dbSupabase) return;
+      try {
+        const { data, error } = await dbSupabase
+          .from('CARDAPIO ACAIZEIRO')
+          .select('*');
 
-    if (error) {
-      console.error("Erro ao procurar produtos no Supabase:", error);
-      return;
+        if (error) {
+          console.warn("Aviso ao ligar ao Supabase:", error.message);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          produtos = data.map(item => ({
+            id: item.id,
+            categoria: item.categoria || "Geral",
+            nome: item.nome,
+            desc: item.descricao || "",
+            preco: parseFloat(item.preco) || 0,
+            imagem: item.imagem_url || "tradicional.png",
+            permiteComplementos: (item.categoria || "").toLowerCase() !== "complementos"
+          }));
+
+          // Atualiza a lista de categorias e os produtos com base nos dados reais do Supabase
+          const catsDoBanco = ["Todos", ...new Set(produtos.map(p => p.categoria))];
+          if (catsDoBanco.length > 1) {
+            categorias = catsDoBanco;
+          }
+          
+          renderizarCategorias();
+          carregarProdutos();
+        }
+      } catch (err) {
+        console.warn("Falha de ligação com o Supabase:", err);
+      }
     }
-
-    if (data && data.length > 0) {
-      // Converte os dados do Supabase para o formato do catálogo
-      produtos = data.map(item => ({
-        id: item.id,
-        categoria: item.categoria,
-        nome: item.nome,
-        desc: item.descricao || "",
-        preco: parseFloat(item.preco),
-        imagem: item.imagem_url || "",
-        permiteComplementos: item.categoria !== "Complementos"
-      }));
-
-      // Atualiza o ecrã com os produtos vindos da base de dados
-      carregarProdutos();
-    }
-  } catch (err) {
-    console.error("Erro inesperado:", err);
-  }
-}
     const config = {
       whatsapp: "5516981065241",
       taxaEntrega: 10.00
