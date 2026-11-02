@@ -591,7 +591,7 @@
       document.getElementById('modal-checkout').classList.add('hidden');
     }
 
-    function enviarPedido(e) {
+    async function enviarPedido(e) {
       e.preventDefault();
       var nome = document.getElementById('cliente-nome').value.trim();
       var endereco = document.getElementById('cliente-endereco').value.trim();
@@ -599,6 +599,43 @@
       var obsGeral = document.getElementById('cliente-obs').value.trim();
       var totais = calcularTotais();
 
+      // Monta o resumo dos itens em formato de objeto para salvar no banco
+      var itensParaSalvar = carrinho.map(function(item) {
+        return {
+          id: item.produtoId,
+          nome: item.nome,
+          quantidade: item.qtd,
+          preco_unitario: item.precoTotal,
+          complementos: item.complementos.map(function(c) { return c.nome; }),
+          observacao: item.obs || ""
+        };
+      });
+
+      // Tenta gravar o pedido no Supabase em segundo plano
+      try {
+        if (window.supabase && window.supabase.createClient) {
+          var client = window.supabase.createClient(
+            "https://sfxvbnxswuvkpssnryjk.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE"
+          );
+
+          await client.from('pedidos').insert([{
+            cliente_nome: nome,
+            cliente_endereco: endereco,
+            forma_pagamento: pagamento,
+            observacoes: obsGeral,
+            itens: itensParaSalvar,
+            subtotal: totais.subtotal,
+            taxa_entrega: config.taxaEntrega,
+            total: totais.total,
+            status: 'Recebido'
+          }]);
+        }
+      } catch (errBanco) {
+        console.warn("Falha ao salvar pedido no Supabase, continuando para o WhatsApp:", errBanco);
+      }
+
+      // Monta o texto para envio ao WhatsApp
       var texto = '*🍇 NOVO PEDIDO - AÇAIZEIRO*\n\n';
       texto += '*Cliente:* ' + nome + '\n';
       texto += '*Endereço:* ' + endereco + '\n';
