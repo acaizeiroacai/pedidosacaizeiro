@@ -26,9 +26,9 @@
       </div>
 
       <div class="space-y-3">
-        <input type="password" id="campo-senha" placeholder="Insira a senha" class="w-full text-center text-lg font-bold tracking-widest border border-gray-300 rounded-xl p-3 outline-purple-600">
+        <input type="password" id="campo-senha" placeholder="Digite o PIN" class="w-full text-center text-lg font-bold tracking-widest border border-gray-300 rounded-xl p-3 outline-purple-600">
         <p id="erro-senha" class="text-xs text-red-600 font-semibold hidden">Palavra-passe incorreta!</p>
-        <button type="button" onclick="tentarEntrar()" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-bold py-3 rounded-xl transition active:scale-95 text-sm shadow-md">
+        <button type="button" id="btn-entrar" onclick="tentarEntrar()" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-bold py-3 rounded-xl transition active:scale-95 text-sm shadow-md">
           Entrar no Painel
         </button>
       </div>
@@ -36,7 +36,7 @@
   </div>
 
   <!-- Conteúdo Principal do Admin -->
-  <div id="painel-conteudo" style="display: none;">
+  <div id="painel-conteudo" class="hidden">
     <!-- Topo / Cabeçalho -->
     <header class="bg-[#411564] text-white p-4 shadow-md sticky top-0 z-30">
       <div class="max-w-5xl mx-auto flex items-center justify-between">
@@ -69,7 +69,7 @@
         <button onclick="filtrarStatus('Concluído')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Concluído">Concluídos</button>
       </div>
       <div id="lista-pedidos-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="col-span-full text-center py-12 text-gray-400 text-sm">A carregar pedidos...</div>
+        <div class="col-span-full text-center py-12 text-gray-400 text-sm">Carregando pedidos...</div>
       </div>
     </section>
 
@@ -80,7 +80,7 @@
           <i class="fa-solid fa-mug-hot"></i> Copos do Cardápio
         </h2>
         <div id="lista-copos-stock" class="divide-y divide-gray-100">
-          <p class="text-xs text-gray-400 py-4 text-center">A carregar copos...</p>
+          <p class="text-xs text-gray-400 py-4 text-center">Carregando copos...</p>
         </div>
       </div>
 
@@ -89,7 +89,7 @@
           <i class="fa-solid fa-bowl-food"></i> Frutas e Complementos
         </h2>
         <div id="lista-complementos-stock" class="divide-y divide-gray-100">
-          <p class="text-xs text-gray-400 py-4 text-center">A carregar complementos...</p>
+          <p class="text-xs text-gray-400 py-4 text-center">Carregando complementos...</p>
         </div>
       </div>
     </section>
@@ -99,28 +99,28 @@
     var SENHA_MESTRA = "3944";
 
     function tentarEntrar() {
-      var input = document.getElementById('campo-senha').value.trim();
+      var campo = document.getElementById('campo-senha');
       var erro = document.getElementById('erro-senha');
+      if (!campo) return;
 
-      if (input === SENHA_MESTRA) {
+      var valorDigitado = campo.value.trim();
+
+      if (valorDigitado === SENHA_MESTRA) {
         sessionStorage.setItem('admin_acaizeiro_auth', 'true');
         liberarAcesso();
       } else {
         erro.classList.remove('hidden');
-        document.getElementById('campo-senha').value = "";
+        campo.value = "";
       }
     }
 
-    // Permite premir "Enter" no teclado
-    document.getElementById('campo-senha').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        tentarEntrar();
-      }
-    });
-
     function liberarAcesso() {
-      document.getElementById('tela-login').style.display = 'none';
-      document.getElementById('painel-conteudo').style.display = 'block';
+      var tela = document.getElementById('tela-login');
+      var painel = document.getElementById('painel-conteudo');
+
+      if (tela) tela.classList.add('hidden');
+      if (painel) painel.classList.remove('hidden');
+
       carregarPedidos();
       setInterval(carregarPedidos, 20000);
     }
@@ -136,9 +136,7 @@
       location.reload();
     }
 
-    // -------------------------------------------------------------
-    // SUPABASE E GESTÃO OPERACIONAL
-    // -------------------------------------------------------------
+    // SUPABASE E GESTÃO
     var SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
     var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
     var client = null;
@@ -231,3 +229,105 @@
         return '<div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 flex flex-col justify-between">' +
           '<div>' +
             '<div class="flex justify-between items-start mb-2">' +
+              '<div>' +
+                '<span class="text-xs font-bold text-purple-900">#' + p.id + '</span>' +
+                '<span class="text-[11px] text-gray-400 ml-1.5">' + hora + '</span>' +
+                '<h3 class="font-extrabold text-gray-900 text-base leading-tight">' + p.cliente_nome + '</h3>' +
+              '</div>' +
+              '<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border ' + badge + '">' + p.status + '</span>' +
+            '</div>' +
+            '<p class="text-xs text-gray-600 mb-2 flex items-start gap-1">' +
+              '<i class="fa-solid fa-location-dot mt-0.5 text-gray-400"></i>' +
+              '<span>' + p.cliente_endereco + '</span>' +
+            '</p>' +
+            '<div class="bg-gray-50 p-2.5 rounded-xl my-2">' + itensHtml + '</div>' +
+            obsGeral +
+          '</div>' +
+          '<div class="pt-3 border-t mt-2">' +
+            '<div class="flex justify-between items-center mb-3">' +
+              '<span class="text-xs text-gray-500">Pagamento: <strong>' + p.forma_pagamento + '</strong></span>' +
+              '<span class="text-base font-black text-[#411564]">R$ ' + Number(p.total || 0).toFixed(2).replace('.', ',') + '</span>' +
+            '</div>' +
+            '<div class="grid grid-cols-3 gap-1.5">' +
+              '<button onclick="mudarStatus(' + p.id + ', \'Em preparo\')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 text-[11px] font-bold py-1.5 rounded-lg border border-blue-200 transition active:scale-95">Preparo</button>' +
+              '<button onclick="mudarStatus(' + p.id + ', \'Saiu para entrega\')" class="bg-purple-50 hover:bg-purple-100 text-purple-700 text-[11px] font-bold py-1.5 rounded-lg border border-purple-200 transition active:scale-95">A Caminho</button>' +
+              '<button onclick="mudarStatus(' + p.id + ', \'Concluído\')" class="bg-green-50 hover:bg-green-100 text-green-700 text-[11px] font-bold py-1.5 rounded-lg border border-green-200 transition active:scale-95">Concluído</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    async function mudarStatus(id, st) {
+      var sb = initClient();
+      await sb.from('pedidos').update({ status: st }).eq('id', id);
+      var p = listaGlobalPedidos.find(function(x) { return x.id === id; });
+      if (p) p.status = st;
+      renderizarPedidos();
+    }
+
+    async function carregarStock() {
+      var sb = initClient();
+      var rCopos = await sb.from('CARDAPIO ACAIZEIRO').select('*').order('id');
+      var rComp = await sb.from('COMPLEMENTOS').select('*').order('nome');
+
+      var cCopos = document.getElementById('lista-copos-stock');
+      if (rCopos.data && rCopos.data.length > 0) {
+        cCopos.innerHTML = rCopos.data.map(function(copo) {
+          var disponivel = copo.ativo !== false;
+          var btnClasse = disponivel ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300';
+          return '<div class="py-2.5 flex items-center justify-between">' +
+            '<div>' +
+              '<p class="text-sm font-bold text-gray-800">' + copo.nome + '</p>' +
+              '<p class="text-xs text-gray-400">' + copo.categoria + ' — R$ ' + Number(copo.preco).toFixed(2).replace('.', ',') + '</p>' +
+            '</div>' +
+            '<button onclick="toggleItem(\'CARDAPIO ACAIZEIRO\', ' + copo.id + ', ' + disponivel + ')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 ' + btnClasse + '">' +
+              (disponivel ? 'Disponível' : 'Esgotado') +
+            '</button>' +
+          '</div>';
+        }).join('');
+      } else {
+        cCopos.innerHTML = '<p class="text-xs text-gray-400 py-2">Nenhum copo registado.</p>';
+      }
+
+      var cComp = document.getElementById('lista-complementos-stock');
+      if (rComp.data && rComp.data.length > 0) {
+        cComp.innerHTML = rComp.data.map(function(comp) {
+          var disponivel = comp.ativo !== false;
+          var btnClasse = disponivel ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300';
+          return '<div class="py-2.5 flex items-center justify-between">' +
+            '<div>' +
+              '<p class="text-sm font-bold text-gray-800">' + comp.nome + '</p>' +
+              '<p class="text-xs text-gray-400">+ R$ ' + Number(comp.preco).toFixed(2).replace('.', ',') + '</p>' +
+            '</div>' +
+            '<button onclick="toggleItem(\'COMPLEMENTOS\', \'' + comp.id + '\', ' + disponivel + ')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 ' + btnClasse + '">' +
+              (disponivel ? 'Disponível' : 'Esgotado') +
+            '</button>' +
+          '</div>';
+        }).join('');
+      } else {
+        cComp.innerHTML = '<p class="text-xs text-gray-400 py-2">Nenhum complemento registado.</p>';
+      }
+    }
+
+    async function toggleItem(tabela, id, ativoAtual) {
+      var sb = initClient();
+      await sb.from(tabela).update({ ativo: !ativoAtual }).eq('id', id);
+      carregarStock();
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+      var campo = document.getElementById('campo-senha');
+      if (campo) {
+        campo.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            tentarEntrar();
+          }
+        });
+      }
+      verificarAutenticacao();
+    });
+  </script>
+</body>
+</html>
