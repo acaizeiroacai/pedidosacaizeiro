@@ -605,9 +605,62 @@
       window.open(linkWhatsapp, '_blank');
     }
 
-    // Inicialização direta e garantida
+    // 1. Renderiza o catálogo local de imediato
     renderizarCategorias();
     carregarProdutos();
+
+    // 2. Sincroniza os dados do Supabase de forma segura após o carregamento inicial
+    (async function carregarDadosSupabase() {
+      try {
+        if (typeof window.supabase === 'undefined') {
+          var s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+          document.head.appendChild(s);
+          await new Promise(function(resolve) { s.onload = resolve; });
+        }
+
+        var SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+        var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+        var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        var resposta = await client.from('CARDAPIO ACAIZEIRO').select('*');
+        if (resposta.error) {
+          console.warn("Aviso Supabase:", resposta.error.message);
+          return;
+        }
+
+        if (resposta.data && resposta.data.length > 0) {
+          produtos = resposta.data.map(function(item) {
+            return {
+              id: item.id,
+              categoria: item.categoria || "Geral",
+              nome: item.nome,
+              desc: item.descricao || "",
+              preco: parseFloat(item.preco) || 0,
+              imagem: item.imagem_url || "TRADICIONAL.png",
+              permiteComplementos: (item.categoria || "").toLowerCase() !== "complementos"
+            };
+          });
+
+          var novasCategorias = ["Todos"];
+          produtos.forEach(function(p) {
+            if (novasCategorias.indexOf(p.categoria) === -1) {
+              novasCategorias.push(p.categoria);
+            }
+          });
+
+          if (novasCategorias.length > 1) {
+            categorias = novasCategorias;
+          }
+
+          renderizarCategorias();
+          carregarProdutos();
+          console.log("Catálogo sincronizado com a base de dados com sucesso!");
+        }
+      } catch (erro) {
+        console.warn("Sincronização em segundo plano não aplicada:", erro);
+      }
+    })();
   </script>
 </body>
 </html>
