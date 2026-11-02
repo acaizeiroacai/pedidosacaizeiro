@@ -128,15 +128,8 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Bairro de Entrega *</label>
-          <select id="cliente-bairro" onchange="atualizarBairroSelecionado()" required class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-purple-600 font-medium">
-            <option value="8.00">Centro — R$ 8,00</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Endereço Completo (Rua e Número) *</label>
-          <input type="text" id="cliente-endereco" required class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-purple-600" placeholder="Ex: Rua São Domingos, 120 - Apto 2">
+          <label class="block text-xs font-bold text-gray-700 mb-1">Endereço de Entrega (Rua, Nº e Bairro) *</label>
+          <input type="text" id="cliente-endereco" required class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-purple-600" placeholder="Ex: Rua São Domingos, 120 - Centro">
         </div>
 
         <div>
@@ -165,8 +158,7 @@
   <script>
     var config = {
       whatsapp: "5516981035241",
-      taxaEntregaAtual: 8.00,
-      bairroSelecionadoNome: "Centro"
+      taxaEntrega: 8.00 // Taxa fixa padrão
     };
 
     var categorias = [
@@ -373,7 +365,7 @@
         subtotal += item.precoTotal * item.qtd;
         totalQtd += item.qtd;
       });
-      var total = subtotal > 0 ? (subtotal + config.taxaEntregaAtual) : 0;
+      var total = subtotal > 0 ? (subtotal + config.taxaEntrega) : 0;
       return { subtotal: subtotal, total: total, totalQtd: totalQtd };
     }
 
@@ -396,7 +388,7 @@
 
         return '<div class="flex justify-between items-center py-2.5">' +
           '<div class="pr-2 flex-1">' +
-            '<p class="font-bold text-gray-800 text-sm leading-tight">${item.nome}</p>' +
+            '<p class="font-bold text-gray-800 text-sm leading-tight">' + item.nome + '</p>' +
             complTexto + obsTexto +
             '<p class="text-xs text-gray-500 mt-0.5">R$ ' + item.precoTotal.toFixed(2).replace('.', ',') + ' cada</p>' +
           '</div>' +
@@ -410,15 +402,8 @@
 
       container.innerHTML = itensHtml || '<p class="text-center py-4 text-gray-400 text-sm">Sua sacola está vazia</p>';
       document.getElementById('resumo-subtotal').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
-      document.getElementById('resumo-taxa').innerText = 'R$ ' + config.taxaEntregaAtual.toFixed(2).replace('.', ',');
+      document.getElementById('resumo-taxa').innerText = 'R$ ' + config.taxaEntrega.toFixed(2).replace('.', ',');
       document.getElementById('resumo-total').innerText = 'R$ ' + totais.total.toFixed(2).replace('.', ',');
-    }
-
-    function atualizarBairroSelecionado() {
-      var select = document.getElementById('cliente-bairro');
-      config.taxaEntregaAtual = parseFloat(select.value) || 0;
-      config.bairroSelecionadoNome = select.options[select.selectedIndex].text.split('—')[0].trim();
-      renderizarItensCheckout();
     }
 
     function abrirModalCheckout() {
@@ -437,8 +422,6 @@
       var pagamento = document.getElementById('forma-pagamento').value;
       var obsGeral = document.getElementById('cliente-obs').value.trim();
       var totais = calcularTotais();
-
-      var enderecoCompleto = endereco + " (Bairro: " + config.bairroSelecionadoNome + ")";
 
       var itensParaSalvar = carrinho.map(function(item) {
         return {
@@ -460,12 +443,12 @@
 
           await client.from('pedidos').insert([{
             cliente_nome: nome,
-            cliente_endereco: enderecoCompleto,
+            cliente_endereco: endereco,
             forma_pagamento: pagamento,
             observacoes: obsGeral,
             itens: itensParaSalvar,
             subtotal: totais.subtotal,
-            taxa_entrega: config.taxaEntregaAtual,
+            taxa_entrega: config.taxaEntrega,
             total: totais.total,
             status: 'Recebido'
           }]);
@@ -476,7 +459,6 @@
 
       var texto = '*🍇 NOVO PEDIDO - AÇAIZEIRO*\n\n';
       texto += '*Cliente:* ' + nome + '\n';
-      texto += '*Bairro:* ' + config.bairroSelecionadoNome + '\n';
       texto += '*Endereço:* ' + endereco + '\n';
       texto += '*Pagamento:* ' + pagamento + '\n';
       if (obsGeral) texto += '*Obs Entrega:* ' + obsGeral + '\n';
@@ -494,7 +476,7 @@
       });
 
       texto += '\n*Subtotal:* R$ ' + totais.subtotal.toFixed(2).replace('.', ',') + '\n';
-      texto += '*Taxa de Entrega:* R$ ' + config.taxaEntregaAtual.toFixed(2).replace('.', ',') + '\n';
+      texto += '*Taxa de Entrega:* R$ ' + config.taxaEntrega.toFixed(2).replace('.', ',') + '\n';
       texto += '*TOTAL DO PEDIDO:* R$ ' + totais.total.toFixed(2).replace('.', ',') + '\n';
 
       var linkWhatsapp = 'https://wa.me/' + config.whatsapp + '?text=' + encodeURIComponent(texto);
@@ -516,12 +498,10 @@
 
           Promise.all([
             client.from('CARDAPIO ACAIZEIRO').select('*'),
-            client.from('COMPLEMENTOS').select('*').eq('ativo', true),
-            client.from('bairros_taxas').select('*').order('bairro')
+            client.from('COMPLEMENTOS').select('*').eq('ativo', true)
           ]).then(function(respostas) {
             var resCopos = respostas[0];
             var resComp = respostas[1];
-            var resBairros = respostas[2];
 
             if (resCopos.data && resCopos.data.length > 0) {
               resCopos.data.forEach(function(item) {
@@ -556,14 +536,6 @@
               complementosDisponiveis = resComp.data.map(function(c) {
                 return { id: String(c.id), nome: c.nome, preco: parseFloat(c.preco) || 0 };
               });
-            }
-
-            if (resBairros.data && resBairros.data.length > 0) {
-              var selectBairro = document.getElementById('cliente-bairro');
-              selectBairro.innerHTML = resBairros.data.map(function(b) {
-                return '<option value="' + Number(b.taxa).toFixed(2) + '">' + b.bairro + ' — R$ ' + Number(b.taxa).toFixed(2).replace('.', ',') + '</option>';
-              }).join('');
-              atualizarBairroSelecionado();
             }
           }).catch(function(e) {
             console.warn("Aviso Supabase:", e);
