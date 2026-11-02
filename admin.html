@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Açaizeiro - Gestão de Pedidos</title>
+  <title>Açaizeiro - Gestão Operacional</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -14,7 +14,6 @@
 </head>
 <body class="bg-gray-100 text-gray-800 antialiased min-h-screen">
 
-  <!-- Cabeçalho -->
   <header class="bg-[#411564] text-white p-4 shadow-md sticky top-0 z-30">
     <div class="max-w-5xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -23,31 +22,56 @@
         </div>
         <div>
           <h1 class="fonte-bryndan text-xl font-bold tracking-wide">AÇAIZEIRO - GESTÃO</h1>
-          <p class="text-[11px] text-purple-200">Painel Operacional em Tempo Real</p>
+          <p class="text-[11px] text-purple-200">Painel Operacional e Stock</p>
         </div>
       </div>
-      <button onclick="carregarPedidos()" class="bg-purple-800 hover:bg-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition active:scale-95">
-        <i class="fa-solid fa-rotate-right"></i>
-        <span>Atualizar</span>
-      </button>
+      <div class="flex gap-2">
+        <button onclick="mudarAba('pedidos')" id="tab-btn-pedidos" class="bg-purple-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">Pedidos</button>
+        <button onclick="mudarAba('stock')" id="tab-btn-stock" class="bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">Stock</button>
+        <button onclick="mudarAba('taxas')" id="tab-btn-taxas" class="bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">Taxas</button>
+      </div>
     </div>
   </header>
 
-  <!-- Filtros de Estado -->
-  <div class="max-w-5xl mx-auto p-4 flex gap-2 overflow-x-auto">
-    <button onclick="filtrarStatus('Todos')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white" data-status="Todos">Todos</button>
-    <button onclick="filtrarStatus('Recebido')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Recebido">Recebidos</button>
-    <button onclick="filtrarStatus('Em preparo')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Em preparo">Em Preparação</button>
-    <button onclick="filtrarStatus('Saiu para entrega')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Saiu para entrega">Saiu p/ Entrega</button>
-    <button onclick="filtrarStatus('Concluído')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Concluído">Concluídos</button>
-  </div>
-
-  <!-- Lista de Pedidos -->
-  <main class="max-w-5xl mx-auto px-4 pb-12">
-    <div id="lista-pedidos-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="col-span-full text-center py-12 text-gray-400 text-sm">A carregar pedidos...</div>
+  <!-- ABA 1: PEDIDOS -->
+  <section id="aba-pedidos" class="max-w-5xl mx-auto p-4">
+    <div class="flex gap-2 overflow-x-auto pb-3">
+      <button onclick="filtrarStatus('Todos')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white" data-status="Todos">Todos</button>
+      <button onclick="filtrarStatus('Recebido')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Recebido">Recebidos</button>
+      <button onclick="filtrarStatus('Em preparo')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Em preparo">Em Preparação</button>
+      <button onclick="filtrarStatus('Saiu para entrega')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Saiu para entrega">A Caminho</button>
+      <button onclick="filtrarStatus('Concluído')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Concluído">Concluídos</button>
     </div>
-  </main>
+    <div id="lista-pedidos-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+  </section>
+
+  <!-- ABA 2: STOCK / ATIVAR E PAUSAR -->
+  <section id="aba-stock" class="max-w-5xl mx-auto p-4 hidden">
+    <div class="bg-white p-5 rounded-2xl shadow-sm mb-6 border">
+      <h2 class="text-base font-extrabold text-[#411564] mb-3 flex items-center gap-2">
+        <i class="fa-solid fa-mug-hot"></i> Copos do Cardápio
+      </h2>
+      <div id="lista-copos-stock" class="divide-y divide-gray-100"></div>
+    </div>
+
+    <div class="bg-white p-5 rounded-2xl shadow-sm border">
+      <h2 class="text-base font-extrabold text-[#411564] mb-3 flex items-center gap-2">
+        <i class="fa-solid fa-bowl-food"></i> Frutas e Complementos
+      </h2>
+      <div id="lista-complementos-stock" class="divide-y divide-gray-100"></div>
+    </div>
+  </section>
+
+  <!-- ABA 3: TAXAS POR BAIRRO -->
+  <section id="aba-taxas" class="max-w-5xl mx-auto p-4 hidden">
+    <div class="bg-white p-5 rounded-2xl shadow-sm border">
+      <h2 class="text-base font-extrabold text-[#411564] mb-1 flex items-center gap-2">
+        <i class="fa-solid fa-motorcycle"></i> Taxas de Entrega por Bairro
+      </h2>
+      <p class="text-xs text-gray-500 mb-4">Altere o valor e clique em Salvar para atualizar imediatamente na loja.</p>
+      <div id="lista-bairros-admin" class="space-y-2"></div>
+    </div>
+  </section>
 
   <script>
     const SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
@@ -57,29 +81,30 @@
     let listaGlobalPedidos = [];
     let statusSelecionado = 'Todos';
 
+    function mudarAba(aba) {
+      ['pedidos', 'stock', 'taxas'].forEach(a => {
+        document.getElementById('aba-' + a).classList.add('hidden');
+        document.getElementById('tab-btn-' + a).className = "bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition";
+      });
+      document.getElementById('aba-' + aba).classList.remove('hidden');
+      document.getElementById('tab-btn-' + aba).className = "bg-purple-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition";
+
+      if (aba === 'stock') carregarStock();
+      if (aba === 'taxas') carregarTaxas();
+    }
+
     async function carregarPedidos() {
-      const { data, error } = await client
-        .from('pedidos')
-        .select('*')
-        .order('id', { ascending: false });
-
-      if (error) {
-        console.error("Erro ao procurar pedidos:", error);
-        return;
-      }
-
+      const { data } = await client.from('pedidos').select('*').order('id', { ascending: false });
       listaGlobalPedidos = data || [];
       renderizarPedidos();
     }
 
-    function filtrarStatus(status) {
-      statusSelecionado = status;
-      document.querySelectorAll('.btn-filtro').forEach(btn => {
-        if (btn.getAttribute('data-status') === status) {
-          btn.className = "btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white";
-        } else {
-          btn.className = "btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50";
-        }
+    function filtrarStatus(s) {
+      statusSelecionado = s;
+      document.querySelectorAll('.btn-filtro').forEach(b => {
+        b.className = b.getAttribute('data-status') === s 
+          ? "btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white"
+          : "btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50";
       });
       renderizarPedidos();
     }
@@ -96,25 +121,19 @@
       }
 
       container.innerHTML = filtrados.map(p => {
-        const dataFormatada = new Date(p.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        
-        // Itens
-        let itensHtml = '';
-        if (Array.isArray(p.itens)) {
-          itensHtml = p.itens.map(i => `
-            <div class="text-xs py-1 border-b border-gray-50">
-              <span class="font-bold text-gray-900">${i.quantidade}x ${i.nome}</span>
-              ${i.complementos && i.complementos.length > 0 ? `<p class="text-[11px] text-purple-700 pl-2">+ ${i.complementos.join(', ')}</p>` : ''}
-              ${i.observacao ? `<p class="text-[11px] text-gray-500 italic pl-2">Obs: ${i.observacao}</p>` : ''}
-            </div>
-          `).join('');
-        }
+        const hora = new Date(p.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        let itensHtml = (p.itens || []).map(i => `
+          <div class="text-xs py-1 border-b border-gray-50">
+            <span class="font-bold text-gray-900">${i.quantidade}x ${i.nome}</span>
+            ${i.complementos && i.complementos.length > 0 ? `<p class="text-[11px] text-purple-700 pl-2">+ ${i.complementos.join(', ')}</p>` : ''}
+            ${i.observacao ? `<p class="text-[11px] text-gray-500 italic pl-2">Obs: ${i.observacao}</p>` : ''}
+          </div>
+        `).join('');
 
-        // Cor de estado
-        let corBadge = "bg-amber-100 text-amber-800 border-amber-200";
-        if (p.status === "Em preparo") corBadge = "bg-blue-100 text-blue-800 border-blue-200";
-        if (p.status === "Saiu para entrega") corBadge = "bg-purple-100 text-purple-800 border-purple-200";
-        if (p.status === "Concluído") corBadge = "bg-green-100 text-green-800 border-green-200";
+        let badge = "bg-amber-100 text-amber-800 border-amber-200";
+        if (p.status === "Em preparo") badge = "bg-blue-100 text-blue-800 border-blue-200";
+        if (p.status === "Saiu para entrega") badge = "bg-purple-100 text-purple-800 border-purple-200";
+        if (p.status === "Concluído") badge = "bg-green-100 text-green-800 border-green-200";
 
         return `
           <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 flex flex-col justify-between">
@@ -122,32 +141,23 @@
               <div class="flex justify-between items-start mb-2">
                 <div>
                   <span class="text-xs font-bold text-purple-900">#${p.id}</span>
-                  <span class="text-[11px] text-gray-400 ml-1.5">${dataFormatada}</span>
+                  <span class="text-[11px] text-gray-400 ml-1.5">${hora}</span>
                   <h3 class="font-extrabold text-gray-900 text-base leading-tight">${p.cliente_nome}</h3>
                 </div>
-                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${corBadge}">${p.status}</span>
+                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${badge}">${p.status}</span>
               </div>
-
               <p class="text-xs text-gray-600 mb-2 flex items-start gap-1">
                 <i class="fa-solid fa-location-dot mt-0.5 text-gray-400"></i>
                 <span>${p.cliente_endereco}</span>
               </p>
-
-              <div class="bg-gray-50 p-2.5 rounded-xl my-2">
-                <p class="text-[10px] font-bold uppercase text-gray-400 mb-1">Itens do Pedido</p>
-                ${itensHtml}
-              </div>
-
-              ${p.observacoes ? `<p class="text-xs text-red-600 bg-red-50 p-2 rounded-lg font-medium mb-2">Obs Geral: ${p.observacoes}</p>` : ''}
+              <div class="bg-gray-50 p-2.5 rounded-xl my-2">${itensHtml}</div>
+              ${p.observacoes ? `<p class="text-xs text-red-600 bg-red-50 p-2 rounded-lg font-medium mb-2">Obs: ${p.observacoes}</p>` : ''}
             </div>
-
             <div class="pt-3 border-t mt-2">
               <div class="flex justify-between items-center mb-3">
-                <span class="text-xs text-gray-500">Pagamento: <strong class="text-gray-800">${p.forma_pagamento}</strong></span>
+                <span class="text-xs text-gray-500">Pagamento: <strong>${p.forma_pagamento}</strong></span>
                 <span class="text-base font-black text-[#411564]">R$ ${Number(p.total || 0).toFixed(2).replace('.', ',')}</span>
               </div>
-
-              <!-- Ações de Mudança de Estado -->
               <div class="grid grid-cols-3 gap-1.5">
                 <button onclick="mudarStatus(${p.id}, 'Em preparo')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 text-[11px] font-bold py-1.5 rounded-lg border border-blue-200 transition">Preparo</button>
                 <button onclick="mudarStatus(${p.id}, 'Saiu para entrega')" class="bg-purple-50 hover:bg-purple-100 text-purple-700 text-[11px] font-bold py-1.5 rounded-lg border border-purple-200 transition">A Caminho</button>
@@ -159,23 +169,74 @@
       }).join('');
     }
 
-    async function mudarStatus(pedidoId, novoStatus) {
-      const { error } = await client
-        .from('pedidos')
-        .update({ status: novoStatus })
-        .eq('id', pedidoId);
-
-      if (error) {
-        alert("Erro ao atualizar estado: " + error.message);
-        return;
-      }
-
-      const pedido = listaGlobalPedidos.find(p => p.id === pedidoId);
-      if (pedido) pedido.status = novoStatus;
+    async function mudarStatus(id, st) {
+      await client.from('pedidos').update({ status: st }).eq('id', id);
+      const p = listaGlobalPedidos.find(x => x.id === id);
+      if (p) p.status = st;
       renderizarPedidos();
     }
 
-    // Carregamento inicial e atualização automática a cada 20 segundos
+    // GESTÃO DE STOCK
+    async function carregarStock() {
+      const [rCopos, rComp] = await Promise.all([
+        client.from('CARDAPIO ACAIZEIRO').select('*').order('id'),
+        client.from('COMPLEMENTOS').select('*').order('nome')
+      ]);
+
+      const cCopos = document.getElementById('lista-copos-stock');
+      cCopos.innerHTML = (rCopos.data || []).map(copo => `
+        <div class="py-2.5 flex items-center justify-between">
+          <div>
+            <p class="text-sm font-bold text-gray-800">${copo.nome}</p>
+            <p class="text-xs text-gray-400">${copo.categoria} — R$ ${Number(copo.preco).toFixed(2).replace('.', ',')}</p>
+          </div>
+          <button onclick="toggleItem('CARDAPIO ACAIZEIRO', ${copo.id}, ${copo.ativo !== false})" class="px-3 py-1 rounded-lg text-xs font-bold transition ${copo.ativo !== false ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300'}">
+            ${copo.ativo !== false ? 'Disponível' : 'Esgotado'}
+          </button>
+        </div>
+      `).join('');
+
+      const cComp = document.getElementById('lista-complementos-stock');
+      cComp.innerHTML = (rComp.data || []).map(comp => `
+        <div class="py-2.5 flex items-center justify-between">
+          <div>
+            <p class="text-sm font-bold text-gray-800">${comp.nome}</p>
+            <p class="text-xs text-gray-400">+ R$ ${Number(comp.preco).toFixed(2).replace('.', ',')}</p>
+          </div>
+          <button onclick="toggleItem('COMPLEMENTOS', '${comp.id}', ${comp.ativo !== false})" class="px-3 py-1 rounded-lg text-xs font-bold transition ${comp.ativo !== false ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300'}">
+            ${comp.ativo !== false ? 'Disponível' : 'Esgotado'}
+          </button>
+        </div>
+      `).join('');
+    }
+
+    async function toggleItem(tabela, id, ativoAtual) {
+      await client.from(tabela).update({ ativo: !ativoAtual }).eq('id', id);
+      carregarStock();
+    }
+
+    // GESTÃO DE TAXAS
+    async function carregarTaxas() {
+      const { data } = await client.from('bairros_taxas').select('*').order('bairro');
+      const c = document.getElementById('lista-bairros-admin');
+      c.innerHTML = (data || []).map(b => `
+        <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border">
+          <span class="text-sm font-bold text-gray-800">${b.bairro}</span>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-500">R$</span>
+            <input type="number" step="0.50" id="taxa-val-${b.id}" value="${Number(b.taxa).toFixed(2)}" class="w-20 p-1 border rounded text-xs font-bold text-right outline-purple-600">
+            <button onclick="salvarTaxa(${b.id})" class="bg-[#411564] text-white px-2.5 py-1 rounded text-xs font-bold active:scale-95 transition">Guardar</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function salvarTaxa(id) {
+      const val = parseFloat(document.getElementById('taxa-val-' + id).value) || 0;
+      await client.from('bairros_taxas').update({ taxa: val }).eq('id', id);
+      alert("Taxa atualizada com sucesso!");
+    }
+
     carregarPedidos();
     setInterval(carregarPedidos, 20000);
   </script>
