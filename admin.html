@@ -14,65 +14,128 @@
 </head>
 <body class="bg-gray-100 text-gray-800 antialiased min-h-screen">
 
-  <!-- Topo / Cabeçalho -->
-  <header class="bg-[#411564] text-white p-4 shadow-md sticky top-0 z-30">
-    <div class="max-w-5xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full bg-black flex items-center justify-center overflow-hidden border border-purple-300">
-          <img src="LOGO2.png" alt="Açaizeiro" class="w-full h-full object-contain p-0.5" onerror="this.onerror=null; this.src='PURO.png';">
+  <!-- Ecrã de Bloqueio por Senha -->
+  <div id="tela-login" class="fixed inset-0 bg-[#411564] z-50 flex items-center justify-center p-4">
+    <div class="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-xs text-center space-y-4">
+      <div class="w-16 h-16 rounded-full bg-black mx-auto flex items-center justify-center overflow-hidden border-2 border-purple-300">
+        <img src="LOGO2.png" alt="Açaizeiro" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.src='PURO.png';">
+      </div>
+      <div>
+        <h2 class="fonte-bryndan text-2xl font-bold text-[#411564]">AÇAIZEIRO</h2>
+        <p class="text-xs text-gray-500 font-medium mt-0.5">Acesso Restrito da Gerência</p>
+      </div>
+
+      <form onsubmit="verificarSenha(event)" class="space-y-3">
+        <input type="password" id="campo-senha" maxlength="10" placeholder="Digite a palavra-passe" required class="w-full text-center text-lg font-bold tracking-widest border border-gray-300 rounded-xl p-3 outline-purple-600">
+        <p id="erro-senha" class="text-xs text-red-600 font-semibold hidden">Palavra-passe incorreta!</p>
+        <button type="submit" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-bold py-3 rounded-xl transition active:scale-95 text-sm shadow-md">
+          Entrar no Painel
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Conteúdo Principal do Admin (Oculto até validação da senha) -->
+  <div id="painel-conteudo" class="hidden">
+    <!-- Topo / Cabeçalho -->
+    <header class="bg-[#411564] text-white p-4 shadow-md sticky top-0 z-30">
+      <div class="max-w-5xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-black flex items-center justify-center overflow-hidden border border-purple-300">
+            <img src="LOGO2.png" alt="Açaizeiro" class="w-full h-full object-contain p-0.5" onerror="this.onerror=null; this.src='PURO.png';">
+          </div>
+          <div>
+            <h1 class="fonte-bryndan text-xl font-bold tracking-wide">AÇAIZEIRO - GESTÃO</h1>
+            <p class="text-[11px] text-purple-200">Painel Operacional e Estoque</p>
+          </div>
         </div>
-        <div>
-          <h1 class="fonte-bryndan text-xl font-bold tracking-wide">AÇAIZEIRO - GESTÃO</h1>
-          <p class="text-[11px] text-purple-200">Painel Operacional e Estoque</p>
+        <!-- Alternador de Abas e Logout -->
+        <div class="flex gap-2 items-center">
+          <button onclick="mudarAba('pedidos')" id="tab-btn-pedidos" class="bg-purple-900 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition">Pedidos</button>
+          <button onclick="mudarAba('stock')" id="tab-btn-stock" class="bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3.5 py-1.5 rounded-lg text-xs font-bold transition">Estoque</button>
+          <button onclick="carregarPedidos()" class="bg-purple-800 hover:bg-purple-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition" title="Atualizar dados"><i class="fa-solid fa-rotate-right"></i></button>
+          <button onclick="sairPainel()" class="bg-red-800 hover:bg-red-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition" title="Sair do painel"><i class="fa-solid fa-right-from-bracket"></i></button>
         </div>
       </div>
-      <!-- Alternador de Abas -->
-      <div class="flex gap-2">
-        <button onclick="mudarAba('pedidos')" id="tab-btn-pedidos" class="bg-purple-900 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition">Pedidos</button>
-        <button onclick="mudarAba('stock')" id="tab-btn-stock" class="bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3.5 py-1.5 rounded-lg text-xs font-bold transition">Estoque</button>
-        <button onclick="carregarPedidos()" class="bg-purple-800 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition" title="Atualizar dados"><i class="fa-solid fa-rotate-right"></i></button>
-      </div>
-    </div>
-  </header>
+    </header>
 
-  <!-- ABA 1: PEDIDOS -->
-  <section id="aba-pedidos" class="max-w-5xl mx-auto p-4">
-    <div class="flex gap-2 overflow-x-auto pb-3">
-      <button onclick="filtrarStatus('Todos')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white" data-status="Todos">Todos</button>
-      <button onclick="filtrarStatus('Recebido')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Recebido">Recebidos</button>
-      <button onclick="filtrarStatus('Em preparo')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Em preparo">Em Preparação</button>
-      <button onclick="filtrarStatus('Saiu para entrega')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Saiu para entrega">A Caminho</button>
-      <button onclick="filtrarStatus('Concluído')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Concluído">Concluídos</button>
-    </div>
-    <div id="lista-pedidos-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="col-span-full text-center py-12 text-gray-400 text-sm">Carregando pedidos...</div>
-    </div>
-  </section>
-
-  <!-- ABA 2: ESTOQUE (PAUSAR / ATIVAR ITENS) -->
-  <section id="aba-stock" class="max-w-5xl mx-auto p-4 hidden">
-    <!-- Copos -->
-    <div class="bg-white p-5 rounded-2xl shadow-sm mb-6 border border-gray-200">
-      <h2 class="text-base font-extrabold text-[#411564] mb-3 flex items-center gap-2">
-        <i class="fa-solid fa-mug-hot"></i> Copos do Cardápio
-      </h2>
-      <div id="lista-copos-stock" class="divide-y divide-gray-100">
-        <p class="text-xs text-gray-400 py-4 text-center">Carregando copos...</p>
+    <!-- ABA 1: PEDIDOS -->
+    <section id="aba-pedidos" class="max-w-5xl mx-auto p-4">
+      <div class="flex gap-2 overflow-x-auto pb-3">
+        <button onclick="filtrarStatus('Todos')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white" data-status="Todos">Todos</button>
+        <button onclick="filtrarStatus('Recebido')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Recebido">Recebidos</button>
+        <button onclick="filtrarStatus('Em preparo')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Em preparo">Em Preparação</button>
+        <button onclick="filtrarStatus('Saiu para entrega')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Saiu para entrega">A Caminho</button>
+        <button onclick="filtrarStatus('Concluído')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Concluído">Concluídos</button>
       </div>
-    </div>
-
-    <!-- Complementos -->
-    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
-      <h2 class="text-base font-extrabold text-[#411564] mb-3 flex items-center gap-2">
-        <i class="fa-solid fa-bowl-food"></i> Frutas e Complementos
-      </h2>
-      <div id="lista-complementos-stock" class="divide-y divide-gray-100">
-        <p class="text-xs text-gray-400 py-4 text-center">Carregando complementos...</p>
+      <div id="lista-pedidos-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="col-span-full text-center py-12 text-gray-400 text-sm">Carregando pedidos...</div>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <!-- ABA 2: ESTOQUE (PAUSAR / ATIVAR ITENS) -->
+    <section id="aba-stock" class="max-w-5xl mx-auto p-4 hidden">
+      <!-- Copos -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm mb-6 border border-gray-200">
+        <h2 class="text-base font-extrabold text-[#411564] mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-mug-hot"></i> Copos do Cardápio
+        </h2>
+        <div id="lista-copos-stock" class="divide-y divide-gray-100">
+          <p class="text-xs text-gray-400 py-4 text-center">Carregando copos...</p>
+        </div>
+      </div>
+
+      <!-- Complementos -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+        <h2 class="text-base font-extrabold text-[#411564] mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-bowl-food"></i> Frutas e Complementos
+        </h2>
+        <div id="lista-complementos-stock" class="divide-y divide-gray-100">
+          <p class="text-xs text-gray-400 py-4 text-center">Carregando complementos...</p>
+        </div>
+      </div>
+    </section>
+  </div>
 
   <script>
+    // -------------------------------------------------------------
+    // PALAVRA-PASSE DE ACESSO (Altere se desejar)
+    // -------------------------------------------------------------
+    var SENHA_MESTRA = "394400";
+
+    function verificarAutenticacao() {
+      if (sessionStorage.getItem('admin_acaizeiro_auth') === 'true') {
+        document.getElementById('tela-login').classList.add('hidden');
+        document.getElementById('painel-conteudo').classList.remove('hidden');
+        iniciarPainel();
+      }
+    }
+
+    function verificarSenha(e) {
+      e.preventDefault();
+      var input = document.getElementById('campo-senha').value.trim();
+      var erro = document.getElementById('erro-senha');
+
+      if (input === SENHA_MESTRA) {
+        sessionStorage.setItem('admin_acaizeiro_auth', 'true');
+        document.getElementById('tela-login').classList.add('hidden');
+        document.getElementById('painel-conteudo').classList.remove('hidden');
+        erro.classList.add('hidden');
+        iniciarPainel();
+      } else {
+        erro.classList.remove('hidden');
+        document.getElementById('campo-senha').value = "";
+      }
+    }
+
+    function sairPainel() {
+      sessionStorage.removeItem('admin_acaizeiro_auth');
+      location.reload();
+    }
+
+    // -------------------------------------------------------------
+    // LÓGICA DO SUPABASE E GESTÃO
+    // -------------------------------------------------------------
     var SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
     var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
     var client = null;
@@ -108,7 +171,7 @@
       try {
         var res = await sb.from('pedidos').select('*').order('id', { ascending: false });
         if (res.error) {
-          console.error("Erro ao buscar pedidos:", res.error);
+          console.error("Erro ao procurar pedidos:", res.error);
           document.getElementById('lista-pedidos-admin').innerHTML = '<div class="col-span-full text-center py-8 text-red-500 text-sm">Erro ao carregar: ' + res.error.message + '</div>';
           return;
         }
@@ -215,49 +278,3 @@
           var btnClasse = disponivel ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300';
           return '<div class="py-2.5 flex items-center justify-between">' +
             '<div>' +
-              '<p class="text-sm font-bold text-gray-800">' + copo.nome + '</p>' +
-              '<p class="text-xs text-gray-400">' + copo.categoria + ' — R$ ' + Number(copo.preco).toFixed(2).replace('.', ',') + '</p>' +
-            '</div>' +
-            '<button onclick="toggleItem(\'CARDAPIO ACAIZEIRO\', ' + copo.id + ', ' + disponivel + ')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 ' + btnClasse + '">' +
-              (disponivel ? 'Disponível' : 'Esgotado') +
-            '</button>' +
-          '</div>';
-        }).join('');
-      } else {
-        cCopos.innerHTML = '<p class="text-xs text-gray-400 py-2">Nenhum copo cadastrado.</p>';
-      }
-
-      var cComp = document.getElementById('lista-complementos-stock');
-      if (rComp.data && rComp.data.length > 0) {
-        cComp.innerHTML = rComp.data.map(function(comp) {
-          var disponivel = comp.ativo !== false;
-          var btnClasse = disponivel ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300';
-          return '<div class="py-2.5 flex items-center justify-between">' +
-            '<div>' +
-              '<p class="text-sm font-bold text-gray-800">' + comp.nome + '</p>' +
-              '<p class="text-xs text-gray-400">+ R$ ' + Number(comp.preco).toFixed(2).replace('.', ',') + '</p>' +
-            '</div>' +
-            '<button onclick="toggleItem(\'COMPLEMENTOS\', \'' + comp.id + '\', ' + disponivel + ')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 ' + btnClasse + '">' +
-              (disponivel ? 'Disponível' : 'Esgotado') +
-            '</button>' +
-          '</div>';
-        }).join('');
-      } else {
-        cComp.innerHTML = '<p class="text-xs text-gray-400 py-2">Nenhum complemento cadastrado.</p>';
-      }
-    }
-
-    async function toggleItem(tabela, id, ativoAtual) {
-      var sb = initClient();
-      await sb.from(tabela).update({ ativo: !ativoAtual }).eq('id', id);
-      carregarStock();
-    }
-
-    // Inicialização segura
-    window.addEventListener('DOMContentLoaded', function() {
-      carregarPedidos();
-      setInterval(carregarPedidos, 20000);
-    });
-  </script>
-</body>
-</html>
