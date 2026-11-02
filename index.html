@@ -164,7 +164,6 @@
       taxaEntrega: 10.00
     };
 
-    // Lista fixa padronizada de Categorias Oficiais
     var categorias = [
       "Todos", 
       "Copos Açaí Puro", 
@@ -176,7 +175,6 @@
     ];
     var categoriaAtiva = "Todos";
 
-    // Normalizador de categoria para evitar que variações de digitação quebrem o cardápio
     function normalizarCategoria(cat) {
       if (!cat) return "Copos Açaí Tradicional";
       var c = cat.trim().toLowerCase();
@@ -469,9 +467,9 @@
         return '<label class="flex items-center justify-between p-2.5 rounded-xl border border-gray-200 hover:border-purple-300 bg-gray-50/50 cursor-pointer text-sm">' +
           '<div class="flex items-center gap-2.5">' +
             '<input type="checkbox" value="' + comp.id + '" onchange="toggleComplementoModal(\'' + comp.id + '\')" class="w-4 h-4 text-purple-700 rounded focus:ring-purple-500">' +
-            '<span class="font-medium text-gray-800">${comp.nome}</span>' +
+            '<span class="font-medium text-gray-800">' + comp.nome + '</span>' +
           '</div>' +
-          '<span class="font-bold text-xs text-purple-900">+ R$ ' + comp.preco.toFixed(2).replace('.', ',') + '</span>' +
+          '<span class="font-bold text-xs text-purple-900">+ R$ ' + Number(comp.preco || 0).toFixed(2).replace('.', ',') + '</span>' +
         '</label>';
       }).join('');
 
@@ -480,11 +478,11 @@
     }
 
     function toggleComplementoModal(compId) {
-      var index = produtoEmEdicao.complementosEscolhidos.findIndex(function(c) { return c.id === compId; });
+      var index = produtoEmEdicao.complementosEscolhidos.findIndex(function(c) { return String(c.id) === String(compId); });
       if (index >= 0) {
         produtoEmEdicao.complementosEscolhidos.splice(index, 1);
       } else {
-        var comp = complementosDisponiveis.find(function(c) { return c.id === compId; });
+        var comp = complementosDisponiveis.find(function(c) { return String(c.id) === String(compId); });
         if (comp) produtoEmEdicao.complementosEscolhidos.push(comp);
       }
       atualizarTotalModal();
@@ -629,11 +627,11 @@
       window.open(linkWhatsapp, '_blank');
     }
 
-    // 1. RENDERIZAÇÃO IMEDIATA (Exibe os 10 copos e complementos sem duplicados)
+    // 1. RENDERIZAÇÃO IMEDIATA (Exibe produtos e adicionais padrão instantaneamente)
     renderizarCategorias();
     carregarProdutos();
 
-    // 2. SINCRONIZAÇÃO INTELIGENTE COM O SUPABASE
+    // 2. SINCRONIZAÇÃO COMPLETA COM O SUPABASE (Copos + Complementos)
     setTimeout(function() {
       var s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
@@ -644,45 +642,57 @@
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE"
           );
 
-          client.from('CARDAPIO ACAIZEIRO').select('*').then(function(res) {
-            if (res.data && res.data.length > 0) {
-              res.data.forEach(function(item) {
+          Promise.all([
+            client.from('CARDAPIO ACAIZEIRO').select('*'),
+            client.from('COMPLEMENTOS').select('*').eq('ativo', true)
+          ]).then(function(respostas) {
+            var resCopos = respostas[0];
+            var resComp = respostas[1];
+
+            // 1. Atualiza Copos do Banco
+            if (resCopos.data && resCopos.data.length > 0) {
+              resCopos.data.forEach(function(item) {
                 if (!item.nome) return;
 
                 var catPadrao = normalizarCategoria(item.categoria);
-
-                // Busca se o produto já existe pelo nome similar ou id
                 var existe = produtos.find(function(p) {
                   var pNome = p.nome.toLowerCase().replace(/[^a-z0-9]/g, '');
                   var iNome = item.nome.toLowerCase().replace(/[^a-z0-9]/g, '');
-                  return pNome === iNome || (pNome.indexOf("tradicionalp") !== -1 && iNome.indexOf("tradicionalp") !== -1);
+                  return String(p.id) === String(item.id) || pNome === iNome;
                 });
 
+                var objProduto = {
+                  id: item.id,
+                  categoria: catPadrao,
+                  nome: item.nome,
+                  desc: item.descricao || "",
+                  preco: parseFloat(item.preco) || 0,
+                  imagem: item.imagem_url || "TRADICIONAL.png",
+                  permiteComplementos: catPadrao.toLowerCase() !== "complementos"
+                };
+
                 if (existe) {
-                  // Apenas atualiza o produto existente em vez de criar um duplicado
-                  existe.preco = parseFloat(item.preco) || existe.preco;
-                  if (item.descricao) existe.desc = item.descricao;
-                  if (item.imagem_url) existe.imagem = item.imagem_url;
-                  existe.categoria = catPadrao;
+                  Object.assign(existe, objProduto);
                 } else {
-                  // Só adiciona se for um produto realmente novo
-                  produtos.push({
-                    id: "sb_" + item.id,
-                    categoria: catPadrao,
-                    nome: item.nome,
-                    desc: item.descricao || "",
-                    preco: parseFloat(item.preco) || 0,
-                    imagem: item.imagem_url || "TRADICIONAL.png",
-                    permiteComplementos: catPadrao.toLowerCase() !== "complementos"
-                  });
+                  produtos.push(objProduto);
                 }
               });
-
               renderizarCategorias();
               carregarProdutos();
             }
+
+            // 2. Atualiza Complementos do Banco
+            if (resComp.data && resComp.data.length > 0) {
+              complementosDisponiveis = resComp.data.map(function(c) {
+                return {
+                  id: String(c.id),
+                  nome: c.nome,
+                  preco: parseFloat(c.preco) || 0
+                };
+              });
+            }
           }).catch(function(e) {
-            console.warn("Aviso Supabase:", e);
+            console.warn("Aviso na consulta ao Supabase:", e);
           });
         } catch (err) {
           console.warn("Erro Supabase:", err);
