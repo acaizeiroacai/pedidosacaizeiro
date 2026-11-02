@@ -68,6 +68,7 @@
         <button onclick="fecharModalProduto()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none">&times;</button>
       </div>
 
+      <!-- Seção de Complementos / Adicionais -->
       <div>
         <div class="flex justify-between items-center mb-2">
           <h3 class="text-sm font-bold text-gray-800">Deseja adicionar Complementos?</h3>
@@ -77,11 +78,13 @@
         <div class="space-y-2" id="lista-adicionais-modal"></div>
       </div>
 
+      <!-- Observação do Copo -->
       <div>
         <label class="block text-xs font-bold text-gray-700 mb-1">Alguma observação para este item?</label>
         <input type="text" id="modal-prod-obs" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600" placeholder="Ex: Caprichar no leite em pó, sem granola...">
       </div>
 
+      <!-- Total do Copo + Botão de Adicionar à Sacola -->
       <div class="pt-2 border-t flex items-center justify-between gap-4">
         <div>
           <p class="text-[11px] text-gray-500">Valor do Item</p>
@@ -407,7 +410,7 @@
             '<h3 class="font-bold text-gray-900 text-sm leading-snug">' + prod.nome + '</h3>' +
             '<p class="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">' + prod.desc + '</p>' +
             '<div class="flex items-center justify-between mt-2">' +
-              '<span class="font-black text-[#5c1380] text-sm">R$ ' + prod.preco.toFixed(2).replace('.', ',') + '</span>' +
+              '<span class="font-black text-[#5c1380] text-sm">R$ ' + Number(prod.preco || 0).toFixed(2).replace('.', ',') + '</span>' +
               '<button onclick="event.stopPropagation(); iniciarAdicaoProduto(' + prod.id + ')" class="bg-purple-50 hover:bg-purple-100 text-[#411564] font-bold px-3 py-1.5 rounded-lg border border-purple-200 text-xs active:scale-95 transition">+ Adicionar</button>' +
             '</div>' +
           '</div>' +
@@ -605,62 +608,56 @@
       window.open(linkWhatsapp, '_blank');
     }
 
-    // 1. Renderiza o catálogo local de imediato
+    // 1. RENDERIZAÇÃO IMEDIATA (Aparece em 0 segundos)
     renderizarCategorias();
     carregarProdutos();
 
-    // 2. Sincroniza os dados do Supabase de forma segura após o carregamento inicial
-    (async function carregarDadosSupabase() {
-      try {
-        if (typeof window.supabase === 'undefined') {
-          var s = document.createElement('script');
-          s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-          document.head.appendChild(s);
-          await new Promise(function(resolve) { s.onload = resolve; });
-        }
+    // 2. BUSCA NO SUPABASE (Não sobrescreve os produtos existentes, apenas adiciona ou atualiza)
+    setTimeout(function() {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      s.onload = function() {
+        try {
+          var client = window.supabase.createClient(
+            "https://sfxvbnxswuvkpssnryjk.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE"
+          );
 
-        var SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
-        var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
-        var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+          client.from('CARDAPIO ACAIZEIRO').select('*').then(function(res) {
+            if (res.data && res.data.length > 0) {
+              res.data.forEach(function(item) {
+                if (!item.nome) return;
+                var existe = produtos.find(function(p) { return p.id === item.id; });
+                var formatado = {
+                  id: item.id,
+                  categoria: item.categoria || "Copos Açaí Tradicional",
+                  nome: item.nome,
+                  desc: item.descricao || "Item cadastrado no banco de dados.",
+                  preco: parseFloat(item.preco) || 16.50,
+                  imagem: item.imagem_url || "TRADICIONAL.png",
+                  permiteComplementos: (item.categoria || "").toLowerCase() !== "complementos"
+                };
 
-        var resposta = await client.from('CARDAPIO ACAIZEIRO').select('*');
-        if (resposta.error) {
-          console.warn("Aviso Supabase:", resposta.error.message);
-          return;
-        }
+                if (existe) {
+                  Object.assign(existe, formatado);
+                } else {
+                  produtos.push(formatado);
+                }
+              });
 
-        if (resposta.data && resposta.data.length > 0) {
-          produtos = resposta.data.map(function(item) {
-            return {
-              id: item.id,
-              categoria: item.categoria || "Geral",
-              nome: item.nome,
-              desc: item.descricao || "",
-              preco: parseFloat(item.preco) || 0,
-              imagem: item.imagem_url || "TRADICIONAL.png",
-              permiteComplementos: (item.categoria || "").toLowerCase() !== "complementos"
-            };
-          });
-
-          var novasCategorias = ["Todos"];
-          produtos.forEach(function(p) {
-            if (novasCategorias.indexOf(p.categoria) === -1) {
-              novasCategorias.push(p.categoria);
+              renderizarCategorias();
+              carregarProdutos();
+              console.log("Produtos do Supabase integrados com sucesso!");
             }
+          }).catch(function(e) {
+            console.warn("Aviso na consulta ao Supabase:", e);
           });
-
-          if (novasCategorias.length > 1) {
-            categorias = novasCategorias;
-          }
-
-          renderizarCategorias();
-          carregarProdutos();
-          console.log("Catálogo sincronizado com a base de dados com sucesso!");
+        } catch (err) {
+          console.warn("Erro ao instanciar Supabase:", err);
         }
-      } catch (erro) {
-        console.warn("Sincronização em segundo plano não aplicada:", erro);
-      }
-    })();
+      };
+      document.head.appendChild(s);
+    }, 800);
   </script>
 </body>
 </html>
