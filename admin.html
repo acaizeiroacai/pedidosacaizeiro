@@ -3,242 +3,577 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Açaizeiro - Gestão Operacional</title>
+  <title>Açaizeiro - Delivery</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     @import url("https://db.onlinewebfonts.com/c/20e48b2ec8c64b2a1ceb5b28d9bcc9d0?family=Bryndan+Write");
-    .fonte-bryndan { font-family: "Bryndan Write", cursive, sans-serif; letter-spacing: 1px; }
+
+    .fonte-bryndan {
+      font-family: "Bryndan Write", cursive, sans-serif;
+      letter-spacing: 1px;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-800 antialiased min-h-screen">
+<body class="bg-[#fcfaff] text-gray-800 pb-28 antialiased">
 
+  <!-- Topo -->
   <header class="bg-[#411564] text-white p-4 shadow-md sticky top-0 z-30">
-    <div class="max-w-5xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full bg-black flex items-center justify-center overflow-hidden border border-purple-300">
-          <img src="LOGO2.png" alt="Açaizeiro" class="w-full h-full object-contain p-0.5" onerror="this.onerror=null; this.src='PURO.png';">
-        </div>
-        <div>
-          <h1 class="fonte-bryndan text-xl font-bold tracking-wide">AÇAIZEIRO - GESTÃO</h1>
-          <p class="text-[11px] text-purple-200">Painel Operacional e Stock</p>
-        </div>
+    <div class="max-w-xl mx-auto flex items-center gap-3">
+      <div class="w-16 h-16 rounded-full bg-black flex items-center justify-center overflow-hidden border-2 border-purple-300 shadow-md flex-shrink-0">
+        <img src="LOGO2.png" alt="Açaizeiro" class="w-full h-full object-contain p-0.5" onerror="this.onerror=null; this.src='LOGOO PNG.png';">
       </div>
-      <div class="flex gap-2">
-        <button onclick="mudarAba('pedidos')" id="tab-btn-pedidos" class="bg-purple-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">Pedidos</button>
-        <button onclick="mudarAba('stock')" id="tab-btn-stock" class="bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">Stock</button>
-        <button onclick="mudarAba('taxas')" id="tab-btn-taxas" class="bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">Taxas</button>
+      <div>
+        <h1 class="fonte-bryndan text-2xl font-bold tracking-wider leading-tight text-white drop-shadow-sm">AÇAIZEIRO</h1>
+        <p class="text-xs text-purple-200 flex items-center gap-1.5 font-medium">
+          <span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span> Aberto para Pedidos
+        </p>
       </div>
     </div>
   </header>
 
-  <!-- ABA 1: PEDIDOS -->
-  <section id="aba-pedidos" class="max-w-5xl mx-auto p-4">
-    <div class="flex gap-2 overflow-x-auto pb-3">
-      <button onclick="filtrarStatus('Todos')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white" data-status="Todos">Todos</button>
-      <button onclick="filtrarStatus('Recebido')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Recebido">Recebidos</button>
-      <button onclick="filtrarStatus('Em preparo')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Em preparo">Em Preparação</button>
-      <button onclick="filtrarStatus('Saiu para entrega')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Saiu para entrega">A Caminho</button>
-      <button onclick="filtrarStatus('Concluído')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50" data-status="Concluído">Concluídos</button>
-    </div>
-    <div id="lista-pedidos-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-  </section>
+  <!-- Filtro de Categorias -->
+  <nav class="max-w-xl mx-auto px-4 pt-4 pb-2 sticky top-[80px] bg-[#fcfaff]/95 backdrop-blur-sm z-20">
+    <div class="flex gap-2 overflow-x-auto hide-scrollbar py-1" id="lista-categorias"></div>
+  </nav>
 
-  <!-- ABA 2: STOCK / ATIVAR E PAUSAR -->
-  <section id="aba-stock" class="max-w-5xl mx-auto p-4 hidden">
-    <div class="bg-white p-5 rounded-2xl shadow-sm mb-6 border">
-      <h2 class="text-base font-extrabold text-[#411564] mb-3 flex items-center gap-2">
-        <i class="fa-solid fa-mug-hot"></i> Copos do Cardápio
-      </h2>
-      <div id="lista-copos-stock" class="divide-y divide-gray-100"></div>
-    </div>
+  <!-- Lista de Itens -->
+  <main class="max-w-xl mx-auto p-4 space-y-3" id="lista-produtos"></main>
 
-    <div class="bg-white p-5 rounded-2xl shadow-sm border">
-      <h2 class="text-base font-extrabold text-[#411564] mb-3 flex items-center gap-2">
-        <i class="fa-solid fa-bowl-food"></i> Frutas e Complementos
-      </h2>
-      <div id="lista-complementos-stock" class="divide-y divide-gray-100"></div>
+  <!-- Barra Fixa Inferior -->
+  <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-purple-100 p-3.5 shadow-2xl z-30">
+    <div class="max-w-xl mx-auto flex items-center justify-between gap-3">
+      <div>
+        <p class="text-[11px] text-gray-500 uppercase font-semibold">Total do Pedido</p>
+        <p class="text-xl font-black text-[#411564]" id="total-barra">R$ 0,00</p>
+      </div>
+      <button onclick="abrirModalCheckout()" id="btn-sacola" class="bg-[#411564] hover:bg-purple-900 active:scale-95 text-white font-bold px-5 py-3 rounded-xl flex items-center gap-2.5 shadow-md transition disabled:opacity-40 disabled:pointer-events-none">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <span>Ver Sacola (<span id="qtd-itens">0</span>)</span>
+      </button>
     </div>
-  </section>
+  </footer>
 
-  <!-- ABA 3: TAXAS POR BAIRRO -->
-  <section id="aba-taxas" class="max-w-5xl mx-auto p-4 hidden">
-    <div class="bg-white p-5 rounded-2xl shadow-sm border">
-      <h2 class="text-base font-extrabold text-[#411564] mb-1 flex items-center gap-2">
-        <i class="fa-solid fa-motorcycle"></i> Taxas de Entrega por Bairro
-      </h2>
-      <p class="text-xs text-gray-500 mb-4">Altere o valor e clique em Salvar para atualizar imediatamente na loja.</p>
-      <div id="lista-bairros-admin" class="space-y-2"></div>
+  <!-- MODAL: Montar Copo -->
+  <div id="modal-produto" class="fixed inset-0 bg-black/60 hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto p-5 space-y-4">
+      <div class="flex justify-between items-start border-b pb-3">
+        <div>
+          <h2 class="text-lg font-black text-[#411564]" id="modal-prod-nome">Nome do Açaí</h2>
+          <p class="text-xs text-gray-500 mt-0.5" id="modal-prod-desc">Descrição</p>
+        </div>
+        <button onclick="fecharModalProduto()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none">&times;</button>
+      </div>
+
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="text-sm font-bold text-gray-800">Deseja adicionar Complementos?</h3>
+          <span class="text-[11px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full font-semibold">Opcional</span>
+        </div>
+        <p class="text-xs text-gray-500 mb-3">Selecione frutas, caldas e coberturas especiais para o seu açaí:</p>
+        <div class="space-y-2" id="lista-adicionais-modal"></div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Alguma observação para este item?</label>
+        <input type="text" id="modal-prod-obs" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600" placeholder="Ex: Caprichar no leite em pó, sem granola...">
+      </div>
+
+      <div class="pt-2 border-t flex items-center justify-between gap-4">
+        <div>
+          <p class="text-[11px] text-gray-500">Valor do Item</p>
+          <p class="text-lg font-black text-[#411564]" id="modal-prod-total">R$ 0,00</p>
+        </div>
+        <button onclick="confirmarAdicionarItem()" class="flex-1 bg-[#411564] hover:bg-purple-900 text-white font-bold py-3 px-4 rounded-xl shadow-md active:scale-95 transition text-sm">
+          Adicionar ao Pedido
+        </button>
+      </div>
     </div>
-  </section>
+  </div>
+
+  <!-- MODAL: Finalizar Pedido -->
+  <div id="modal-checkout" class="fixed inset-0 bg-black/60 hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto p-5 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h2 class="text-lg font-black text-gray-900 flex items-center gap-2">
+          <i class="fa-solid fa-receipt text-[#411564]"></i> Finalizar Pedido
+        </h2>
+        <button onclick="fecharModalCheckout()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none">&times;</button>
+      </div>
+
+      <div id="itens-carrinho" class="divide-y divide-gray-100 text-sm max-h-48 overflow-y-auto pr-1"></div>
+
+      <div class="bg-purple-50/70 p-3.5 rounded-xl space-y-1.5 text-sm border border-purple-100">
+        <div class="flex justify-between text-gray-600">
+          <span>Subtotal:</span>
+          <span id="resumo-subtotal" class="font-semibold">R$ 0,00</span>
+        </div>
+        <div class="flex justify-between text-gray-600">
+          <span>Taxa de Entrega:</span>
+          <span id="resumo-taxa" class="font-semibold">R$ 8,00</span>
+        </div>
+        <div class="flex justify-between font-black text-base text-[#411564] border-t border-purple-200/80 pt-2">
+          <span>Total Geral:</span>
+          <span id="resumo-total">R$ 0,00</span>
+        </div>
+      </div>
+
+      <form id="form-pedido" class="space-y-3" onsubmit="enviarPedido(event)">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Seu Nome *</label>
+          <input type="text" id="cliente-nome" required class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-purple-600" placeholder="Ex: Maria Santos">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Bairro de Entrega *</label>
+          <select id="cliente-bairro" onchange="atualizarBairroSelecionado()" required class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-purple-600 font-medium">
+            <option value="8.00">Centro — R$ 8,00</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Endereço Completo (Rua e Número) *</label>
+          <input type="text" id="cliente-endereco" required class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-purple-600" placeholder="Ex: Rua São Domingos, 120 - Apto 2">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Forma de Pagamento *</label>
+          <select id="forma-pagamento" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-purple-600">
+            <option value="Pix">Pix (Chave informada no WhatsApp)</option>
+            <option value="Cartão de Crédito">Cartão de Crédito (Levar maquininha)</option>
+            <option value="Cartão de Débito">Cartão de Débito (Levar maquininha)</option>
+            <option value="Dinheiro">Dinheiro</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Observações Gerais</label>
+          <textarea id="cliente-obs" rows="2" class="w-full border border-gray-300 rounded-xl p-2 text-sm outline-purple-600" placeholder="Ex: Troco para R$ 50..."></textarea>
+        </div>
+
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition">
+          <i class="fa-brands fa-whatsapp text-xl"></i>
+          <span>Confirmar e Enviar Pedido</span>
+        </button>
+      </form>
+    </div>
+  </div>
 
   <script>
-    const SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
-    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    var config = {
+      whatsapp: "5516981065241",
+      taxaEntregaAtual: 8.00,
+      bairroSelecionadoNome: "Centro"
+    };
 
-    let listaGlobalPedidos = [];
-    let statusSelecionado = 'Todos';
+    var categorias = [
+      "Todos", 
+      "Copos Açaí Puro", 
+      "Copos Moranguete", 
+      "Copos Açaí Tradicional", 
+      "Copos Kids", 
+      "Copos Ninho c/ Creme de Avelã",
+      "Complementos"
+    ];
+    var categoriaAtiva = "Todos";
 
-    function mudarAba(aba) {
-      ['pedidos', 'stock', 'taxas'].forEach(a => {
-        document.getElementById('aba-' + a).classList.add('hidden');
-        document.getElementById('tab-btn-' + a).className = "bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition";
-      });
-      document.getElementById('aba-' + aba).classList.remove('hidden');
-      document.getElementById('tab-btn-' + aba).className = "bg-purple-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition";
-
-      if (aba === 'stock') carregarStock();
-      if (aba === 'taxas') carregarTaxas();
+    function normalizarCategoria(cat) {
+      if (!cat) return "Copos Açaí Tradicional";
+      var c = cat.trim().toLowerCase();
+      if (c.indexOf("puro") !== -1) return "Copos Açaí Puro";
+      if (c.indexOf("moranguete") !== -1) return "Copos Moranguete";
+      if (c.indexOf("traciona") !== -1 || c.indexOf("tradicional") !== -1) return "Copos Açaí Tradicional";
+      if (c.indexOf("kids") !== -1) return "Copos Kids";
+      if (c.indexOf("ninho") !== -1 || c.indexOf("avel") !== -1) return "Copos Ninho c/ Creme de Avelã";
+      if (c.indexOf("complement") !== -1 || c.indexOf("extra") !== -1 || c.indexOf("adicional") !== -1) return "Complementos";
+      return cat;
     }
 
-    async function carregarPedidos() {
-      const { data } = await client.from('pedidos').select('*').order('id', { ascending: false });
-      listaGlobalPedidos = data || [];
-      renderizarPedidos();
-    }
+    var complementosDisponiveis = [
+      { id: "c1", nome: "Morango", preco: 5.00 },
+      { id: "c2", nome: "Banana", preco: 2.00 },
+      { id: "c3", nome: "Uva", preco: 3.00 },
+      { id: "c4", nome: "Leite Condensado", preco: 3.00 },
+      { id: "c5", nome: "Leite em Pó", preco: 3.00 },
+      { id: "c6", nome: "Ovomaltine", preco: 3.00 },
+      { id: "c7", nome: "Farofa de Paçoca", preco: 3.00 },
+      { id: "c8", nome: "Granola", preco: 3.00 },
+      { id: "c9", nome: "Creme de Avelã", preco: 3.00 },
+      { id: "c10", nome: "Creme de Ninho", preco: 3.00 },
+      { id: "c11", nome: "Creme de Morango", preco: 3.00 },
+      { id: "c12", nome: "Creme de Maracujá", preco: 3.00 }
+    ];
 
-    function filtrarStatus(s) {
-      statusSelecionado = s;
-      document.querySelectorAll('.btn-filtro').forEach(b => {
-        b.className = b.getAttribute('data-status') === s 
-          ? "btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white"
-          : "btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50";
-      });
-      renderizarPedidos();
-    }
+    var produtos = [
+      { id: 1, categoria: "Copos Açaí Puro", nome: "Copo Açaí Puro P - Monte o Seu", desc: "Açaí Puro 300ml - Servido com açaí puro. Adicione seus complementos favoritos.", preco: 18.40, imagem: "PURO.png", permiteComplementos: true, ativo: true },
+      { id: 2, categoria: "Copos Açaí Puro", nome: "Copo Açaí Puro M - Monte o Seu", desc: "Açaí Puro 500ml - Servido com açaí puro. Adicione seus complementos favoritos.", preco: 27.99, imagem: "PURO.png", permiteComplementos: true, ativo: true },
+      { id: 3, categoria: "Copos Moranguete", nome: "Copo Moranguete P", desc: "Copo 300ml - Servido com açaí, creme de morango e chocolate moranguete.", preco: 22.60, imagem: "MORANGUETE.png", permiteComplementos: true, ativo: true },
+      { id: 4, categoria: "Copos Moranguete", nome: "Copo Moranguete M", desc: "Copo 500ml - Servido com açaí, creme de morango e chocolate moranguete.", preco: 28.30, imagem: "MORANGUETE.png", permiteComplementos: true, ativo: true },
+      { id: 5, categoria: "Copos Açaí Tradicional", nome: "Copo Açaí Tradicional P", desc: "Copo 300ml - Servido com açaí, leite condensado e leite em pó.", preco: 19.80, imagem: "TRADICIONAL.png", permiteComplementos: true, ativo: true },
+      { id: 6, categoria: "Copos Açaí Tradicional", nome: "Copo Açaí Tradicional M", desc: "Copo 500ml - Servido com açaí, leite condensado e leite em pó.", preco: 25.70, imagem: "TRADICIONAL.png", permiteComplementos: true, ativo: true },
+      { id: 7, categoria: "Copos Kids", nome: "Copo Kids P", desc: "Copo 300ml - Servido com açaí, leite condensado, leite em pó e Confete.", preco: 24.50, imagem: "KIDS.png", permiteComplementos: true, ativo: true },
+      { id: 8, categoria: "Copos Kids", nome: "Copo Kids G", desc: "Copo 500ml - Servido com açaí, leite condensado, leite em pó e Confete.", preco: 34.50, imagem: "KIDS.png", permiteComplementos: true, ativo: true },
+      { id: 9, categoria: "Copos Ninho c/ Creme de Avelã", nome: "Copo Ninho Com Creme de Avelã P", desc: "Copo 300ml - Servido com açaí, creme de avelã e creme de Ninho.", preco: 29.50, imagem: "NINHO AVELA.png", permiteComplementos: true, ativo: true },
+      { id: 10, categoria: "Copos Ninho c/ Creme de Avelã", nome: "Copo Ninho com Creme de Avelã M", desc: "Copo 500ml - Servido com açaí, creme de avelã e creme de Ninho.", preco: 39.15, imagem: "NINHO AVELA.png", permiteComplementos: true, ativo: true }
+    ];
 
-    function renderizarPedidos() {
-      const container = document.getElementById('lista-pedidos-admin');
-      const filtrados = statusSelecionado === 'Todos' 
-        ? listaGlobalPedidos 
-        : listaGlobalPedidos.filter(p => p.status === statusSelecionado);
+    var carrinho = [];
+    var produtoEmEdicao = null;
 
-      if (filtrados.length === 0) {
-        container.innerHTML = '<div class="col-span-full bg-white p-8 rounded-xl shadow-sm text-center text-gray-400 text-sm">Nenhum pedido encontrado.</div>';
-        return;
-      }
-
-      container.innerHTML = filtrados.map(p => {
-        const hora = new Date(p.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        let itensHtml = (p.itens || []).map(i => `
-          <div class="text-xs py-1 border-b border-gray-50">
-            <span class="font-bold text-gray-900">${i.quantidade}x ${i.nome}</span>
-            ${i.complementos && i.complementos.length > 0 ? `<p class="text-[11px] text-purple-700 pl-2">+ ${i.complementos.join(', ')}</p>` : ''}
-            ${i.observacao ? `<p class="text-[11px] text-gray-500 italic pl-2">Obs: ${i.observacao}</p>` : ''}
-          </div>
-        `).join('');
-
-        let badge = "bg-amber-100 text-amber-800 border-amber-200";
-        if (p.status === "Em preparo") badge = "bg-blue-100 text-blue-800 border-blue-200";
-        if (p.status === "Saiu para entrega") badge = "bg-purple-100 text-purple-800 border-purple-200";
-        if (p.status === "Concluído") badge = "bg-green-100 text-green-800 border-green-200";
-
-        return `
-          <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 flex flex-col justify-between">
-            <div>
-              <div class="flex justify-between items-start mb-2">
-                <div>
-                  <span class="text-xs font-bold text-purple-900">#${p.id}</span>
-                  <span class="text-[11px] text-gray-400 ml-1.5">${hora}</span>
-                  <h3 class="font-extrabold text-gray-900 text-base leading-tight">${p.cliente_nome}</h3>
-                </div>
-                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${badge}">${p.status}</span>
-              </div>
-              <p class="text-xs text-gray-600 mb-2 flex items-start gap-1">
-                <i class="fa-solid fa-location-dot mt-0.5 text-gray-400"></i>
-                <span>${p.cliente_endereco}</span>
-              </p>
-              <div class="bg-gray-50 p-2.5 rounded-xl my-2">${itensHtml}</div>
-              ${p.observacoes ? `<p class="text-xs text-red-600 bg-red-50 p-2 rounded-lg font-medium mb-2">Obs: ${p.observacoes}</p>` : ''}
-            </div>
-            <div class="pt-3 border-t mt-2">
-              <div class="flex justify-between items-center mb-3">
-                <span class="text-xs text-gray-500">Pagamento: <strong>${p.forma_pagamento}</strong></span>
-                <span class="text-base font-black text-[#411564]">R$ ${Number(p.total || 0).toFixed(2).replace('.', ',')}</span>
-              </div>
-              <div class="grid grid-cols-3 gap-1.5">
-                <button onclick="mudarStatus(${p.id}, 'Em preparo')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 text-[11px] font-bold py-1.5 rounded-lg border border-blue-200 transition">Preparo</button>
-                <button onclick="mudarStatus(${p.id}, 'Saiu para entrega')" class="bg-purple-50 hover:bg-purple-100 text-purple-700 text-[11px] font-bold py-1.5 rounded-lg border border-purple-200 transition">A Caminho</button>
-                <button onclick="mudarStatus(${p.id}, 'Concluído')" class="bg-green-50 hover:bg-green-100 text-green-700 text-[11px] font-bold py-1.5 rounded-lg border border-green-200 transition">Concluído</button>
-              </div>
-            </div>
-          </div>
-        `;
+    function renderizarCategorias() {
+      var container = document.getElementById('lista-categorias');
+      if (!container) return;
+      container.innerHTML = categorias.map(function(cat) {
+        var ativo = categoriaAtiva === cat;
+        var classeCor = ativo ? 'bg-[#411564] text-white shadow-sm' : 'bg-white text-gray-600 border border-purple-100 hover:bg-purple-50';
+        return '<button onclick="selecionarCategoria(\'' + cat + '\')" class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ' + classeCor + '">' + cat + '</button>';
       }).join('');
     }
 
-    async function mudarStatus(id, st) {
-      await client.from('pedidos').update({ status: st }).eq('id', id);
-      const p = listaGlobalPedidos.find(x => x.id === id);
-      if (p) p.status = st;
-      renderizarPedidos();
+    function selecionarCategoria(cat) {
+      categoriaAtiva = cat;
+      renderizarCategorias();
+      carregarProdutos();
     }
 
-    // GESTÃO DE STOCK
-    async function carregarStock() {
-      const [rCopos, rComp] = await Promise.all([
-        client.from('CARDAPIO ACAIZEIRO').select('*').order('id'),
-        client.from('COMPLEMENTOS').select('*').order('nome')
-      ]);
+    function carregarProdutos() {
+      var container = document.getElementById('lista-produtos');
+      if (!container) return;
 
-      const cCopos = document.getElementById('lista-copos-stock');
-      cCopos.innerHTML = (rCopos.data || []).map(copo => `
-        <div class="py-2.5 flex items-center justify-between">
-          <div>
-            <p class="text-sm font-bold text-gray-800">${copo.nome}</p>
-            <p class="text-xs text-gray-400">${copo.categoria} — R$ ${Number(copo.preco).toFixed(2).replace('.', ',')}</p>
-          </div>
-          <button onclick="toggleItem('CARDAPIO ACAIZEIRO', ${copo.id}, ${copo.ativo !== false})" class="px-3 py-1 rounded-lg text-xs font-bold transition ${copo.ativo !== false ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300'}">
-            ${copo.ativo !== false ? 'Disponível' : 'Esgotado'}
-          </button>
-        </div>
-      `).join('');
+      var filtrados = produtos.filter(function(p) {
+        if (p.ativo === false) return false;
+        if (categoriaAtiva === "Todos") return true;
+        return normalizarCategoria(p.categoria) === categoriaAtiva;
+      });
 
-      const cComp = document.getElementById('lista-complementos-stock');
-      cComp.innerHTML = (rComp.data || []).map(comp => `
-        <div class="py-2.5 flex items-center justify-between">
-          <div>
-            <p class="text-sm font-bold text-gray-800">${comp.nome}</p>
-            <p class="text-xs text-gray-400">+ R$ ${Number(comp.preco).toFixed(2).replace('.', ',')}</p>
-          </div>
-          <button onclick="toggleItem('COMPLEMENTOS', '${comp.id}', ${comp.ativo !== false})" class="px-3 py-1 rounded-lg text-xs font-bold transition ${comp.ativo !== false ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300'}">
-            ${comp.ativo !== false ? 'Disponível' : 'Esgotado'}
-          </button>
-        </div>
-      `).join('');
+      if (filtrados.length === 0) {
+        container.innerHTML = '<p class="text-center py-8 text-gray-400 text-sm">Nenhum produto disponível no momento.</p>';
+        return;
+      }
+
+      container.innerHTML = filtrados.map(function(prod) {
+        var imgHtml = prod.imagem 
+          ? '<img src="' + encodeURI(prod.imagem) + '" alt="' + prod.nome + '" class="w-full h-full object-cover" onerror="this.onerror=null; this.src=\'PURO.png\';">'
+          : '<div class="w-full h-full flex items-center justify-center font-black text-purple-300 text-xs text-center p-1">EXTRA</div>';
+
+        return '<div class="bg-white p-3.5 rounded-2xl shadow-sm border border-purple-100 flex gap-3.5 items-center cursor-pointer hover:border-purple-300 transition" onclick="iniciarAdicaoProduto(' + (typeof prod.id === "string" ? "'" + prod.id + "'" : prod.id) + ')">' +
+          '<div class="w-20 h-20 rounded-xl overflow-hidden bg-purple-50 flex-shrink-0 border border-purple-100">' + imgHtml + '</div>' +
+          '<div class="flex-1 min-w-0">' +
+            '<h3 class="font-bold text-gray-900 text-sm leading-snug">' + prod.nome + '</h3>' +
+            '<p class="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">' + prod.desc + '</p>' +
+            '<div class="flex items-center justify-between mt-2">' +
+              '<span class="font-black text-[#5c1380] text-sm">R$ ' + Number(prod.preco || 0).toFixed(2).replace('.', ',') + '</span>' +
+              '<button onclick="event.stopPropagation(); iniciarAdicaoProduto(' + (typeof prod.id === "string" ? "'" + prod.id + "'" : prod.id) + ')" class="bg-purple-50 hover:bg-purple-100 text-[#411564] font-bold px-3 py-1.5 rounded-lg border border-purple-200 text-xs active:scale-95 transition">+ Adicionar</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
     }
 
-    async function toggleItem(tabela, id, ativoAtual) {
-      await client.from(tabela).update({ ativo: !ativoAtual }).eq('id', id);
-      carregarStock();
+    function iniciarAdicaoProduto(id) {
+      var prod = produtos.find(function(p) { return String(p.id) === String(id); });
+      if (!prod) return;
+
+      produtoEmEdicao = Object.assign({}, prod, { complementosEscolhidos: [] });
+
+      if (!prod.permiteComplementos) {
+        carrinho.push({
+          cartId: Date.now() + Math.random(),
+          produtoId: prod.id,
+          nome: prod.nome,
+          precoBase: prod.preco,
+          complementos: [],
+          obs: "",
+          precoTotal: prod.preco,
+          qtd: 1
+        });
+        atualizarBarra();
+        return;
+      }
+
+      document.getElementById('modal-prod-nome').innerText = prod.nome;
+      document.getElementById('modal-prod-desc').innerText = prod.desc;
+      document.getElementById('modal-prod-obs').value = "";
+
+      var container = document.getElementById('lista-adicionais-modal');
+      container.innerHTML = complementosDisponiveis.map(function(comp) {
+        return '<label class="flex items-center justify-between p-2.5 rounded-xl border border-gray-200 hover:border-purple-300 bg-gray-50/50 cursor-pointer text-sm">' +
+          '<div class="flex items-center gap-2.5">' +
+            '<input type="checkbox" value="' + comp.id + '" onchange="toggleComplementoModal(\'' + comp.id + '\')" class="w-4 h-4 text-purple-700 rounded focus:ring-purple-500">' +
+            '<span class="font-medium text-gray-800">' + comp.nome + '</span>' +
+          '</div>' +
+          '<span class="font-bold text-xs text-purple-900">+ R$ ' + Number(comp.preco || 0).toFixed(2).replace('.', ',') + '</span>' +
+        '</label>';
+      }).join('');
+
+      atualizarTotalModal();
+      document.getElementById('modal-produto').classList.remove('hidden');
     }
 
-    // GESTÃO DE TAXAS
-    async function carregarTaxas() {
-      const { data } = await client.from('bairros_taxas').select('*').order('bairro');
-      const c = document.getElementById('lista-bairros-admin');
-      c.innerHTML = (data || []).map(b => `
-        <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border">
-          <span class="text-sm font-bold text-gray-800">${b.bairro}</span>
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-gray-500">R$</span>
-            <input type="number" step="0.50" id="taxa-val-${b.id}" value="${Number(b.taxa).toFixed(2)}" class="w-20 p-1 border rounded text-xs font-bold text-right outline-purple-600">
-            <button onclick="salvarTaxa(${b.id})" class="bg-[#411564] text-white px-2.5 py-1 rounded text-xs font-bold active:scale-95 transition">Guardar</button>
-          </div>
-        </div>
-      `).join('');
+    function toggleComplementoModal(compId) {
+      var index = produtoEmEdicao.complementosEscolhidos.findIndex(function(c) { return String(c.id) === String(compId); });
+      if (index >= 0) {
+        produtoEmEdicao.complementosEscolhidos.splice(index, 1);
+      } else {
+        var comp = complementosDisponiveis.find(function(c) { return String(c.id) === String(compId); });
+        if (comp) produtoEmEdicao.complementosEscolhidos.push(comp);
+      }
+      atualizarTotalModal();
     }
 
-    async function salvarTaxa(id) {
-      const val = parseFloat(document.getElementById('taxa-val-' + id).value) || 0;
-      await client.from('bairros_taxas').update({ taxa: val }).eq('id', id);
-      alert("Taxa atualizada com sucesso!");
+    function atualizarTotalModal() {
+      var total = produtoEmEdicao.preco;
+      produtoEmEdicao.complementosEscolhidos.forEach(function(c) { total += c.preco; });
+      document.getElementById('modal-prod-total').innerText = 'R$ ' + total.toFixed(2).replace('.', ',');
     }
 
-    carregarPedidos();
-    setInterval(carregarPedidos, 20000);
+    function fecharModalProduto() {
+      document.getElementById('modal-produto').classList.add('hidden');
+      produtoEmEdicao = null;
+    }
+
+    function confirmarAdicionarItem() {
+      if (!produtoEmEdicao) return;
+      var totalItem = produtoEmEdicao.preco;
+      produtoEmEdicao.complementosEscolhidos.forEach(function(c) { totalItem += c.preco; });
+
+      carrinho.push({
+        cartId: Date.now() + Math.random(),
+        produtoId: produtoEmEdicao.id,
+        nome: produtoEmEdicao.nome,
+        precoBase: produtoEmEdicao.preco,
+        complementos: produtoEmEdicao.complementosEscolhidos.slice(),
+        obs: document.getElementById('modal-prod-obs').value.trim(),
+        precoTotal: totalItem,
+        qtd: 1
+      });
+
+      fecharModalProduto();
+      atualizarBarra();
+    }
+
+    function alterarQtd(cartId, delta) {
+      var item = carrinho.find(function(i) { return i.cartId === cartId; });
+      if (!item) return;
+      item.qtd += delta;
+      if (item.qtd <= 0) {
+        carrinho = carrinho.filter(function(i) { return i.cartId !== cartId; });
+      }
+      atualizarBarra();
+      renderizarItensCheckout();
+    }
+
+    function calcularTotais() {
+      var subtotal = 0;
+      var totalQtd = 0;
+      carrinho.forEach(function(item) {
+        subtotal += item.precoTotal * item.qtd;
+        totalQtd += item.qtd;
+      });
+      var total = subtotal > 0 ? (subtotal + config.taxaEntregaAtual) : 0;
+      return { subtotal: subtotal, total: total, totalQtd: totalQtd };
+    }
+
+    function atualizarBarra() {
+      var totais = calcularTotais();
+      document.getElementById('total-barra').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
+      document.getElementById('qtd-itens').innerText = totais.totalQtd;
+      document.getElementById('btn-sacola').disabled = totais.totalQtd === 0;
+    }
+
+    function renderizarItensCheckout() {
+      var totais = calcularTotais();
+      var container = document.getElementById('itens-carrinho');
+      
+      var itensHtml = carrinho.map(function(item) {
+        var complTexto = item.complementos.length > 0 
+          ? '<p class="text-[11px] text-purple-700 font-medium mt-0.5">+ ' + item.complementos.map(function(c) { return c.nome; }).join(', ') + '</p>' 
+          : '';
+        var obsTexto = item.obs ? '<p class="text-[11px] text-gray-500 italic">Obs: ' + item.obs + '</p>' : '';
+
+        return '<div class="flex justify-between items-center py-2.5">' +
+          '<div class="pr-2 flex-1">' +
+            '<p class="font-bold text-gray-800 text-sm leading-tight">${item.nome}</p>' +
+            complTexto + obsTexto +
+            '<p class="text-xs text-gray-500 mt-0.5">R$ ' + item.precoTotal.toFixed(2).replace('.', ',') + ' cada</p>' +
+          '</div>' +
+          '<div class="flex items-center gap-2">' +
+            '<button onclick="alterarQtd(' + item.cartId + ', -1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 font-bold text-gray-700 text-sm flex items-center justify-center">-</button>' +
+            '<span class="font-bold text-sm w-4 text-center">' + item.qtd + '</span>' +
+            '<button onclick="alterarQtd(' + item.cartId + ', 1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 font-bold text-gray-700 text-sm flex items-center justify-center">+</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      container.innerHTML = itensHtml || '<p class="text-center py-4 text-gray-400 text-sm">Sua sacola está vazia</p>';
+      document.getElementById('resumo-subtotal').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
+      document.getElementById('resumo-taxa').innerText = 'R$ ' + config.taxaEntregaAtual.toFixed(2).replace('.', ',');
+      document.getElementById('resumo-total').innerText = 'R$ ' + totais.total.toFixed(2).replace('.', ',');
+    }
+
+    function atualizarBairroSelecionado() {
+      var select = document.getElementById('cliente-bairro');
+      config.taxaEntregaAtual = parseFloat(select.value) || 0;
+      config.bairroSelecionadoNome = select.options[select.selectedIndex].text.split('—')[0].trim();
+      renderizarItensCheckout();
+    }
+
+    function abrirModalCheckout() {
+      renderizarItensCheckout();
+      document.getElementById('modal-checkout').classList.remove('hidden');
+    }
+
+    function fecharModalCheckout() {
+      document.getElementById('modal-checkout').classList.add('hidden');
+    }
+
+    async function enviarPedido(e) {
+      e.preventDefault();
+      var nome = document.getElementById('cliente-nome').value.trim();
+      var endereco = document.getElementById('cliente-endereco').value.trim();
+      var pagamento = document.getElementById('forma-pagamento').value;
+      var obsGeral = document.getElementById('cliente-obs').value.trim();
+      var totais = calcularTotais();
+
+      var enderecoCompleto = endereco + " (Bairro: " + config.bairroSelecionadoNome + ")";
+
+      var itensParaSalvar = carrinho.map(function(item) {
+        return {
+          id: item.produtoId,
+          nome: item.nome,
+          quantidade: item.qtd,
+          preco_unitario: item.precoTotal,
+          complementos: item.complementos.map(function(c) { return c.nome; }),
+          observacao: item.obs || ""
+        };
+      });
+
+      try {
+        if (window.supabase && window.supabase.createClient) {
+          var client = window.supabase.createClient(
+            "https://sfxvbnxswuvkpssnryjk.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE"
+          );
+
+          await client.from('pedidos').insert([{
+            cliente_nome: nome,
+            cliente_endereco: enderecoCompleto,
+            forma_pagamento: pagamento,
+            observacoes: obsGeral,
+            itens: itensParaSalvar,
+            subtotal: totais.subtotal,
+            taxa_entrega: config.taxaEntregaAtual,
+            total: totais.total,
+            status: 'Recebido'
+          }]);
+        }
+      } catch (errBanco) {
+        console.warn("Aviso ao salvar pedido:", errBanco);
+      }
+
+      var texto = '*🍇 NOVO PEDIDO - AÇAIZEIRO*\n\n';
+      texto += '*Cliente:* ' + nome + '\n';
+      texto += '*Bairro:* ' + config.bairroSelecionadoNome + '\n';
+      texto += '*Endereço:* ' + endereco + '\n';
+      texto += '*Pagamento:* ' + pagamento + '\n';
+      if (obsGeral) texto += '*Obs Entrega:* ' + obsGeral + '\n';
+      texto += '\n*📋 ITENS SOLICITADOS:*\n';
+
+      carrinho.forEach(function(item) {
+        var sub = item.precoTotal * item.qtd;
+        texto += '\n• *' + item.qtd + 'x ' + item.nome + '* — R$ ' + sub.toFixed(2).replace('.', ',') + '\n';
+        if (item.complementos.length > 0) {
+          item.complementos.forEach(function(c) {
+            texto += '   └ + ' + c.nome + ' (R$ ' + c.preco.toFixed(2).replace('.', ',') + ')\n';
+          });
+        }
+        if (item.obs) texto += '   └ Obs item: ' + item.obs + '\n';
+      });
+
+      texto += '\n*Subtotal:* R$ ' + totais.subtotal.toFixed(2).replace('.', ',') + '\n';
+      texto += '*Taxa de Entrega:* R$ ' + config.taxaEntregaAtual.toFixed(2).replace('.', ',') + '\n';
+      texto += '*TOTAL DO PEDIDO:* R$ ' + totais.total.toFixed(2).replace('.', ',') + '\n';
+
+      var linkWhatsapp = 'https://wa.me/' + config.whatsapp + '?text=' + encodeURIComponent(texto);
+      window.open(linkWhatsapp, '_blank');
+    }
+
+    renderizarCategorias();
+    carregarProdutos();
+
+    setTimeout(function() {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      s.onload = function() {
+        try {
+          var client = window.supabase.createClient(
+            "https://sfxvbnxswuvkpssnryjk.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE"
+          );
+
+          Promise.all([
+            client.from('CARDAPIO ACAIZEIRO').select('*'),
+            client.from('COMPLEMENTOS').select('*').eq('ativo', true),
+            client.from('bairros_taxas').select('*').order('bairro')
+          ]).then(function(respostas) {
+            var resCopos = respostas[0];
+            var resComp = respostas[1];
+            var resBairros = respostas[2];
+
+            if (resCopos.data && resCopos.data.length > 0) {
+              resCopos.data.forEach(function(item) {
+                if (!item.nome) return;
+                var catPadrao = normalizarCategoria(item.categoria);
+                var existe = produtos.find(function(p) {
+                  return String(p.id) === String(item.id) || p.nome.toLowerCase() === item.nome.toLowerCase();
+                });
+
+                var objProduto = {
+                  id: item.id,
+                  categoria: catPadrao,
+                  nome: item.nome,
+                  desc: item.descricao || "",
+                  preco: parseFloat(item.preco) || 0,
+                  imagem: item.imagem_url || "TRADICIONAL.png",
+                  permiteComplementos: catPadrao.toLowerCase() !== "complementos",
+                  ativo: item.ativo !== false
+                };
+
+                if (existe) {
+                  Object.assign(existe, objProduto);
+                } else {
+                  produtos.push(objProduto);
+                }
+              });
+              renderizarCategorias();
+              carregarProdutos();
+            }
+
+            if (resComp.data && resComp.data.length > 0) {
+              complementosDisponiveis = resComp.data.map(function(c) {
+                return { id: String(c.id), nome: c.nome, preco: parseFloat(c.preco) || 0 };
+              });
+            }
+
+            if (resBairros.data && resBairros.data.length > 0) {
+              var selectBairro = document.getElementById('cliente-bairro');
+              selectBairro.innerHTML = resBairros.data.map(function(b) {
+                return '<option value="' + Number(b.taxa).toFixed(2) + '">' + b.bairro + ' — R$ ' + Number(b.taxa).toFixed(2).replace('.', ',') + '</option>';
+              }).join('');
+              atualizarBairroSelecionado();
+            }
+          }).catch(function(e) {
+            console.warn("Aviso Supabase:", e);
+          });
+        } catch (err) {
+          console.warn("Erro Supabase:", err);
+        }
+      };
+      document.head.appendChild(s);
+    }, 800);
   </script>
 </body>
 </html>
