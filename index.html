@@ -164,6 +164,7 @@
       taxaEntrega: 10.00
     };
 
+    // Lista fixa padronizada de Categorias Oficiais
     var categorias = [
       "Todos", 
       "Copos Açaí Puro", 
@@ -174,6 +175,19 @@
       "Complementos"
     ];
     var categoriaAtiva = "Todos";
+
+    // Normalizador de categoria para evitar que variações de digitação quebrem o cardápio
+    function normalizarCategoria(cat) {
+      if (!cat) return "Copos Açaí Tradicional";
+      var c = cat.trim().toLowerCase();
+      if (c.indexOf("puro") !== -1) return "Copos Açaí Puro";
+      if (c.indexOf("moranguete") !== -1) return "Copos Moranguete";
+      if (c.indexOf("traciona") !== -1 || c.indexOf("tradicional") !== -1) return "Copos Açaí Tradicional";
+      if (c.indexOf("kids") !== -1) return "Copos Kids";
+      if (c.indexOf("ninho") !== -1 || c.indexOf("avel") !== -1) return "Copos Ninho c/ Creme de Avelã";
+      if (c.indexOf("complement") !== -1 || c.indexOf("extra") !== -1 || c.indexOf("adicional") !== -1) return "Complementos";
+      return cat;
+    }
 
     var complementosDisponiveis = [
       { id: "c1", nome: "Morango", preco: 5.00 },
@@ -395,23 +409,30 @@
     function carregarProdutos() {
       var container = document.getElementById('lista-produtos');
       if (!container) return;
-      var filtrados = categoriaAtiva === "Todos" 
-        ? produtos 
-        : produtos.filter(function(p) { return p.categoria.trim().toLowerCase() === categoriaAtiva.trim().toLowerCase(); });
+
+      var filtrados = produtos.filter(function(p) {
+        if (categoriaAtiva === "Todos") return true;
+        return normalizarCategoria(p.categoria) === categoriaAtiva;
+      });
+
+      if (filtrados.length === 0) {
+        container.innerHTML = '<p class="text-center py-8 text-gray-400 text-sm">Nenhum produto encontrado nesta categoria.</p>';
+        return;
+      }
 
       container.innerHTML = filtrados.map(function(prod) {
         var imgHtml = prod.imagem 
           ? '<img src="' + encodeURI(prod.imagem) + '" alt="' + prod.nome + '" class="w-full h-full object-cover" onerror="this.onerror=null; this.src=\'PURO.png\';">'
           : '<div class="w-full h-full flex items-center justify-center font-black text-purple-300 text-xs text-center p-1">EXTRA</div>';
 
-        return '<div class="bg-white p-3.5 rounded-2xl shadow-sm border border-purple-100 flex gap-3.5 items-center cursor-pointer hover:border-purple-300 transition" onclick="iniciarAdicaoProduto(' + prod.id + ')">' +
+        return '<div class="bg-white p-3.5 rounded-2xl shadow-sm border border-purple-100 flex gap-3.5 items-center cursor-pointer hover:border-purple-300 transition" onclick="iniciarAdicaoProduto(' + (typeof prod.id === "string" ? "'" + prod.id + "'" : prod.id) + ')">' +
           '<div class="w-20 h-20 rounded-xl overflow-hidden bg-purple-50 flex-shrink-0 border border-purple-100">' + imgHtml + '</div>' +
           '<div class="flex-1 min-w-0">' +
             '<h3 class="font-bold text-gray-900 text-sm leading-snug">' + prod.nome + '</h3>' +
             '<p class="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">' + prod.desc + '</p>' +
             '<div class="flex items-center justify-between mt-2">' +
               '<span class="font-black text-[#5c1380] text-sm">R$ ' + Number(prod.preco || 0).toFixed(2).replace('.', ',') + '</span>' +
-              '<button onclick="event.stopPropagation(); iniciarAdicaoProduto(' + prod.id + ')" class="bg-purple-50 hover:bg-purple-100 text-[#411564] font-bold px-3 py-1.5 rounded-lg border border-purple-200 text-xs active:scale-95 transition">+ Adicionar</button>' +
+              '<button onclick="event.stopPropagation(); iniciarAdicaoProduto(' + (typeof prod.id === "string" ? "'" + prod.id + "'" : prod.id) + ')" class="bg-purple-50 hover:bg-purple-100 text-[#411564] font-bold px-3 py-1.5 rounded-lg border border-purple-200 text-xs active:scale-95 transition">+ Adicionar</button>' +
             '</div>' +
           '</div>' +
         '</div>';
@@ -419,7 +440,7 @@
     }
 
     function iniciarAdicaoProduto(id) {
-      var prod = produtos.find(function(p) { return p.id === id; });
+      var prod = produtos.find(function(p) { return String(p.id) === String(id); });
       if (!prod) return;
 
       produtoEmEdicao = Object.assign({}, prod, { complementosEscolhidos: [] });
@@ -448,7 +469,7 @@
         return '<label class="flex items-center justify-between p-2.5 rounded-xl border border-gray-200 hover:border-purple-300 bg-gray-50/50 cursor-pointer text-sm">' +
           '<div class="flex items-center gap-2.5">' +
             '<input type="checkbox" value="' + comp.id + '" onchange="toggleComplementoModal(\'' + comp.id + '\')" class="w-4 h-4 text-purple-700 rounded focus:ring-purple-500">' +
-            '<span class="font-medium text-gray-800">' + comp.nome + '</span>' +
+            '<span class="font-medium text-gray-800">${comp.nome}</span>' +
           '</div>' +
           '<span class="font-bold text-xs text-purple-900">+ R$ ' + comp.preco.toFixed(2).replace('.', ',') + '</span>' +
         '</label>';
@@ -608,11 +629,11 @@
       window.open(linkWhatsapp, '_blank');
     }
 
-    // 1. RENDERIZAÇÃO IMEDIATA (Exibe tudo perfeitamente)
+    // 1. RENDERIZAÇÃO IMEDIATA (Exibe os 10 copos e complementos sem duplicados)
     renderizarCategorias();
     carregarProdutos();
 
-    // 2. BUSCA NO SUPABASE (Blindada contra duplicação e sem apagar produtos)
+    // 2. SINCRONIZAÇÃO INTELIGENTE COM O SUPABASE
     setTimeout(function() {
       var s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
@@ -628,37 +649,32 @@
               res.data.forEach(function(item) {
                 if (!item.nome) return;
 
-                // Evita sobrescrever itens locais por colisão de ID numérico
-                var idSupabase = "sb_" + item.id;
-                var existe = produtos.find(function(p) { 
-                  return p.id === idSupabase || p.nome.trim().toLowerCase() === item.nome.trim().toLowerCase(); 
+                var catPadrao = normalizarCategoria(item.categoria);
+
+                // Busca se o produto já existe pelo nome similar ou id
+                var existe = produtos.find(function(p) {
+                  var pNome = p.nome.toLowerCase().replace(/[^a-z0-9]/g, '');
+                  var iNome = item.nome.toLowerCase().replace(/[^a-z0-9]/g, '');
+                  return pNome === iNome || (pNome.indexOf("tradicionalp") !== -1 && iNome.indexOf("tradicionalp") !== -1);
                 });
 
-                var categoriaAjustada = item.categoria ? item.categoria.trim() : "Copos Açaí Tradicional";
-                // Corrige erro de digitação caso no banco esteja "Copos Tracionais"
-                if (categoriaAjustada.toLowerCase().includes("traciona")) {
-                  categoriaAjustada = "Copos Açaí Tradicional";
-                }
-
-                var formatado = {
-                  id: existe ? existe.id : idSupabase,
-                  categoria: categoriaAjustada,
-                  nome: item.nome,
-                  desc: item.descricao || "Item cadastrado no banco de dados.",
-                  preco: parseFloat(item.preco) || 16.50,
-                  imagem: item.imagem_url || "TRADICIONAL.png",
-                  permiteComplementos: categoriaAjustada.toLowerCase() !== "complementos"
-                };
-
                 if (existe) {
-                  Object.assign(existe, formatado);
+                  // Apenas atualiza o produto existente em vez de criar um duplicado
+                  existe.preco = parseFloat(item.preco) || existe.preco;
+                  if (item.descricao) existe.desc = item.descricao;
+                  if (item.imagem_url) existe.imagem = item.imagem_url;
+                  existe.categoria = catPadrao;
                 } else {
-                  produtos.push(formatado);
-                }
-
-                // Adiciona a categoria caso ela ainda não exista na barra de filtros
-                if (categorias.indexOf(categoriaAjustada) === -1) {
-                  categorias.push(categoriaAjustada);
+                  // Só adiciona se for um produto realmente novo
+                  produtos.push({
+                    id: "sb_" + item.id,
+                    categoria: catPadrao,
+                    nome: item.nome,
+                    desc: item.descricao || "",
+                    preco: parseFloat(item.preco) || 0,
+                    imagem: item.imagem_url || "TRADICIONAL.png",
+                    permiteComplementos: catPadrao.toLowerCase() !== "complementos"
+                  });
                 }
               });
 
@@ -666,10 +682,10 @@
               carregarProdutos();
             }
           }).catch(function(e) {
-            console.warn("Aviso na consulta ao Supabase:", e);
+            console.warn("Aviso Supabase:", e);
           });
         } catch (err) {
-          console.warn("Erro ao instanciar Supabase:", err);
+          console.warn("Erro Supabase:", err);
         }
       };
       document.head.appendChild(s);
