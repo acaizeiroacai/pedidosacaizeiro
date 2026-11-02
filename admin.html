@@ -30,6 +30,7 @@
       <div class="flex gap-2">
         <button onclick="mudarAba('pedidos')" id="tab-btn-pedidos" class="bg-purple-900 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition">Pedidos</button>
         <button onclick="mudarAba('stock')" id="tab-btn-stock" class="bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3.5 py-1.5 rounded-lg text-xs font-bold transition">Estoque</button>
+        <button onclick="carregarPedidos()" class="bg-purple-800 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition" title="Atualizar dados"><i class="fa-solid fa-rotate-right"></i></button>
       </div>
     </div>
   </header>
@@ -65,4 +66,198 @@
       <h2 class="text-base font-extrabold text-[#411564] mb-3 flex items-center gap-2">
         <i class="fa-solid fa-bowl-food"></i> Frutas e Complementos
       </h2>
-      <div id="lista-complementos-
+      <div id="lista-complementos-stock" class="divide-y divide-gray-100">
+        <p class="text-xs text-gray-400 py-4 text-center">Carregando complementos...</p>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    var SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+    var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+    var client = null;
+
+    var listaGlobalPedidos = [];
+    var statusSelecionado = 'Todos';
+
+    function initClient() {
+      if (!client && window.supabase && window.supabase.createClient) {
+        client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+      return client;
+    }
+
+    function mudarAba(aba) {
+      ['pedidos', 'stock'].forEach(function(a) {
+        document.getElementById('aba-' + a).classList.add('hidden');
+        document.getElementById('tab-btn-' + a).className = "bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3.5 py-1.5 rounded-lg text-xs font-bold transition";
+      });
+      document.getElementById('aba-' + aba).classList.remove('hidden');
+      document.getElementById('tab-btn-' + aba).className = "bg-purple-900 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition";
+
+      if (aba === 'stock') carregarStock();
+    }
+
+    async function carregarPedidos() {
+      var sb = initClient();
+      if (!sb) {
+        setTimeout(carregarPedidos, 500);
+        return;
+      }
+
+      try {
+        var res = await sb.from('pedidos').select('*').order('id', { ascending: false });
+        if (res.error) {
+          console.error("Erro ao buscar pedidos:", res.error);
+          document.getElementById('lista-pedidos-admin').innerHTML = '<div class="col-span-full text-center py-8 text-red-500 text-sm">Erro ao carregar: ' + res.error.message + '</div>';
+          return;
+        }
+
+        listaGlobalPedidos = res.data || [];
+        renderizarPedidos();
+      } catch (err) {
+        console.error("Erro inesperado:", err);
+      }
+    }
+
+    function filtrarStatus(s) {
+      statusSelecionado = s;
+      document.querySelectorAll('.btn-filtro').forEach(function(b) {
+        b.className = b.getAttribute('data-status') === s 
+          ? "btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white"
+          : "btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50";
+      });
+      renderizarPedidos();
+    }
+
+    function renderizarPedidos() {
+      var container = document.getElementById('lista-pedidos-admin');
+      var filtrados = statusSelecionado === 'Todos' 
+        ? listaGlobalPedidos 
+        : listaGlobalPedidos.filter(function(p) { return p.status === statusSelecionado; });
+
+      if (filtrados.length === 0) {
+        container.innerHTML = '<div class="col-span-full bg-white p-8 rounded-xl shadow-sm text-center text-gray-400 text-sm">Nenhum pedido encontrado.</div>';
+        return;
+      }
+
+      container.innerHTML = filtrados.map(function(p) {
+        var hora = new Date(p.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        var itensHtml = '';
+        if (Array.isArray(p.itens)) {
+          itensHtml = p.itens.map(function(i) {
+            var compl = (i.complementos && i.complementos.length > 0) ? '<p class="text-[11px] text-purple-700 pl-2">+ ' + i.complementos.join(', ') + '</p>' : '';
+            var obs = i.observacao ? '<p class="text-[11px] text-gray-500 italic pl-2">Obs: ' + i.observacao + '</p>' : '';
+            return '<div class="text-xs py-1 border-b border-gray-50">' +
+              '<span class="font-bold text-gray-900">' + i.quantidade + 'x ' + i.nome + '</span>' +
+              compl + obs +
+            '</div>';
+          }).join('');
+        }
+
+        var badge = "bg-amber-100 text-amber-800 border-amber-200";
+        if (p.status === "Em preparo") badge = "bg-blue-100 text-blue-800 border-blue-200";
+        if (p.status === "Saiu para entrega") badge = "bg-purple-100 text-purple-800 border-purple-200";
+        if (p.status === "Concluído") badge = "bg-green-100 text-green-800 border-green-200";
+
+        var obsGeral = p.observacoes ? '<p class="text-xs text-red-600 bg-red-50 p-2 rounded-lg font-medium mb-2">Obs: ' + p.observacoes + '</p>' : '';
+
+        return '<div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 flex flex-col justify-between">' +
+          '<div>' +
+            '<div class="flex justify-between items-start mb-2">' +
+              '<div>' +
+                '<span class="text-xs font-bold text-purple-900">#' + p.id + '</span>' +
+                '<span class="text-[11px] text-gray-400 ml-1.5">' + hora + '</span>' +
+                '<h3 class="font-extrabold text-gray-900 text-base leading-tight">' + p.cliente_nome + '</h3>' +
+              '</div>' +
+              '<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border ' + badge + '">' + p.status + '</span>' +
+            '</div>' +
+            '<p class="text-xs text-gray-600 mb-2 flex items-start gap-1">' +
+              '<i class="fa-solid fa-location-dot mt-0.5 text-gray-400"></i>' +
+              '<span>' + p.cliente_endereco + '</span>' +
+            '</p>' +
+            '<div class="bg-gray-50 p-2.5 rounded-xl my-2">' + itensHtml + '</div>' +
+            obsGeral +
+          '</div>' +
+          '<div class="pt-3 border-t mt-2">' +
+            '<div class="flex justify-between items-center mb-3">' +
+              '<span class="text-xs text-gray-500">Pagamento: <strong>' + p.forma_pagamento + '</strong></span>' +
+              '<span class="text-base font-black text-[#411564]">R$ ' + Number(p.total || 0).toFixed(2).replace('.', ',') + '</span>' +
+            '</div>' +
+            '<div class="grid grid-cols-3 gap-1.5">' +
+              '<button onclick="mudarStatus(' + p.id + ', \'Em preparo\')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 text-[11px] font-bold py-1.5 rounded-lg border border-blue-200 transition active:scale-95">Preparo</button>' +
+              '<button onclick="mudarStatus(' + p.id + ', \'Saiu para entrega\')" class="bg-purple-50 hover:bg-purple-100 text-purple-700 text-[11px] font-bold py-1.5 rounded-lg border border-purple-200 transition active:scale-95">A Caminho</button>' +
+              '<button onclick="mudarStatus(' + p.id + ', \'Concluído\')" class="bg-green-50 hover:bg-green-100 text-green-700 text-[11px] font-bold py-1.5 rounded-lg border border-green-200 transition active:scale-95">Concluído</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    async function mudarStatus(id, st) {
+      var sb = initClient();
+      await sb.from('pedidos').update({ status: st }).eq('id', id);
+      var p = listaGlobalPedidos.find(function(x) { return x.id === id; });
+      if (p) p.status = st;
+      renderizarPedidos();
+    }
+
+    // GESTÃO DE ESTOQUE
+    async function carregarStock() {
+      var sb = initClient();
+      var rCopos = await sb.from('CARDAPIO ACAIZEIRO').select('*').order('id');
+      var rComp = await sb.from('COMPLEMENTOS').select('*').order('nome');
+
+      var cCopos = document.getElementById('lista-copos-stock');
+      if (rCopos.data && rCopos.data.length > 0) {
+        cCopos.innerHTML = rCopos.data.map(function(copo) {
+          var disponivel = copo.ativo !== false;
+          var btnClasse = disponivel ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300';
+          return '<div class="py-2.5 flex items-center justify-between">' +
+            '<div>' +
+              '<p class="text-sm font-bold text-gray-800">' + copo.nome + '</p>' +
+              '<p class="text-xs text-gray-400">' + copo.categoria + ' — R$ ' + Number(copo.preco).toFixed(2).replace('.', ',') + '</p>' +
+            '</div>' +
+            '<button onclick="toggleItem(\'CARDAPIO ACAIZEIRO\', ' + copo.id + ', ' + disponivel + ')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 ' + btnClasse + '">' +
+              (disponivel ? 'Disponível' : 'Esgotado') +
+            '</button>' +
+          '</div>';
+        }).join('');
+      } else {
+        cCopos.innerHTML = '<p class="text-xs text-gray-400 py-2">Nenhum copo cadastrado.</p>';
+      }
+
+      var cComp = document.getElementById('lista-complementos-stock');
+      if (rComp.data && rComp.data.length > 0) {
+        cComp.innerHTML = rComp.data.map(function(comp) {
+          var disponivel = comp.ativo !== false;
+          var btnClasse = disponivel ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300';
+          return '<div class="py-2.5 flex items-center justify-between">' +
+            '<div>' +
+              '<p class="text-sm font-bold text-gray-800">' + comp.nome + '</p>' +
+              '<p class="text-xs text-gray-400">+ R$ ' + Number(comp.preco).toFixed(2).replace('.', ',') + '</p>' +
+            '</div>' +
+            '<button onclick="toggleItem(\'COMPLEMENTOS\', \'' + comp.id + '\', ' + disponivel + ')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 ' + btnClasse + '">' +
+              (disponivel ? 'Disponível' : 'Esgotado') +
+            '</button>' +
+          '</div>';
+        }).join('');
+      } else {
+        cComp.innerHTML = '<p class="text-xs text-gray-400 py-2">Nenhum complemento cadastrado.</p>';
+      }
+    }
+
+    async function toggleItem(tabela, id, ativoAtual) {
+      var sb = initClient();
+      await sb.from(tabela).update({ ativo: !ativoAtual }).eq('id', id);
+      carregarStock();
+    }
+
+    // Inicialização segura
+    window.addEventListener('DOMContentLoaded', function() {
+      carregarPedidos();
+      setInterval(carregarPedidos, 20000);
+    });
+  </script>
+</body>
+</html>
