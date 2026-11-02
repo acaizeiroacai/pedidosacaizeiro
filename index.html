@@ -139,4 +139,530 @@
 
         <div>
           <label class="block text-xs font-bold text-gray-700 mb-1">Forma de Pagamento *</label>
-          <select id="forma-pagamento"
+          <select id="forma-pagamento" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-purple-600">
+            <option value="Pix">Pix (Chave informada no WhatsApp)</option>
+            <option value="Cartão de Crédito">Cartão de Crédito (Levar maquininha)</option>
+            <option value="Cartão de Débito">Cartão de Débito (Levar maquininha)</option>
+            <option value="Dinheiro">Dinheiro</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Observações Gerais para a Entrega</label>
+          <textarea id="cliente-obs" rows="2" class="w-full border border-gray-300 rounded-xl p-2 text-sm outline-purple-600" placeholder="Ex: Troco para R$ 50, tocar campainha..."></textarea>
+        </div>
+
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition">
+          <i class="fa-brands fa-whatsapp text-xl"></i>
+          <span>Confirmar e Enviar Pedido</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const config = {
+      whatsapp: "5516981065241",
+      taxaEntrega: 10.00
+    };
+
+    let categorias = [
+      "Todos", 
+      "Copos Açaí Puro", 
+      "Copos Moranguete", 
+      "Copos Açaí Tradicional", 
+      "Copos Kids", 
+      "Copos Ninho c/ Creme de Avelã",
+      "Complementos"
+    ];
+    let categoriaAtiva = "Todos";
+
+    const complementosDisponiveis = [
+      { id: "c1", nome: "Morango", preco: 5.00 },
+      { id: "c2", nome: "Banana", preco: 2.00 },
+      { id: "c3", nome: "Uva", preco: 3.00 },
+      { id: "c4", nome: "Leite Condensado", preco: 3.00 },
+      { id: "c5", nome: "Leite em Pó", preco: 3.00 },
+      { id: "c6", nome: "Ovomaltine", preco: 3.00 },
+      { id: "c7", nome: "Farofa de Paçoca", preco: 3.00 },
+      { id: "c8", nome: "Granola", preco: 3.00 },
+      { id: "c9", nome: "Creme de Avelã", preco: 3.00 },
+      { id: "c10", nome: "Creme de Ninho", preco: 3.00 },
+      { id: "c11", nome: "Creme de Morango", preco: 3.00 },
+      { id: "c12", nome: "Creme de Maracujá", preco: 3.00 }
+    ];
+
+    let produtos = [
+      {
+        id: 1,
+        categoria: "Copos Açaí Puro",
+        nome: "Copo Açaí Puro P - Monte o Seu",
+        desc: "Açaí Puro 300ml - Servido com açaí puro. Adicione seus complementos favoritos.",
+        preco: 18.40,
+        imagem: "PURO.png",
+        permiteComplementos: true
+      },
+      {
+        id: 2,
+        categoria: "Copos Açaí Puro",
+        nome: "Copo Açaí Puro M - Monte o Seu",
+        desc: "Açaí Puro 500ml - Servido com açaí puro. Adicione seus complementos favoritos.",
+        preco: 27.99,
+        imagem: "PURO.png",
+        permiteComplementos: true
+      },
+      {
+        id: 3,
+        categoria: "Copos Moranguete",
+        nome: "Copo Moranguete P",
+        desc: "Copo 300ml - Servido com açaí, creme de morango e chocolate moranguete.",
+        preco: 22.60,
+        imagem: "MORANGUETE.png",
+        permiteComplementos: true
+      },
+      {
+        id: 4,
+        categoria: "Copos Moranguete",
+        nome: "Copo Moranguete M",
+        desc: "Copo 500ml - Servido com açaí, creme de morango e chocolate moranguete.",
+        preco: 28.30,
+        imagem: "MORANGUETE.png",
+        permiteComplementos: true
+      },
+      {
+        id: 5,
+        categoria: "Copos Açaí Tradicional",
+        nome: "Copo Açaí Tradicional P",
+        desc: "Copo 300ml - Servido com açaí, leite condensado e leite em pó.",
+        preco: 19.80,
+        imagem: "TRADICIONAL.png",
+        permiteComplementos: true
+      },
+      {
+        id: 6,
+        categoria: "Copos Açaí Tradicional",
+        nome: "Copo Açaí Tradicional M",
+        desc: "Copo 500ml - Servido com açaí, leite condensado e leite em pó.",
+        preco: 25.70,
+        imagem: "TRADICIONAL.png",
+        permiteComplementos: true
+      },
+      {
+        id: 7,
+        categoria: "Copos Kids",
+        nome: "Copo Kids P",
+        desc: "Copo 300ml - Servido com açaí, leite condensado, leite em pó e Confete.",
+        preco: 24.50,
+        imagem: "KIDS.png",
+        permiteComplementos: true
+      },
+      {
+        id: 8,
+        categoria: "Copos Kids",
+        nome: "Copo Kids G",
+        desc: "Copo 500ml - Servido com açaí, leite condensado, leite em pó e Confete.",
+        preco: 34.50,
+        imagem: "KIDS.png",
+        permiteComplementos: true
+      },
+      {
+        id: 9,
+        categoria: "Copos Ninho c/ Creme de Avelã",
+        nome: "Copo Ninho Com Creme de Avelã P",
+        desc: "Copo 300ml - Servido com açaí, creme de avelã e creme de Ninho.",
+        preco: 29.50,
+        imagem: "NINHO AVELA.png",
+        permiteComplementos: true
+      },
+      {
+        id: 10,
+        categoria: "Copos Ninho c/ Creme de Avelã",
+        nome: "Copo Ninho com Creme de Avelã M",
+        desc: "Copo 500ml - Servido com açaí, creme de avelã e creme de Ninho.",
+        preco: 39.15,
+        imagem: "NINHO AVELA.png",
+        permiteComplementos: true
+      },
+      {
+        id: 101,
+        categoria: "Complementos",
+        nome: "Morango",
+        desc: "Adicional de morangos frescos picados.",
+        preco: 5.00,
+        imagem: "morango.jpeg",
+        permiteComplementos: false
+      },
+      {
+        id: 102,
+        categoria: "Complementos",
+        nome: "Banana",
+        desc: "Adicional de banana fresca fatiada.",
+        preco: 2.00,
+        imagem: "banana.jpeg",
+        permiteComplementos: false
+      },
+      {
+        id: 103,
+        categoria: "Complementos",
+        nome: "Uva",
+        desc: "Adicional de uvas frescas sem semente.",
+        preco: 3.00,
+        imagem: "uva.jpeg",
+        permiteComplementos: false
+      },
+      {
+        id: 104,
+        categoria: "Complementos",
+        nome: "Leite Condensado",
+        desc: "Adicional de leite condensado Moça/Piracanjuba.",
+        preco: 3.00,
+        imagem: "condensado.jpeg",
+        permiteComplementos: false
+      },
+      {
+        id: 105,
+        categoria: "Complementos",
+        nome: "Leite em Pó",
+        desc: "Adicional de leite em pó integral.",
+        preco: 3.00,
+        imagem: "leitepo.jpeg",
+        permiteComplementos: false
+      },
+      {
+        id: 106,
+        categoria: "Complementos",
+        nome: "Ovomaltine",
+        desc: "Adicional de Ovomaltine em pó.",
+        preco: 3.00,
+        imagem: "ovomaltine.jpeg",
+        permiteComplementos: false
+      },
+      {
+        id: 107,
+        categoria: "Complementos",
+        nome: "Creme de Avelã",
+        desc: "Adicional de creme de avelã.",
+        preco: 3.00,
+        imagem: "cremeavela.jpeg",
+        permiteComplementos: false
+      },
+      {
+        id: 108,
+        categoria: "Complementos",
+        nome: "Creme de Ninho",
+        desc: "Adicional de creme de ninho.",
+        preco: 3.00,
+        imagem: "cremeninho.jpeg",
+        permiteComplementos: false
+      },
+      {
+        id: 109,
+        categoria: "Complementos",
+        nome: "Creme de Morango",
+        desc: "Adicional de creme de morango.",
+        preco: 3.00,
+        imagem: "crememorango.jpeg",
+        permiteComplementos: false
+      },
+      {
+        id: 110,
+        categoria: "Complementos",
+        nome: "Creme de Maracujá",
+        desc: "Adicional de creme de maracujá.",
+        preco: 3.00,
+        imagem: "crememaracuja.jpeg",
+        permiteComplementos: false
+      }
+    ];
+
+    let carrinho = [];
+    let produtoEmEdicao = null;
+
+    function renderizarCategorias() {
+      const container = document.getElementById('lista-categorias');
+      if (!container) return;
+      container.innerHTML = categorias.map(cat => `
+        <button onclick="selecionarCategoria('${cat}')" class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${categoriaAtiva === cat ? 'bg-[#411564] text-white shadow-sm' : 'bg-white text-gray-600 border border-purple-100 hover:bg-purple-50'}">
+          ${cat}
+        </button>
+      `).join('');
+    }
+
+    function selecionarCategoria(cat) {
+      categoriaAtiva = cat;
+      renderizarCategorias();
+      carregarProdutos();
+    }
+
+    function carregarProdutos() {
+      const container = document.getElementById('lista-produtos');
+      if (!container) return;
+      const filtrados = categoriaAtiva === "Todos" 
+        ? produtos 
+        : produtos.filter(p => p.categoria.trim().toLowerCase() === categoriaAtiva.trim().toLowerCase());
+
+      container.innerHTML = filtrados.map(prod => `
+        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-purple-100 flex gap-3.5 items-center cursor-pointer hover:border-purple-300 transition" onclick="iniciarAdicaoProduto(${prod.id})">
+          <div class="w-20 h-20 rounded-xl overflow-hidden bg-purple-50 flex-shrink-0 border border-purple-100">
+            ${prod.imagem ? `
+              <img src="${encodeURI(prod.imagem)}" alt="${prod.nome}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='puro.jpg';">
+            ` : `
+              <div class="w-full h-full flex items-center justify-center font-black text-purple-300 text-xs text-center p-1">EXTRA</div>
+            `}
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-bold text-gray-900 text-sm leading-snug">${prod.nome}</h3>
+            <p class="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">${prod.desc}</p>
+            <div class="flex items-center justify-between mt-2">
+              <span class="font-black text-[#5c1380] text-sm">R$ ${prod.preco.toFixed(2).replace('.', ',')}</span>
+              <button onclick="event.stopPropagation(); iniciarAdicaoProduto(${prod.id})" class="bg-purple-50 hover:bg-purple-100 text-[#411564] font-bold px-3 py-1.5 rounded-lg border border-purple-200 text-xs active:scale-95 transition">
+                + Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function iniciarAdicaoProduto(id) {
+      const prod = produtos.find(p => p.id === id);
+      if (!prod) return;
+
+      produtoEmEdicao = { ...prod, complementosEscolhidos: [] };
+
+      if (!prod.permiteComplementos) {
+        carrinho.push({
+          cartId: Date.now() + Math.random(),
+          produtoId: prod.id,
+          nome: prod.nome,
+          precoBase: prod.preco,
+          complementos: [],
+          obs: "",
+          precoTotal: prod.preco,
+          qtd: 1
+        });
+        atualizarBarra();
+        return;
+      }
+
+      document.getElementById('modal-prod-nome').innerText = prod.nome;
+      document.getElementById('modal-prod-desc').innerText = prod.desc;
+      document.getElementById('modal-prod-obs').value = "";
+
+      const container = document.getElementById('lista-adicionais-modal');
+      container.innerHTML = complementosDisponiveis.map(comp => `
+        <label class="flex items-center justify-between p-2.5 rounded-xl border border-gray-200 hover:border-purple-300 bg-gray-50/50 cursor-pointer text-sm">
+          <div class="flex items-center gap-2.5">
+            <input type="checkbox" value="${comp.id}" onchange="toggleComplementoModal('${comp.id}')" class="w-4 h-4 text-purple-700 rounded focus:ring-purple-500">
+            <span class="font-medium text-gray-800">${comp.nome}</span>
+          </div>
+          <span class="font-bold text-xs text-purple-900">+ R$ ${comp.preco.toFixed(2).replace('.', ',')}</span>
+        </label>
+      `).join('');
+
+      atualizarTotalModal();
+      document.getElementById('modal-produto').classList.remove('hidden');
+    }
+
+    function toggleComplementoModal(compId) {
+      const index = produtoEmEdicao.complementosEscolhidos.findIndex(c => c.id === compId);
+      if (index >= 0) {
+        produtoEmEdicao.complementosEscolhidos.splice(index, 1);
+      } else {
+        const comp = complementosDisponiveis.find(c => c.id === compId);
+        if (comp) produtoEmEdicao.complementosEscolhidos.push(comp);
+      }
+      atualizarTotalModal();
+    }
+
+    function atualizarTotalModal() {
+      let total = produtoEmEdicao.preco;
+      produtoEmEdicao.complementosEscolhidos.forEach(c => total += c.preco);
+      document.getElementById('modal-prod-total').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    }
+
+    function fecharModalProduto() {
+      document.getElementById('modal-produto').classList.add('hidden');
+      produtoEmEdicao = null;
+    }
+
+    function confirmarAdicionarItem() {
+      if (!produtoEmEdicao) return;
+
+      let totalItem = produtoEmEdicao.preco;
+      produtoEmEdicao.complementosEscolhidos.forEach(c => totalItem += c.preco);
+
+      carrinho.push({
+        cartId: Date.now() + Math.random(),
+        produtoId: produtoEmEdicao.id,
+        nome: produtoEmEdicao.nome,
+        precoBase: produtoEmEdicao.preco,
+        complementos: [...produtoEmEdicao.complementosEscolhidos],
+        obs: document.getElementById('modal-prod-obs').value.trim(),
+        precoTotal: totalItem,
+        qtd: 1
+      });
+
+      fecharModalProduto();
+      atualizarBarra();
+    }
+
+    function alterarQtd(cartId, delta) {
+      const item = carrinho.find(i => i.cartId === cartId);
+      if (!item) return;
+      item.qtd += delta;
+      if (item.qtd <= 0) {
+        carrinho = carrinho.filter(i => i.cartId !== cartId);
+      }
+      atualizarBarra();
+      renderizarItensCheckout();
+    }
+
+    function calcularTotais() {
+      let subtotal = 0;
+      let totalQtd = 0;
+      carrinho.forEach(item => {
+        subtotal += item.precoTotal * item.qtd;
+        totalQtd += item.qtd;
+      });
+      const total = subtotal > 0 ? (subtotal + config.taxaEntrega) : 0;
+      return { subtotal, total, totalQtd };
+    }
+
+    function atualizarBarra() {
+      const { subtotal, totalQtd } = calcularTotais();
+      document.getElementById('total-barra').innerText = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
+      document.getElementById('qtd-itens').innerText = totalQtd;
+      document.getElementById('btn-sacola').disabled = totalQtd === 0;
+    }
+
+    function renderizarItensCheckout() {
+      const { subtotal, total } = calcularTotais();
+      const container = document.getElementById('itens-carrinho');
+      
+      const itensHtml = carrinho.map(item => {
+        const complTexto = item.complementos.length > 0 
+          ? `<p class="text-[11px] text-purple-700 font-medium mt-0.5">+ ${item.complementos.map(c => c.nome).join(', ')}</p>` 
+          : '';
+        const obsTexto = item.obs 
+          ? `<p class="text-[11px] text-gray-500 italic">Obs: ${item.obs}</p>` 
+          : '';
+
+        return `
+          <div class="flex justify-between items-center py-2.5">
+            <div class="pr-2 flex-1">
+              <p class="font-bold text-gray-800 text-sm leading-tight">${item.nome}</p>
+              ${complTexto}
+              ${obsTexto}
+              <p class="text-xs text-gray-500 mt-0.5">R$ ${item.precoTotal.toFixed(2).replace('.', ',')} cada</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="alterarQtd(${item.cartId}, -1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 font-bold text-gray-700 text-sm flex items-center justify-center">-</button>
+              <span class="font-bold text-sm w-4 text-center">${item.qtd}</span>
+              <button onclick="alterarQtd(${item.cartId}, 1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 font-bold text-gray-700 text-sm flex items-center justify-center">+</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = itensHtml || '<p class="text-center py-4 text-gray-400 text-sm">Sua sacola está vazia</p>';
+      document.getElementById('resumo-subtotal').innerText = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
+      document.getElementById('resumo-taxa').innerText = `R$ ${config.taxaEntrega.toFixed(2).replace('.', ',')}`;
+      document.getElementById('resumo-total').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    }
+
+    function abrirModalCheckout() {
+      renderizarItensCheckout();
+      document.getElementById('modal-checkout').classList.remove('hidden');
+    }
+
+    function fecharModalCheckout() {
+      document.getElementById('modal-checkout').classList.add('hidden');
+    }
+
+    function enviarPedido(e) {
+      e.preventDefault();
+      const nome = document.getElementById('cliente-nome').value.trim();
+      const endereco = document.getElementById('cliente-endereco').value.trim();
+      const pagamento = document.getElementById('forma-pagamento').value;
+      const obsGeral = document.getElementById('cliente-obs').value.trim();
+      const { subtotal, total } = calcularTotais();
+
+      let texto = `*🍇 NOVO PEDIDO - AÇAIZEIRO*\n\n`;
+      texto += `*Cliente:* ${nome}\n`;
+      texto += `*Endereço:* ${endereco}\n`;
+      texto += `*Pagamento:* ${pagamento}\n`;
+      if (obsGeral) texto += `*Obs Entrega:* ${obsGeral}\n`;
+      texto += `\n*📋 ITENS SOLICITADOS:*\n`;
+
+      carrinho.forEach(item => {
+        const sub = item.precoTotal * item.qtd;
+        texto += `\n• *${item.qtd}x ${item.nome}* — R$ ${sub.toFixed(2).replace('.', ',')}\n`;
+        if (item.complementos.length > 0) {
+          item.complementos.forEach(c => {
+            texto += `   └ + ${c.nome} (R$ ${c.preco.toFixed(2).replace('.', ',')})\n`;
+          });
+        }
+        if (item.obs) {
+          texto += `   └ Obs item: ${item.obs}\n`;
+        }
+      });
+
+      texto += `\n*Subtotal:* R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
+      texto += `*Taxa de Entrega:* R$ ${config.taxaEntrega.toFixed(2).replace('.', ',')}\n`;
+      texto += `*TOTAL DO PEDIDO:* R$ ${total.toFixed(2).replace('.', ',')}\n`;
+
+      const linkWhatsapp = `https://wa.me/${config.whatsapp}?text=${encodeURIComponent(texto)}`;
+      window.open(linkWhatsapp, '_blank');
+    }
+
+    // 1. CARREGAMENTO IMEDIATO: Desenha o cardápio padrão na tela sem esperar nada
+    renderizarCategorias();
+    carregarProdutos();
+
+    // 2. SINCRONIZAÇÃO ASSÍNCRONA COM O SUPABASE (Roda em segundo plano sem travar a interface)
+    window.addEventListener('load', function() {
+      setTimeout(async function() {
+        try {
+          if (!window.supabase || !window.supabase.createClient) return;
+
+          const SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+          const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+          const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+          const { data, error } = await client
+            .from('CARDAPIO ACAIZEIRO')
+            .select('*');
+
+          if (error) {
+            console.warn("Supabase:", error.message);
+            return;
+          }
+
+          if (data && data.length > 0) {
+            produtos = data.map(item => ({
+              id: item.id,
+              categoria: item.categoria || "Geral",
+              nome: item.nome,
+              desc: item.descricao || "",
+              preco: parseFloat(item.preco) || 0,
+              imagem: item.imagem_url || "TRADICIONAL.png",
+              permiteComplementos: (item.categoria || "").toLowerCase() !== "complementos"
+            }));
+
+            const catsDoBanco = ["Todos", ...new Set(produtos.map(p => p.categoria))];
+            if (catsDoBanco.length > 1) {
+              categorias = catsDoBanco;
+            }
+
+            renderizarCategorias();
+            carregarProdutos();
+          }
+        } catch (err) {
+          console.warn("Sincronização em segundo plano não alterou a tela:", err);
+        }
+      }, 500);
+    });
+  </script>
+</body>
+</html>
