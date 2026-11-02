@@ -17,7 +17,6 @@
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
-  <!-- Biblioteca Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-[#fcfaff] text-gray-800 pb-28 antialiased">
@@ -161,17 +160,12 @@
   </div>
 
   <script>
-    // Inicialização segura do Supabase
     const SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
-    
+
     let dbSupabase = null;
-    try {
-      if (typeof supabase !== 'undefined') {
-        dbSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      }
-    } catch (e) {
-      console.warn("Supabase não carregado:", e);
+    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+      dbSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     }
 
     const config = {
@@ -417,3 +411,151 @@
       container.innerHTML = filtrados.map(prod => `
         <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-purple-100 flex gap-3.5 items-center cursor-pointer hover:border-purple-300 transition" onclick="iniciarAdicaoProduto(${prod.id})">
           <div class="w-20 h-20 rounded-xl overflow-hidden bg-purple-50 flex items-center justify-center flex-shrink-0 border border-purple-100">
+            ${prod.imagem ? `
+              <img src="${encodeURI(prod.imagem)}" alt="${prod.nome}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='PURO.png';">
+            ` : `
+              <div class="w-full h-full flex items-center justify-center font-black text-purple-300 text-xs text-center p-1">EXTRA</div>
+            `}
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-bold text-gray-900 text-sm leading-snug">${prod.nome}</h3>
+            <p class="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">${prod.desc}</p>
+            <div class="flex items-center justify-between mt-2">
+              <span class="font-black text-[#5c1380] text-sm">R$ ${Number(prod.preco || 0).toFixed(2).replace('.', ',')}</span>
+              <button onclick="event.stopPropagation(); iniciarAdicaoProduto(${prod.id})" class="bg-purple-50 hover:bg-purple-100 text-[#411564] font-bold px-3 py-1.5 rounded-lg border border-purple-200 text-xs active:scale-95 transition">
+                + Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function iniciarAdicaoProduto(id) {
+      const prod = produtos.find(p => p.id === id);
+      if (!prod) return;
+
+      produtoEmEdicao = { ...prod, complementosEscolhidos: [] };
+
+      if (!prod.permiteComplementos) {
+        carrinho.push({
+          cartId: Date.now() + Math.random(),
+          produtoId: prod.id,
+          nome: prod.nome,
+          precoBase: prod.preco,
+          complementos: [],
+          obs: "",
+          precoTotal: prod.preco,
+          qtd: 1
+        });
+        atualizarBarra();
+        return;
+      }
+
+      document.getElementById('modal-prod-nome').innerText = prod.nome;
+      document.getElementById('modal-prod-desc').innerText = prod.desc;
+      document.getElementById('modal-prod-obs').value = "";
+
+      const container = document.getElementById('lista-adicionais-modal');
+      container.innerHTML = complementosDisponiveis.map(comp => `
+        <label class="flex items-center justify-between p-2.5 rounded-xl border border-gray-200 hover:border-purple-300 bg-gray-50/50 cursor-pointer text-sm">
+          <div class="flex items-center gap-2.5">
+            <input type="checkbox" value="${comp.id}" onchange="toggleComplementoModal('${comp.id}')" class="w-4 h-4 text-purple-700 rounded focus:ring-purple-500">
+            <span class="font-medium text-gray-800">${comp.nome}</span>
+          </div>
+          <span class="font-bold text-xs text-purple-900">+ R$ ${comp.preco.toFixed(2).replace('.', ',')}</span>
+        </label>
+      `).join('');
+
+      atualizarTotalModal();
+      document.getElementById('modal-produto').classList.remove('hidden');
+    }
+
+    function toggleComplementoModal(compId) {
+      const index = produtoEmEdicao.complementosEscolhidos.findIndex(c => c.id === compId);
+      if (index >= 0) {
+        produtoEmEdicao.complementosEscolhidos.splice(index, 1);
+      } else {
+        const comp = complementosDisponiveis.find(c => c.id === compId);
+        if (comp) produtoEmEdicao.complementosEscolhidos.push(comp);
+      }
+      atualizarTotalModal();
+    }
+
+    function atualizarTotalModal() {
+      let total = Number(produtoEmEdicao.preco || 0);
+      produtoEmEdicao.complementosEscolhidos.forEach(c => total += c.preco);
+      document.getElementById('modal-prod-total').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    }
+
+    function fecharModalProduto() {
+      document.getElementById('modal-produto').classList.add('hidden');
+      produtoEmEdicao = null;
+    }
+
+    function confirmarAdicionarItem() {
+      if (!produtoEmEdicao) return;
+
+      let totalItem = Number(produtoEmEdicao.preco || 0);
+      produtoEmEdicao.complementosEscolhidos.forEach(c => totalItem += c.preco);
+
+      carrinho.push({
+        cartId: Date.now() + Math.random(),
+        produtoId: produtoEmEdicao.id,
+        nome: produtoEmEdicao.nome,
+        precoBase: produtoEmEdicao.preco,
+        complementos: [...produtoEmEdicao.complementosEscolhidos],
+        obs: document.getElementById('modal-prod-obs').value.trim(),
+        precoTotal: totalItem,
+        qtd: 1
+      });
+
+      fecharModalProduto();
+      atualizarBarra();
+    }
+
+    function alterarQtd(cartId, delta) {
+      const item = carrinho.find(i => i.cartId === cartId);
+      if (!item) return;
+      item.qtd += delta;
+      if (item.qtd <= 0) {
+        carrinho = carrinho.filter(i => i.cartId !== cartId);
+      }
+      atualizarBarra();
+      renderizarItensCheckout();
+    }
+
+    function calcularTotais() {
+      let subtotal = 0;
+      let totalQtd = 0;
+      carrinho.forEach(item => {
+        subtotal += item.precoTotal * item.qtd;
+        totalQtd += item.qtd;
+      });
+      const total = subtotal > 0 ? (subtotal + config.taxaEntrega) : 0;
+      return { subtotal, total, totalQtd };
+    }
+
+    function atualizarBarra() {
+      const { subtotal, totalQtd } = calcularTotais();
+      document.getElementById('total-barra').innerText = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
+      document.getElementById('qtd-itens').innerText = totalQtd;
+      document.getElementById('btn-sacola').disabled = totalQtd === 0;
+    }
+
+    function renderizarItensCheckout() {
+      const { subtotal, total } = calcularTotais();
+      const container = document.getElementById('itens-carrinho');
+      
+      const itensHtml = carrinho.map(item => {
+        const complTexto = item.complementos.length > 0 
+          ? `<p class="text-[11px] text-purple-700 font-medium mt-0.5">+ ${item.complementos.map(c => c.nome).join(', ')}</p>` 
+          : '';
+        const obsTexto = item.obs 
+          ? `<p class="text-[11px] text-gray-500 italic">Obs: ${item.obs}</p>` 
+          : '';
+
+        return `
+          <div class="flex justify-between items-center py-2.5">
+            <div class="pr-2 flex-1">
+              <p class="font-bold text-gray-800 text-sm leading-tight">${item.nome}</p>${complTexto}
