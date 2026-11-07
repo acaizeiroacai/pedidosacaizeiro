@@ -546,5 +546,60 @@
       document.head.appendChild(s);
     }, 800);
   </script>
+  <!-- Modal Pix com QR Code e Copia e Cola -->
+<div id="modalPix" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
+  <div style="background: #ffffff; color: #1e1e1e; max-width: 420px; width: 100%; border-radius: 16px; padding: 24px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); font-family: sans-serif;">
+    
+    <div id="pixCarregando" style="padding: 20px 0;">
+      <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #6b117b; border-radius: 50%; width: 44px; height: 44px; animation: spin 1s linear infinite; margin: 0 auto 16px auto;"></div>
+      <h3 style="margin: 0; color: #6b117b;">A gerar o seu Pix...</h3>
+      <p style="color: #666; font-size: 14px;">Aguarde alguns segundos.</p>
+    </div>
+
+    <div id="pixConteudo" style="display: none;">
+      <h3 style="margin: 0 0 8px 0; color: #6b117b; font-size: 20px;">Pague com Pix</h3>
+      <p style="font-size: 13px; color: #555; margin: 0 0 16px 0;">Leia o QR Code abaixo no app do seu banco ou copie o código Pix.</p>
+
+      <!-- Imagem do QR Code gerada pelo Mercado Pago -->
+      <div style="background: #f9f9f9; padding: 12px; border-radius: 12px; display: inline-block; border: 1px solid #eee; margin-bottom: 16px;">
+        <img id="pixQrImg" src="" alt="QR Code Pix" style="width: 200px; height: 200px; display: block; margin: 0 auto;">
+      </div>
+
+      <!-- Copia e Cola -->
+      <div style="margin-bottom: 16px;">
+        <input type="text" id="pixCodigoCopia" readonly style="width: 100%; padding: 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; background: #fdfdfd; text-overflow: ellipsis;">
+        <button id="btnCopiarPix" onclick="copiarPixPayload()" style="width: 100%; margin-top: 8px; padding: 12px; background: #6b117b; color: #fff; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">
+          Copiar Código Pix
+        </button>
+      </div>
+
+      <div style="background: #eef7ed; border: 1px solid #cce5c7; border-radius: 8px; padding: 10px; margin-bottom: 16px;">
+        <p style="margin: 0; font-size: 13px; color: #2e6628; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <span style="font-size: 16px;">⏳</span> Aguardando confirmação do banco...
+        </p>
+      </div>
+
+      <p style="font-size: 12px; color: #888; margin: 0;">Assim que o pagamento for concluído, o seu pedido entrará automaticamente em preparo.</p>
+    </div>
+
+    <!-- Mensagem de Sucesso após confirmação do Webhook -->
+    <div id="pixConfirmado" style="display: none; padding: 20px 0;">
+      <div style="font-size: 50px; color: #28a745; margin-bottom: 12px;">✅</div>
+      <h3 style="color: #28a745; margin: 0 0 8px 0;">Pagamento Confirmado!</h3>
+      <p style="color: #555; font-size: 14px; margin: 0 0 20px 0;">O seu pedido já seguiu para a cozinha e está em preparo.</p>
+      <button onclick="concluirFluxoPix()" style="width: 100%; padding: 12px; background: #28a745; color: #fff; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">
+        Acompanhar Pedido
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<style>
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
 </body>
 </html>
