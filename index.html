@@ -349,4 +349,362 @@
             '<input type="checkbox" value="' + comp.id + '" onchange="toggleComplementoModal(\'' + comp.id + '\')" class="w-4 h-4 text-purple-700 rounded focus:ring-purple-500">' +
             '<span class="font-medium text-gray-800">' + comp.nome + '</span>' +
           '</div>' +
-          '<span class="font-bold text-xs
+          '<span class="font-bold text-xs text-purple-900">+ R$ ' + Number(comp.preco || 0).toFixed(2).replace('.', ',') + '</span>' +
+        '</label>';
+      }).join('');
+
+      atualizarTotalModal();
+      document.getElementById('modal-produto').classList.remove('hidden');
+    }
+
+    function toggleComplementoModal(compId) {
+      var index = produtoEmEdicao.complementosEscolhidos.findIndex(function(c) { return String(c.id) === String(compId); });
+      if (index >= 0) {
+        produtoEmEdicao.complementosEscolhidos.splice(index, 1);
+      } else {
+        var comp = complementosDisponiveis.find(function(c) { return String(c.id) === String(compId); });
+        if (comp) produtoEmEdicao.complementosEscolhidos.push(comp);
+      }
+      atualizarTotalModal();
+    }
+
+    function atualizarTotalModal() {
+      var total = produtoEmEdicao.preco;
+      produtoEmEdicao.complementosEscolhidos.forEach(function(c) { total += c.preco; });
+      document.getElementById('modal-prod-total').innerText = 'R$ ' + total.toFixed(2).replace('.', ',');
+    }
+
+    function fecharModalProduto() {
+      document.getElementById('modal-produto').classList.add('hidden');
+      produtoEmEdicao = null;
+    }
+
+    function confirmarAdicionarItem() {
+      if (!produtoEmEdicao) return;
+      var totalItem = produtoEmEdicao.preco;
+      produtoEmEdicao.complementosEscolhidos.forEach(function(c) { totalItem += c.preco; });
+
+      carrinho.push({
+        cartId: Date.now() + Math.random(),
+        produtoId: produtoEmEdicao.id,
+        nome: produtoEmEdicao.nome,
+        precoBase: produtoEmEdicao.preco,
+        complementos: produtoEmEdicao.complementosEscolhidos.slice(),
+        obs: document.getElementById('modal-prod-obs').value.trim(),
+        precoTotal: totalItem,
+        qtd: 1
+      });
+
+      fecharModalProduto();
+      atualizarBarra();
+    }
+
+    function alterarQtd(cartId, delta) {
+      var item = carrinho.find(function(i) { return i.cartId === cartId; });
+      if (!item) return;
+      item.qtd += delta;
+      if (item.qtd <= 0) {
+        carrinho = carrinho.filter(function(i) { return i.cartId !== cartId; });
+      }
+      atualizarBarra();
+      renderizarItensCheckout();
+    }
+
+    function calcularTotais() {
+      var subtotal = 0;
+      var totalQtd = 0;
+      carrinho.forEach(function(item) {
+        subtotal += item.precoTotal * item.qtd;
+        totalQtd += item.qtd;
+      });
+      var total = subtotal > 0 ? (subtotal + config.taxaEntrega) : 0;
+      return { subtotal: subtotal, total: total, totalQtd: totalQtd };
+    }
+
+    function atualizarBarra() {
+      var totais = calcularTotais();
+      document.getElementById('total-barra').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
+      document.getElementById('qtd-itens').innerText = totais.totalQtd;
+      document.getElementById('btn-sacola').disabled = totais.totalQtd === 0;
+    }
+
+    function renderizarItensCheckout() {
+      var totais = calcularTotais();
+      var container = document.getElementById('itens-carrinho');
+      
+      var itensHtml = carrinho.map(function(item) {
+        var complTexto = item.complementos.length > 0 
+          ? '<p class="text-[11px] text-purple-700 font-medium mt-0.5">+ ' + item.complementos.map(function(c) { return c.nome; }).join(', ') + '</p>' 
+          : '';
+        var obsTexto = item.obs ? '<p class="text-[11px] text-gray-500 italic">Obs: ' + item.obs + '</p>' : '';
+
+        return '<div class="flex justify-between items-center py-2.5">' +
+          '<div class="pr-2 flex-1">' +
+            '<p class="font-bold text-gray-800 text-sm leading-tight">' + item.nome + '</p>' +
+            complTexto + obsTexto +
+            '<p class="text-xs text-gray-500 mt-0.5">R$ ' + item.precoTotal.toFixed(2).replace('.', ',') + ' cada</p>' +
+          '</div>' +
+          '<div class="flex items-center gap-2">' +
+            '<button onclick="alterarQtd(' + item.cartId + ', -1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 font-bold text-gray-700 text-sm flex items-center justify-center">-</button>' +
+            '<span class="font-bold text-sm w-4 text-center">' + item.qtd + '</span>' +
+            '<button onclick="alterarQtd(' + item.cartId + ', 1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 font-bold text-gray-700 text-sm flex items-center justify-center">+</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      container.innerHTML = itensHtml || '<p class="text-center py-4 text-gray-400 text-sm">Sua sacola está vazia</p>';
+      document.getElementById('resumo-subtotal').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
+      document.getElementById('resumo-taxa').innerText = 'R$ ' + config.taxaEntrega.toFixed(2).replace('.', ',');
+      document.getElementById('resumo-total').innerText = 'R$ ' + totais.total.toFixed(2).replace('.', ',');
+    }
+
+    function abrirModalCheckout() {
+      renderizarItensCheckout();
+      document.getElementById('modal-checkout').classList.remove('hidden');
+    }
+
+    function fecharModalCheckout() {
+      document.getElementById('modal-checkout').classList.add('hidden');
+    }
+
+    async function enviarPedido(e) {
+      e.preventDefault();
+      var nome = document.getElementById('cliente-nome').value.trim();
+      var endereco = document.getElementById('cliente-endereco').value.trim();
+      var pagamento = document.getElementById('forma-pagamento').value;
+      var obsGeral = document.getElementById('cliente-obs').value.trim();
+      var totais = calcularTotais();
+
+      var itensParaSalvar = carrinho.map(function(item) {
+        return {
+          id: item.produtoId,
+          nome: item.nome,
+          quantidade: item.qtd,
+          preco_unitario: item.precoTotal,
+          complementos: item.complementos.map(function(c) { return c.nome; }),
+          observacao: item.obs || ""
+        };
+      });
+
+      try {
+        if (window.supabase && window.supabase.createClient) {
+          var client = window.supabase.createClient(
+            "https://sfxvbnxswuvkpssnryjk.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE"
+          );
+
+          var isPix = (pagamento && pagamento.toLowerCase().indexOf('pix') !== -1);
+
+          var resPedido = await client.from('pedidos').insert([{
+            cliente_nome: nome,
+            cliente_endereco: endereco,
+            forma_pagamento: pagamento,
+            observacoes: obsGeral,
+            itens: itensParaSalvar,
+            subtotal: totais.subtotal,
+            taxa_entrega: config.taxaEntrega,
+            total: totais.total,
+            status: isPix ? 'Aguardando Pagamento' : 'Recebido'
+          }]).select().single();
+
+          if (isPix && resPedido.data) {
+            fecharModalCheckout();
+            processarPagamentoPix(resPedido.data, totais.total, nome, '');
+            return;
+          }
+        }
+      } catch (errBanco) {
+        console.warn("Aviso ao salvar pedido:", errBanco);
+      }
+
+      var texto = '*🍇 NOVO PEDIDO - AÇAIZEIRO*\n\n';
+      texto += '*Cliente:* ' + nome + '\n';
+      texto += '*Endereço:* ' + endereco + '\n';
+      texto += '*Pagamento:* ' + pagamento + '\n';
+      if (obsGeral) texto += '*Obs Entrega:* ' + obsGeral + '\n';
+      texto += '\n*📋 ITENS SOLICITADOS:*\n';
+
+      carrinho.forEach(function(item) {
+        var sub = item.precoTotal * item.qtd;
+        texto += '\n• *' + item.qtd + 'x ' + item.nome + '* — R$ ' + sub.toFixed(2).replace('.', ',') + '\n';
+        if (item.complementos.length > 0) {
+          item.complementos.forEach(function(c) {
+            texto += '   └ + ' + c.nome + ' (R$ ' + c.preco.toFixed(2).replace('.', ',') + ')\n';
+          });
+        }
+        if (item.obs) texto += '   └ Obs item: ' + item.obs + '\n';
+      });
+
+      texto += '\n*Subtotal:* R$ ' + totais.subtotal.toFixed(2).replace('.', ',') + '\n';
+      texto += '*Taxa de Entrega:* R$ ' + config.taxaEntrega.toFixed(2).replace('.', ',') + '\n';
+      texto += '*TOTAL DO PEDIDO:* R$ ' + totais.total.toFixed(2).replace('.', ',') + '\n';
+
+      var linkWhatsapp = 'https://wa.me/' + config.whatsapp + '?text=' + encodeURIComponent(texto);
+      window.open(linkWhatsapp, '_blank');
+    }
+
+    renderizarCategorias();
+    carregarProdutos();
+
+    setTimeout(function() {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      s.onload = function() {
+        try {
+          var client = window.supabase.createClient(
+            "https://sfxvbnxswuvkpssnryjk.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE"
+          );
+
+          Promise.all([
+            client.from('CARDAPIO ACAIZEIRO').select('*'),
+            client.from('COMPLEMENTOS').select('*').eq('ativo', true)
+          ]).then(function(respostas) {
+            var resCopos = respostas[0];
+            var resComp = respostas[1];
+
+            if (resCopos.data && resCopos.data.length > 0) {
+              resCopos.data.forEach(function(item) {
+                if (!item.nome) return;
+                var catPadrao = normalizarCategoria(item.categoria);
+                var existe = produtos.find(function(p) {
+                  return String(p.id) === String(item.id) || p.nome.toLowerCase() === item.nome.toLowerCase();
+                });
+
+                var objProduto = {
+                  id: item.id,
+                  categoria: catPadrao,
+                  nome: item.nome,
+                  desc: item.descricao || "",
+                  preco: parseFloat(item.preco) || 0,
+                  imagem: item.imagem_url || "TRADICIONAL.png",
+                  permiteComplementos: catPadrao.toLowerCase() !== "complementos",
+                  ativo: item.ativo !== false
+                };
+
+                if (existe) {
+                  Object.assign(existe, objProduto);
+                } else {
+                  produtos.push(objProduto);
+                }
+              });
+              renderizarCategorias();
+              carregarProdutos();
+            }
+
+            if (resComp.data && resComp.data.length > 0) {
+              complementosDisponiveis = resComp.data.map(function(c) {
+                return { id: String(c.id), nome: c.nome, preco: parseFloat(c.preco) || 0 };
+              });
+            }
+          }).catch(function(e) {
+            console.warn("Aviso Supabase:", e);
+          });
+        } catch (err) {
+          console.warn("Erro Supabase:", err);
+        }
+      };
+      document.head.appendChild(s);
+    }, 800);
+
+    async function processarPagamentoPix(pedidoCriado, valorTotal, nomeCliente, emailCliente) {
+      const modal = document.getElementById("modalPix");
+      const carregando = document.getElementById("pixCarregando");
+      const conteudo = document.getElementById("pixConteudo");
+      const confirmado = document.getElementById("pixConfirmado");
+
+      modal.style.display = "flex";
+      carregando.style.display = "block";
+      conteudo.style.display = "none";
+      confirmado.style.display = "none";
+
+      try {
+        const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+        const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+
+        const response = await fetch(`${supabaseUrl}/functions/v1/criar-pix`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${supabaseAnonKey}`,
+            "apikey": supabaseAnonKey
+          },
+          body: JSON.stringify({
+            pedidoId: pedidoCriado.id,
+            total: Number(valorTotal),
+            clienteNome: nomeCliente || "Cliente Açaizeiro",
+            clienteEmail: emailCliente || "cliente@acaizeiro.com"
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || "Erro ao processar cobrança com o Mercado Pago.");
+        }
+
+        document.getElementById("pixQrImg").src = `data:image/png;base64,${data.qrCodeBase64}`;
+        document.getElementById("pixCodigoCopia").value = data.qrCode;
+
+        carregando.style.display = "none";
+        conteudo.style.display = "block";
+
+        escutarConfirmacaoPix(pedidoCriado.id);
+
+      } catch (err) {
+        alert("Não foi possível gerar a cobrança Pix: " + err.message);
+        modal.style.display = "none";
+      }
+    }
+
+    function escutarConfirmacaoPix(pedidoId) {
+      const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+      const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+
+      const intervalo = setInterval(async () => {
+        try {
+          const res = await fetch(`${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoId}&select=status`, {
+            headers: {
+              "apikey": supabaseAnonKey,
+              "Authorization": `Bearer ${supabaseAnonKey}`
+            }
+          });
+          const dados = await res.json();
+
+          if (dados && dados.length > 0 && dados[0].status === "Em preparo") {
+            clearInterval(intervalo);
+            document.getElementById("pixConteudo").style.display = "none";
+            document.getElementById("pixConfirmado").style.display = "block";
+          }
+        } catch (e) {
+          console.warn("Aguardando verificação do pagamento...", e);
+        }
+      }, 3000);
+    }
+
+    function copiarPixPayload() {
+      const input = document.getElementById("pixCodigoCopia");
+      input.select();
+      input.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(input.value);
+
+      const btn = document.getElementById("btnCopiarPix");
+      const textoOriginal = btn.innerText;
+      btn.innerText = "Código Copiado! ✓";
+      btn.style.background = "#28a745";
+
+      setTimeout(() => {
+        btn.innerText = textoOriginal;
+        btn.style.background = "#6b117b";
+      }, 3000);
+    }
+
+    function concluirFluxoPix() {
+      document.getElementById("modalPix").style.display = "none";
+      carrinho = [];
+      atualizarBarra();
+      window.location.reload();
+    }
+  </script>
+</body>
+</html>
