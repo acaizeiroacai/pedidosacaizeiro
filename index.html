@@ -440,17 +440,25 @@
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE"
           );
 
-          await client.from('pedidos').insert([{
-            cliente_nome: nome,
-            cliente_endereco: endereco,
-            forma_pagamento: pagamento,
-            observacoes: obsGeral,
-            itens: itensParaSalvar,
-            subtotal: totais.subtotal,
-            taxa_entrega: config.taxaEntrega,
-            total: totais.total,
-            status: 'Recebido'
-          }]);
+         // Verifica se o pagamento é Pix para aplicar o fluxo automático
+      var isPix = (pagamento && pagamento.toLowerCase().indexOf('pix') !== -1);
+
+      var resPedido = await client.from('pedidos').insert([{
+        cliente_nome: nome,
+        cliente_endereco: endereco,
+        forma_pagamento: pagamento,
+        observacoes: obsGeral,
+        itens: itensParaSalvar,
+        subtotal: totais.subtotal,
+        taxa_entrega: config.taxaEntrega,
+        total: totais.total,
+        status: isPix ? 'Aguardando Pagamento' : 'Recebido'
+      }]).select().single();
+
+      if (isPix && resPedido.data) {
+        processarPagamentoPix(resPedido.data, totais.total, nome, '');
+        return; // Interrompe para abrir o ecrã do Pix antes de enviar para o WhatsApp
+      }
         }
       } catch (errBanco) {
         console.warn("Aviso ao salvar pedido:", errBanco);
@@ -545,6 +553,98 @@
       };
       document.head.appendChild(s);
     }, 800);
+    // Função para processar o Pix quando o cliente fecha o pedido
+async function processarPagamentoPix(pedidoCriado, valorTotal, nomeCliente, emailCliente) {
+  const modal = document.getElementById("modalPix");
+  const carregando = document.getElementById("pixCarregando");
+  const conteudo = document.getElementById("pixConteudo");
+  const confirmado = document.getElementById("pixConfirmado");
+
+  modal.style.display = "flex";
+  carregando.style.display = "block";
+  conteudo.style.display = "none";
+  confirmado.style.display = "none";
+
+  try {
+    // 1. Invoca a Edge Function criar-pix no Supabase
+    const { data, error } = await supabase.functions.invoke("criar-pix", {
+      body: {
+        pedidoId: pedidoCriado.id,
+        total: Number(valorTotal),
+        clienteNome: nomeCliente || "Cliente Açaizeiro",
+        clienteEmail: emailCliente || "cliente@acaizeiro.com"
+      }
+    });
+
+    if (error || !data || !data.success) {
+      throw new Error(error?.message || data?.error || "Erro ao gerar cobrança Pix.");
+    }
+
+    // 2. Preenche os campos com o retorno do Mercado Pago
+    document.getElementById("pixQrImg").src = `data:image/png;base64,${data.qrCodeBase64}`;
+    document.getElementById("pixCodigoCopia").value = data.qrCode;
+
+    carregando.style.display = "none";
+    conteudo.style.display = "block";
+
+    // 3. Fica a escutar em tempo real (Supabase Realtime) a confirmação do pagamento
+    escutarConfirmacaoPix(pedidoCriado.id);
+
+  } catch (err) {
+    alert("Não foi possível gerar a cobrança Pix: " + err.message);
+    modal.style.display = "none";
+  }
+}
+
+// Função para copiar o código Pix para a área de transferência
+function copiarPixPayload() {
+  const input = document.getElementById("pixCodigoCopia");
+  input.select();
+  input.setSelectionRange(0, 99999);
+  navigator.clipboard.writeText(input.value);
+
+  const btn = document.getElementById("btnCopiarPix");
+  const textoOriginal = btn.innerText;
+  btn.innerText = "Código Copiado! ✓";
+  btn.style.background = "#28a745";
+
+  setTimeout(() => {
+    btn.innerText = textoOriginal;
+    btn.style.background = "#6b117b";
+  }, 3000);
+}
+
+// Escuta a tabela pedidos até que o Webhook mude o status para 'Em preparo'
+function escutarConfirmacaoPix(pedidoId) {
+  const canal = supabase
+    .channel(`pedido-pix-${pedidoId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "pedidos",
+        filter: `id=eq.${pedidoId}`
+      },
+      (payload) => {
+        if (payload.new.status === "Em preparo") {
+          // O webhook confirmou o pagamento
+          document.getElementById("pixConteudo").style.display = "none";
+          document.getElementById("pixConfirmado").style.display = "block";
+          canal.unsubscribe();
+        }
+      }
+    )
+    .subscribe();
+}
+
+// Finaliza e fecha o modal
+function concluirFluxoPix() {
+  document.getElementById("modalPix").style.display = "none";
+  // Opcional: redirecionar ou limpar o carrinho
+  if (typeof limparCarrinho === "function") limparCarrinho();
+  window.location.reload();
+}
   </script>
   <!-- Modal Pix com QR Code e Copia e Cola -->
 <div id="modalPix" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
