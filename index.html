@@ -554,6 +554,7 @@
       document.head.appendChild(s);
     }, 800);
     // Função para processar o Pix quando o cliente fecha o pedido
+// Função para processar o Pix quando o cliente fecha o pedido
 async function processarPagamentoPix(pedidoCriado, valorTotal, nomeCliente, emailCliente) {
   const modal = document.getElementById("modalPix");
   const carregando = document.getElementById("pixCarregando");
@@ -566,29 +567,68 @@ async function processarPagamentoPix(pedidoCriado, valorTotal, nomeCliente, emai
   confirmado.style.display = "none";
 
   try {
-    // 1. Invoca a Edge Function criar-pix no Supabase
-    const { data, error } = await supabase.functions.invoke("criar-pix", {
-      body: {
+    const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDTM2MjE5OTEsImV4cCI6MjAyMTE5Nzk5MX0.1CnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/criar-pix`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${supabaseAnonKey}`,
+        "apikey": supabaseAnonKey
+      },
+      body: JSON.stringify({
         pedidoId: pedidoCriado.id,
         total: Number(valorTotal),
         clienteNome: nomeCliente || "Cliente Açaizeiro",
         clienteEmail: emailCliente || "cliente@acaizeiro.com"
-      }
+      })
     });
 
-    if (error || !data || !data.success) {
-      throw new Error(error?.message || data?.error || "Erro ao gerar cobrança Pix.");
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Erro ao processar cobrança com o Mercado Pago.");
     }
 
-    // 2. Preenche os campos com o retorno do Mercado Pago
     document.getElementById("pixQrImg").src = `data:image/png;base64,${data.qrCodeBase64}`;
     document.getElementById("pixCodigoCopia").value = data.qrCode;
 
     carregando.style.display = "none";
     conteudo.style.display = "block";
 
-    // 3. Fica a escutar em tempo real (Supabase Realtime) a confirmação do pagamento
     escutarConfirmacaoPix(pedidoCriado.id);
+
+  } catch (err) {
+    alert("Não foi possível gerar a cobrança Pix: " + err.message);
+    modal.style.display = "none";
+  }
+}
+
+function escutarConfirmacaoPix(pedidoId) {
+  const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+  const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDTM2MjE5OTEsImV4cCI6MjAyMTE5Nzk5MX0.1CnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+
+  const intervalo = setInterval(async () => {
+    try {
+      const res = await fetch(`${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoId}&select=status`, {
+        headers: {
+          "apikey": supabaseAnonKey,
+          "Authorization": `Bearer ${supabaseAnonKey}`
+        }
+      });
+      const dados = await res.json();
+
+      if (dados && dados.length > 0 && dados[0].status === "Em preparo") {
+        clearInterval(intervalo);
+        document.getElementById("pixConteudo").style.display = "none";
+        document.getElementById("pixConfirmado").style.display = "block";
+      }
+    } catch (e) {
+      console.warn("Aguardando verificação do pagamento...", e);
+    }
+  }, 3000);
+}
 
   } catch (err) {
     alert("Não foi possível gerar a cobrança Pix: " + err.message);
