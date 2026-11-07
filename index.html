@@ -485,6 +485,30 @@
           observacao: item.obs || ""
         };
       });
+// Monta o texto da mensagem do WhatsApp antes de salvar
+      var texto = '*🍇 NOVO PEDIDO - AÇAIZEIRO*\n\n';
+      texto += '*Cliente:* ' + nome + '\n';
+      texto += '*Endereço:* ' + endereco + '\n';
+      texto += '*Pagamento:* ' + pagamento + '\n';
+      if (obsGeral) texto += '*Obs Entrega:* ' + obsGeral + '\n';
+      texto += '\n*📋 ITENS SOLICITADOS:*\n';
+
+      carrinho.forEach(function(item) {
+        var sub = item.precoTotal * item.qtd;
+        texto += '\n• *' + item.qtd + 'x ' + item.nome + '* — R$ ' + sub.toFixed(2).replace('.', ',') + '\n';
+        if (item.complementos.length > 0) {
+          item.complementos.forEach(function(c) {
+            texto += '   └ + ' + c.nome + ' (R$ ' + c.preco.toFixed(2).replace('.', ',') + ')\n';
+          });
+        }
+        if (item.obs) texto += '   └ Obs item: ' + item.obs + '\n';
+      });
+
+      texto += '\n*Subtotal:* R$ ' + totais.subtotal.toFixed(2).replace('.', ',') + '\n';
+      texto += '*Taxa de Entrega:* R$ ' + config.taxaEntrega.toFixed(2).replace('.', ',') + '\n';
+      texto += '*TOTAL DO PEDIDO:* R$ ' + totais.total.toFixed(2).replace('.', ',') + '\n';
+
+      textoPedidoWhatsApp = texto; // Guarda o texto montado para o Pix
 
       try {
         if (window.supabase && window.supabase.createClient) {
@@ -516,29 +540,7 @@
       } catch (errBanco) {
         console.warn("Aviso ao salvar pedido:", errBanco);
       }
-
-      var texto = '*🍇 NOVO PEDIDO - AÇAIZEIRO*\n\n';
-      texto += '*Cliente:* ' + nome + '\n';
-      texto += '*Endereço:* ' + endereco + '\n';
-      texto += '*Pagamento:* ' + pagamento + '\n';
-      if (obsGeral) texto += '*Obs Entrega:* ' + obsGeral + '\n';
-      texto += '\n*📋 ITENS SOLICITADOS:*\n';
-
-      carrinho.forEach(function(item) {
-        var sub = item.precoTotal * item.qtd;
-        texto += '\n• *' + item.qtd + 'x ' + item.nome + '* — R$ ' + sub.toFixed(2).replace('.', ',') + '\n';
-        if (item.complementos.length > 0) {
-          item.complementos.forEach(function(c) {
-            texto += '   └ + ' + c.nome + ' (R$ ' + c.preco.toFixed(2).replace('.', ',') + ')\n';
-          });
-        }
-        if (item.obs) texto += '   └ Obs item: ' + item.obs + '\n';
-      });
-
-      texto += '\n*Subtotal:* R$ ' + totais.subtotal.toFixed(2).replace('.', ',') + '\n';
-      texto += '*Taxa de Entrega:* R$ ' + config.taxaEntrega.toFixed(2).replace('.', ',') + '\n';
-      texto += '*TOTAL DO PEDIDO:* R$ ' + totais.total.toFixed(2).replace('.', ',') + '\n';
-
+     // Caso não seja Pix (Dinheiro / Cartão na entrega), abre o WhatsApp:
       var linkWhatsapp = 'https://wa.me/' + config.whatsapp + '?text=' + encodeURIComponent(texto);
       window.open(linkWhatsapp, '_blank');
     }
@@ -657,31 +659,46 @@
       }
     }
 
-    function escutarConfirmacaoPix(pedidoId) {
-      const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
-      const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+    var textoPedidoWhatsApp = ""; // Guarda o texto formatado para envio
 
-      const intervalo = setInterval(async () => {
-        try {
-          const res = await fetch(`${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoId}&select=status`, {
-            headers: {
-              "apikey": supabaseAnonKey,
-              "Authorization": `Bearer ${supabaseAnonKey}`
-            }
-          });
-          const dados = await res.json();
+function escutarConfirmacaoPix(pedidoId) {
+  const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+  const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
 
-          if (dados && dados.length > 0 && dados[0].status === "Em preparo") {
-            clearInterval(intervalo);
-            document.getElementById("pixConteudo").style.display = "none";
-            document.getElementById("pixConfirmado").style.display = "block";
-          }
-        } catch (e) {
-          console.warn("Aguardando verificação do pagamento...", e);
+  const intervalo = setInterval(async () => {
+    try {
+      const res = await fetch(`${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoId}&select=status`, {
+        headers: {
+          "apikey": supabaseAnonKey,
+          "Authorization": `Bearer ${supabaseAnonKey}`
         }
-      }, 3000);
-    }
+      });
+      const dados = await res.json();
 
+      if (dados && dados.length > 0 && dados[0].status === "Em preparo") {
+        clearInterval(intervalo);
+
+        // 1. Fecha o modal do Pix
+        document.getElementById("modalPix").style.display = "none";
+
+        // 2. Notificação visual de sucesso
+        alert("Pagamento Confirmado! O seu pedido já está sendo preparado. Redirecionando para o WhatsApp...");
+
+        // 3. Monta e abre o WhatsApp com a confirmação
+        if (textoPedidoWhatsApp) {
+          var link = "https://wa.me/" + config.whatsapp + "?text=" + encodeURIComponent(textoPedidoWhatsApp + "\n\n*Status:* PAGO VIA PIX (Aprovado)");
+          window.location.href = link;
+        }
+
+        // 4. Limpa o carrinho local
+        carrinho = [];
+        atualizarBarra();
+      }
+    } catch (e) {
+      console.warn("Aguardando confirmação...", e);
+    }
+  }, 3000);
+}
     function copiarPixPayload() {
       const input = document.getElementById("pixCodigoCopia");
       input.select();
