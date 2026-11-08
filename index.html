@@ -665,7 +665,7 @@
       }
     }
 
-    function escutarConfirmacaoPix(pedidoId) {
+   function escutarConfirmacaoPix(pedidoId) {
       const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
       const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
 
@@ -684,26 +684,23 @@
           if (dados && dados.length > 0 && dados[0].status === "Em preparo") {
             clearInterval(window.intervaloPix);
 
-            // 1. Fecha o modal do Pix
+            // 1. Fecha o modal do Pix imediatamente
             document.getElementById("modalPix").style.display = "none";
 
-            // 2. Notificação visual de sucesso
-            alert("Pagamento Confirmado! O seu pedido já está sendo preparado. Redirecionando para o WhatsApp...");
+            // 2. Limpa o carrinho
+            carrinho = [];
+            atualizarBarra();
 
-            // 3. Monta e abre o WhatsApp com a confirmação
+            // 3. Redireciona na mesma aba direto para o WhatsApp (evita bloqueador de pop-up)
             if (textoPedidoWhatsApp) {
               var link = "https://wa.me/" + config.whatsapp + "?text=" + encodeURIComponent(textoPedidoWhatsApp + "\n\n*Status:* PAGO VIA PIX (Aprovado)");
               window.location.href = link;
             }
-
-            // 4. Limpa o carrinho local
-            carrinho = [];
-            atualizarBarra();
           }
         } catch (e) {
           console.warn("Aguardando confirmação...", e);
         }
-      }, 3000);
+      }, 2000); // Consulta a cada 2 segundos para maior agilidade
     }
 
     function cancelarModalPix() {
