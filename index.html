@@ -159,8 +159,8 @@
   <div id="modalPix" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
     <div style="position: relative; background: #ffffff; color: #1e1e1e; max-width: 420px; width: 100%; border-radius: 16px; padding: 24px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); font-family: sans-serif;">
 
-  <!-- Botão de Fechar / Cancelar (X) -->
-  <button onclick="cancelarModalPix()" style="position: absolute; top: 12px; right: 16px; background: transparent; border: none; font-size: 24px; font-weight: bold; color: #888; cursor: pointer; line-height: 1;" title="Cancelar">&times;</button>
+      <!-- Botão de Fechar / Cancelar (X) -->
+      <button onclick="cancelarModalPix()" style="position: absolute; top: 12px; right: 16px; background: transparent; border: none; font-size: 26px; font-weight: bold; color: #888; cursor: pointer; line-height: 1;" title="Cancelar">&times;</button>
       
       <div id="pixCarregando" style="padding: 20px 0;">
         <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #6b117b; border-radius: 50%; width: 44px; height: 44px; animation: spin 1s linear infinite; margin: 0 auto 16px auto;"></div>
@@ -269,6 +269,7 @@
 
     var carrinho = [];
     var produtoEmEdicao = null;
+    var textoPedidoWhatsApp = "";
 
     function renderizarCategorias() {
       var container = document.getElementById('lista-categorias');
@@ -488,7 +489,8 @@
           observacao: item.obs || ""
         };
       });
-// Monta o texto da mensagem do WhatsApp antes de salvar
+
+      // Monta o texto da mensagem do WhatsApp antes de salvar
       var texto = '*🍇 NOVO PEDIDO - AÇAIZEIRO*\n\n';
       texto += '*Cliente:* ' + nome + '\n';
       texto += '*Endereço:* ' + endereco + '\n';
@@ -543,7 +545,8 @@
       } catch (errBanco) {
         console.warn("Aviso ao salvar pedido:", errBanco);
       }
-     // Caso não seja Pix (Dinheiro / Cartão na entrega), abre o WhatsApp:
+
+      // Caso não seja Pix (Dinheiro / Cartão na entrega), abre o WhatsApp:
       var linkWhatsapp = 'https://wa.me/' + config.whatsapp + '?text=' + encodeURIComponent(texto);
       window.open(linkWhatsapp, '_blank');
     }
@@ -662,46 +665,54 @@
       }
     }
 
-    var textoPedidoWhatsApp = ""; // Guarda o texto formatado para envio
+    function escutarConfirmacaoPix(pedidoId) {
+      const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+      const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
 
-function escutarConfirmacaoPix(pedidoId) {
-  const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
-  const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+      if (window.intervaloPix) clearInterval(window.intervaloPix);
 
-  const intervalo = setInterval(async () => {
-    try {
-      const res = await fetch(`${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoId}&select=status`, {
-        headers: {
-          "apikey": supabaseAnonKey,
-          "Authorization": `Bearer ${supabaseAnonKey}`
+      window.intervaloPix = setInterval(async () => {
+        try {
+          const res = await fetch(`${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoId}&select=status`, {
+            headers: {
+              "apikey": supabaseAnonKey,
+              "Authorization": `Bearer ${supabaseAnonKey}`
+            }
+          });
+          const dados = await res.json();
+
+          if (dados && dados.length > 0 && dados[0].status === "Em preparo") {
+            clearInterval(window.intervaloPix);
+
+            // 1. Fecha o modal do Pix
+            document.getElementById("modalPix").style.display = "none";
+
+            // 2. Notificação visual de sucesso
+            alert("Pagamento Confirmado! O seu pedido já está sendo preparado. Redirecionando para o WhatsApp...");
+
+            // 3. Monta e abre o WhatsApp com a confirmação
+            if (textoPedidoWhatsApp) {
+              var link = "https://wa.me/" + config.whatsapp + "?text=" + encodeURIComponent(textoPedidoWhatsApp + "\n\n*Status:* PAGO VIA PIX (Aprovado)");
+              window.location.href = link;
+            }
+
+            // 4. Limpa o carrinho local
+            carrinho = [];
+            atualizarBarra();
+          }
+        } catch (e) {
+          console.warn("Aguardando confirmação...", e);
         }
-      });
-      const dados = await res.json();
-
-      if (dados && dados.length > 0 && dados[0].status === "Em preparo") {
-        clearInterval(intervalo);
-
-        // 1. Fecha o modal do Pix
-        document.getElementById("modalPix").style.display = "none";
-
-        // 2. Notificação visual de sucesso
-        alert("Pagamento Confirmado! O seu pedido já está sendo preparado. Redirecionando para o WhatsApp...");
-
-        // 3. Monta e abre o WhatsApp com a confirmação
-        if (textoPedidoWhatsApp) {
-          var link = "https://wa.me/" + config.whatsapp + "?text=" + encodeURIComponent(textoPedidoWhatsApp + "\n\n*Status:* PAGO VIA PIX (Aprovado)");
-          window.location.href = link;
-        }
-
-        // 4. Limpa o carrinho local
-        carrinho = [];
-        atualizarBarra();
-      }
-    } catch (e) {
-      console.warn("Aguardando confirmação...", e);
+      }, 3000);
     }
-  }, 3000);
-}
+
+    function cancelarModalPix() {
+      if (window.intervaloPix) {
+        clearInterval(window.intervaloPix);
+      }
+      document.getElementById("modalPix").style.display = "none";
+    }
+
     function copiarPixPayload() {
       const input = document.getElementById("pixCodigoCopia");
       input.select();
