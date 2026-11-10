@@ -68,13 +68,23 @@
         <button onclick="fecharModalProduto()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none">&times;</button>
       </div>
 
-      <div>
-        <div class="flex justify-between items-center mb-2">
-          <h3 class="text-sm font-bold text-gray-800">Deseja adicionar Complementos?</h3>
-          <span class="text-[11px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full font-semibold">Opcional</span>
+      <!-- Sanfona de Complementos -->
+      <div class="border border-purple-100 rounded-2xl overflow-hidden bg-white shadow-sm">
+        <button type="button" onclick="alternarListaComplementos()" class="w-full flex items-center justify-between p-3.5 bg-purple-50/60 hover:bg-purple-100/60 transition text-left cursor-pointer">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-plus text-[#411564] text-xs"></i>
+            <span class="text-xs font-black text-[#411564] tracking-wide uppercase">ESCOLHA SEUS COMPLEMENTOS</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="badge-complementos-qtd" class="text-[11px] bg-purple-200/80 text-[#411564] font-bold px-2 py-0.5 rounded-full hidden">0 selecionados</span>
+            <i id="icone-seta-comp" class="fa-solid fa-chevron-down text-[#411564] text-xs transition-transform duration-200"></i>
+          </div>
+        </button>
+
+        <div id="container-sanfona-complementos" class="hidden p-3.5 border-t border-purple-100 space-y-2 bg-[#fcfaff]">
+          <p class="text-[11px] text-gray-500 mb-2">Selecione frutas, caldas e coberturas especiais para o seu açaí:</p>
+          <div class="space-y-2" id="lista-adicionais-modal"></div>
         </div>
-        <p class="text-xs text-gray-500 mb-3">Selecione frutas, caldas e coberturas especiais para o seu açaí:</p>
-        <div class="space-y-2" id="lista-adicionais-modal"></div>
       </div>
 
       <div>
@@ -212,6 +222,18 @@
   </style>
 
   <script>
+    function alternarListaComplementos() {
+      var painel = document.getElementById('container-sanfona-complementos');
+      var seta = document.getElementById('icone-seta-comp');
+      if (painel.classList.contains('hidden')) {
+        painel.classList.remove('hidden');
+        seta.style.transform = 'rotate(180deg)';
+      } else {
+        painel.classList.add('hidden');
+        seta.style.transform = 'rotate(0deg)';
+      }
+    }
+
     var config = {
       whatsapp: "5516981035241",
       taxaEntrega: 1.00
@@ -237,6 +259,8 @@
       if (c.indexOf("traciona") !== -1 || c.indexOf("tradicional") !== -1) return "Copos Açaí Tradicional";
       if (c.indexOf("kids") !== -1) return "Copos Kids";
       if (c.indexOf("ninho") !== -1 || c.indexOf("avel") !== -1) return "Copos Ninho c/ Creme de Avelã";
+      if (c.indexOf("marmita") !== -1) return "Marmitas";
+      if (c.indexOf("bebida") !== -1 || c.indexOf("refrigerante") !== -1 || c.indexOf("suco") !== -1 || c.indexOf("agua") !== -1) return "Bebidas";
       if (c.indexOf("complement") !== -1 || c.indexOf("extra") !== -1 || c.indexOf("adicional") !== -1) return "Complementos";
       return cat;
     }
@@ -257,7 +281,7 @@
     ];
 
     var produtos = [
-      { id: 1, categoria: "Copos Açaí Puro", nome: "Copo Açaí Puro P - Monte o Seu", desc: "Açaí Puro 300ml - Servido com açaí puro. Adicione seus complementos favoritos.", preco: 1.40, imagem: "PURO.png", permiteComplementos: true, ativo: true },
+      { id: 1, categoria: "Copos Açaí Puro", nome: "Copo Açaí Puro P - Monte o Seu", desc: "Açaí Puro 300ml - Servido com açaí puro. Adicione seus complementos favoritos.", preco: 18.40, imagem: "PURO.png", permiteComplementos: true, ativo: true },
       { id: 2, categoria: "Copos Açaí Puro", nome: "Copo Açaí Puro M - Monte o Seu", desc: "Açaí Puro 500ml - Servido com açaí puro. Adicione seus complementos favoritos.", preco: 27.99, imagem: "PURO.png", permiteComplementos: true, ativo: true },
       { id: 3, categoria: "Copos Moranguete", nome: "Copo Moranguete P", desc: "Copo 300ml - Servido com açaí, creme de morango e chocolate moranguete.", preco: 22.60, imagem: "MORANGUETE.png", permiteComplementos: true, ativo: true },
       { id: 4, categoria: "Copos Moranguete", nome: "Copo Moranguete M", desc: "Copo 500ml - Servido com açaí, creme de morango e chocolate moranguete.", preco: 28.30, imagem: "MORANGUETE.png", permiteComplementos: true, ativo: true },
@@ -347,6 +371,12 @@
       document.getElementById('modal-prod-nome').innerText = prod.nome;
       document.getElementById('modal-prod-desc').innerText = prod.desc;
       document.getElementById('modal-prod-obs').value = "";
+      
+      // Inicia a sanfona recolhida
+      document.getElementById('container-sanfona-complementos').classList.add('hidden');
+      document.getElementById('icone-seta-comp').style.transform = 'rotate(0deg)';
+      var badge = document.getElementById('badge-complementos-qtd');
+      if (badge) { badge.classList.add('hidden'); badge.innerText = '0 selecionados'; }
 
       var container = document.getElementById('lista-adicionais-modal');
       container.innerHTML = complementosDisponiveis.map(function(comp) {
@@ -378,6 +408,17 @@
       var total = produtoEmEdicao.preco;
       produtoEmEdicao.complementosEscolhidos.forEach(function(c) { total += c.preco; });
       document.getElementById('modal-prod-total').innerText = 'R$ ' + total.toFixed(2).replace('.', ',');
+
+      var badge = document.getElementById('badge-complementos-qtd');
+      if (badge) {
+        var qtd = produtoEmEdicao.complementosEscolhidos.length;
+        if (qtd > 0) {
+          badge.classList.remove('hidden');
+          badge.innerText = qtd + (qtd === 1 ? ' selecionado' : ' selecionados');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
     }
 
     function fecharModalProduto() {
@@ -492,7 +533,7 @@
         };
       });
 
-      // Monta o texto da mensagem do WhatsApp antes de salvar
+      // Monta a mensagem para o WhatsApp antes de salvar
       var texto = '*🍇 NOVO PEDIDO - AÇAIZEIRO*\n\n';
       texto += '*Cliente:* ' + nome + '\n';
       texto += '*Endereço:* ' + endereco + '\n';
@@ -515,7 +556,7 @@
       texto += '*Taxa de Entrega:* R$ ' + config.taxaEntrega.toFixed(2).replace('.', ',') + '\n';
       texto += '*TOTAL DO PEDIDO:* R$ ' + totais.total.toFixed(2).replace('.', ',') + '\n';
 
-      textoPedidoWhatsApp = texto; // Guarda o texto montado para o Pix
+      textoPedidoWhatsApp = texto;
 
       try {
         if (window.supabase && window.supabase.createClient) {
@@ -548,7 +589,7 @@
         console.warn("Aviso ao salvar pedido:", errBanco);
       }
 
-      // Caso não seja Pix (Dinheiro / Cartão na entrega), abre o WhatsApp:
+      // Se não for Pix, segue para o WhatsApp imediatamente
       var linkWhatsapp = 'https://wa.me/' + config.whatsapp + '?text=' + encodeURIComponent(texto);
       window.open(linkWhatsapp, '_blank');
     }
@@ -667,7 +708,7 @@
       }
     }
 
-   function escutarConfirmacaoPix(pedidoId) {
+    function escutarConfirmacaoPix(pedidoId) {
       const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
       const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
 
@@ -693,7 +734,7 @@
             carrinho = [];
             atualizarBarra();
 
-            // 3. Redireciona na mesma aba direto para o WhatsApp (evita bloqueador de pop-up)
+            // 3. Redireciona na mesma aba direto para o WhatsApp
             if (textoPedidoWhatsApp) {
               var link = "https://wa.me/" + config.whatsapp + "?text=" + encodeURIComponent(textoPedidoWhatsApp + "\n\n*Status:* PAGO VIA PIX (Aprovado)");
               window.location.href = link;
@@ -702,7 +743,7 @@
         } catch (e) {
           console.warn("Aguardando confirmação...", e);
         }
-      }, 2000); // Consulta a cada 2 segundos para maior agilidade
+      }, 2000);
     }
 
     function cancelarModalPix() {
