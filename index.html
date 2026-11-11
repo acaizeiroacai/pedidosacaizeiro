@@ -668,7 +668,7 @@
     renderizarCategorias();
     carregarProdutos();
 
-    setTimeout(function() {
+     setTimeout(function() {
       var s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
       s.onload = function() {
@@ -679,37 +679,31 @@
           );
 
           Promise.all([
-            client.from('CARDAPIO ACAIZEIRO').select('*'),
+            client.from('CARDAPIO ACAIZEIRO').select('*').order('id'),
             client.from('COMPLEMENTOS').select('*').eq('ativo', true)
           ]).then(function(respostas) {
             var resCopos = respostas[0];
             var resComp = respostas[1];
 
             if (resCopos.data && resCopos.data.length > 0) {
-              resCopos.data.forEach(function(item) {
-                if (!item.nome) return;
-                var catPadrao = normalizarCategoria(item.categoria);
-                var existe = produtos.find(function(p) {
-                  return String(p.id) === String(item.id) || p.nome.toLowerCase() === item.nome.toLowerCase();
-                });
-
-                var objProduto = {
+              // Substitui os itens estáticos pelos itens reais cadastrados pelo lojista
+              produtos = resCopos.data.map(function(item) {
+                return {
                   id: item.id,
-                  categoria: catPadrao,
+                  categoria: item.categoria || "Geral",
                   nome: item.nome,
                   desc: item.descricao || "",
                   preco: parseFloat(item.preco) || 0,
-                  imagem: item.imagem_url || "TRADICIONAL.png",
-                  permiteComplementos: catPadrao.toLowerCase() !== "complementos",
+                  imagem: item.imagem_url || "PURO.png",
+                  permiteComplementos: (item.categoria || "").toLowerCase() !== "complementos",
                   ativo: item.ativo !== false
                 };
-
-                if (existe) {
-                  Object.assign(existe, objProduto);
-                } else {
-                  produtos.push(objProduto);
-                }
               });
+
+              // Extrai as categorias únicas dinamicamente do banco de dados
+              var catsDoBanco = Array.from(new Set(produtos.map(function(p) { return p.categoria; })));
+              categorias = ["Todos"].concat(catsDoBanco);
+
               renderizarCategorias();
               carregarProdutos();
             }
