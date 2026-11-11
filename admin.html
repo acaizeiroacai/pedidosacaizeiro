@@ -101,7 +101,7 @@
   </div>
 
   <script>
-    var SENHA_MESTRA = "rM#3944";
+    var SENHA_MESTRA = "3944";
     var somAtivo = true;
     var intervaloCampainha = null;
     var audioCtx = null;
@@ -116,6 +116,7 @@
       return audioCtx;
     }
 
+    // Sino característico de delivery (F#6 -> A6 metálico com decaimento suave)
     function emitirBipeDelivery() {
       if (!somAtivo) return;
       try {
@@ -131,12 +132,11 @@
         osc1.frequency.setValueAtTime(1479.98, agora);
         
         gain1.gain.setValueAtTime(0.5, agora);
-        gain1.gain.exponentialRampToValueAtTime(0.001, agora + 0.35); // Ressonância metálica
-        
+        gain1.gain.exponentialRampToValueAtTime(0.001, agora + 0.35);
         osc1.start(agora);
         osc1.stop(agora + 0.35);
 
-        // 2º Toque do Sino (A6 - 1760Hz, mais agudo)
+        // 2º Toque do Sino (A6 - 1760Hz)
         var osc2 = ctx.createOscillator();
         var gain2 = ctx.createGain();
         osc2.connect(gain2);
@@ -145,8 +145,7 @@
         osc2.frequency.setValueAtTime(1760.00, agora + 0.18);
         
         gain2.gain.setValueAtTime(0.6, agora + 0.18);
-        gain2.gain.exponentialRampToValueAtTime(0.001, agora + 0.75); // Sustentação mais longa
-        
+        gain2.gain.exponentialRampToValueAtTime(0.001, agora + 0.75);
         osc2.start(agora + 0.18);
         osc2.stop(agora + 0.75);
 
@@ -172,12 +171,15 @@
 
     function alternarSom() {
       somAtivo = !somAtivo;
+      obterAudioContext();
       var icone = document.getElementById('icone-som');
       if (icone) {
         icone.className = somAtivo ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
       }
       if (!somAtivo) {
         pararAlarmeSonoro();
+      } else {
+        emitirBipeDelivery(); // Feedback sonoro de ativação
       }
     }
 
