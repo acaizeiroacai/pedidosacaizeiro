@@ -3,287 +3,423 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Açaizeiro - Painel Administrativo de Pedidos</title>
+  <title>Açaizeiro - Gestão Operacional</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url("https://db.onlinewebfonts.com/c/20e48b2ec8c64b2a1ceb5b28d9bcc9d0?family=Bryndan+Write");
+    .fonte-bryndan { font-family: "Bryndan Write", cursive, sans-serif; letter-spacing: 1px; }
+  </style>
 </head>
 <body class="bg-gray-100 text-gray-800 antialiased min-h-screen">
 
-  <!-- TELA DE LOGIN COM SENHA -->
+  <!-- Ecrã de Bloqueio por Senha -->
   <div id="tela-login" class="fixed inset-0 bg-[#411564] z-50 flex items-center justify-center p-4">
-    <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full text-center space-y-4">
-      <div class="w-16 h-16 bg-purple-100 text-[#411564] rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
-        <i class="fa-solid fa-lock"></i>
+    <div class="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-xs text-center space-y-4">
+      <div class="w-16 h-16 rounded-full bg-black mx-auto flex items-center justify-center overflow-hidden border-2 border-purple-300">
+        <img src="LOGO2.png" alt="Açaizeiro" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.src='PURO.png';">
       </div>
-      <h2 class="text-xl font-black text-gray-900">Acesso Restrito</h2>
-      <p class="text-xs text-gray-500">Digite a senha de administrador da loja:</p>
-      <input type="password" id="input-senha" onkeydown="if(event.key==='Enter') verificarSenha()" class="w-full border border-gray-300 rounded-xl p-3 text-center text-lg font-bold tracking-widest outline-purple-600" placeholder="••••">
-      <button onclick="verificarSenha()" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-bold py-3 rounded-xl transition active:scale-95 cursor-pointer">
-        Entrar no Painel
-      </button>
-      <p id="erro-senha" class="text-xs text-red-500 font-bold hidden">Senha incorreta! Tente novamente.</p>
-    </div>
-  </div>
+      <div>
+        <h2 class="fonte-bryndan text-2xl font-bold text-[#411564]">AÇAIZEIRO</h2>
+        <p class="text-xs text-gray-500 font-medium mt-0.5">Acesso Restrito da Gerência</p>
+      </div>
 
-  <!-- CABEÇALHO DO PAINEL -->
-  <header class="bg-[#411564] text-white p-4 shadow-md sticky top-0 z-30">
-    <div class="max-w-5xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <h1 class="text-xl font-black tracking-wide">AÇAIZEIRO - GESTÃO DE PEDIDOS</h1>
-        <span class="bg-green-500/20 text-green-300 text-xs px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5 border border-green-400/30">
-          <span class="w-2 h-2 rounded-full bg-green-400 animate-ping"></span> Monitorando ao vivo
-        </span>
-      </div>
-      <div class="flex items-center gap-2">
-        <button id="btn-som" onclick="alternarSom()" class="bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-2 rounded-lg font-bold transition flex items-center gap-1.5 cursor-pointer">
-          <i id="icone-som" class="fa-solid fa-volume-high"></i>
-          <span id="texto-som">Som Ativo</span>
+      <div class="space-y-3">
+        <input type="password" id="campo-senha" placeholder="Digite a Senha" class="w-full text-center text-lg font-bold tracking-widest border border-gray-300 rounded-xl p-3 outline-purple-600">
+        <p id="erro-senha" class="text-xs text-red-600 font-semibold hidden">Palavra-passe incorreta!</p>
+        <button type="button" id="btn-entrar" onclick="tentarEntrar()" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-bold py-3 rounded-xl transition active:scale-95 text-sm shadow-md cursor-pointer">
+          Entrar no Painel
         </button>
       </div>
     </div>
-  </header>
+  </div>
 
-  <!-- CORPO PRINCIPAL -->
-  <main class="max-w-5xl mx-auto p-4 space-y-4">
-    <!-- FILTRO DE STATUS -->
-    <div class="flex gap-2 overflow-x-auto pb-2">
-      <button onclick="filtrarStatus('todos')" class="filtro-btn px-4 py-2 rounded-xl text-xs font-bold bg-[#411564] text-white transition cursor-pointer" data-status="todos">Todos</button>
-      <button onclick="filtrarStatus('Aguardando Aceite da Loja')" class="filtro-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 border transition hover:bg-purple-50 cursor-pointer" data-status="Aguardando Aceite da Loja">Novos (Aguardando Aceite)</button>
-      <button onclick="filtrarStatus('Em preparo')" class="filtro-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 border transition hover:bg-purple-50 cursor-pointer" data-status="Em preparo">Em Preparo</button>
-      <button onclick="filtrarStatus('Pronto para Entrega')" class="filtro-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 border transition hover:bg-purple-50 cursor-pointer" data-status="Pronto para Entrega">Prontos</button>
-      <button onclick="filtrarStatus('Finalizado')" class="filtro-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 border transition hover:bg-purple-50 cursor-pointer" data-status="Finalizado">Finalizados</button>
-    </div>
-
-    <!-- LISTA DE PEDIDOS -->
-    <div id="lista-pedidos" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="col-span-full text-center py-12 text-gray-400">
-        <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-2 text-purple-600"></i>
-        <p class="text-sm">Conectando aos pedidos do Supabase...</p>
+  <!-- Conteúdo Principal do Admin -->
+  <div id="painel-conteudo" class="hidden">
+    <!-- Topo / Cabeçalho -->
+    <header class="bg-[#411564] text-white p-4 shadow-md sticky top-0 z-30">
+      <div class="max-w-5xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-black flex items-center justify-center overflow-hidden border border-purple-300">
+            <img src="LOGO2.png" alt="Açaizeiro" class="w-full h-full object-contain p-0.5" onerror="this.onerror=null; this.src='PURO.png';">
+          </div>
+          <div>
+            <h1 class="fonte-bryndan text-xl font-bold tracking-wide">AÇAIZEIRO - GESTÃO</h1>
+            <p class="text-[11px] text-purple-200">Painel Operacional e Estoque</p>
+          </div>
+        </div>
+        <!-- Alternador de Abas, Som e Logout -->
+        <div class="flex gap-2 items-center">
+          <button onclick="alternarSom()" id="btn-som" class="bg-purple-950/60 hover:bg-purple-900 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="Ativar/Desativar som de alerta">
+            <i id="icone-som" class="fa-solid fa-volume-high"></i>
+          </button>
+          <button onclick="mudarAba('pedidos')" id="tab-btn-pedidos" class="bg-purple-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">Pedidos</button>
+          <button onclick="mudarAba('stock')" id="tab-btn-stock" class="bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">Estoque</button>
+          <button onclick="carregarPedidos()" class="bg-purple-800 hover:bg-purple-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer" title="Atualizar dados"><i class="fa-solid fa-rotate-right"></i></button>
+          <button onclick="sairPainel()" class="bg-red-800 hover:bg-red-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer" title="Sair do painel"><i class="fa-solid fa-right-from-bracket"></i></button>
+        </div>
       </div>
-    </div>
-  </main>
+    </header>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- ABA 1: PEDIDOS -->
+    <section id="aba-pedidos" class="max-w-5xl mx-auto p-4">
+      <div class="flex gap-2 overflow-x-auto pb-3">
+        <button onclick="filtrarStatus('Todos')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white cursor-pointer" data-status="Todos">Todos</button>
+        <button onclick="filtrarStatus('Aguardando Aceite da Loja')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Aguardando Aceite da Loja">Novos (Aguardando Aceite)</button>
+        <button onclick="filtrarStatus('Aguardando Pagamento Pix')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Aguardando Pagamento Pix">Aguardando Pix</button>
+        <button onclick="filtrarStatus('Em preparo')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Em preparo">Em Preparação</button>
+        <button onclick="filtrarStatus('Saiu para entrega')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Saiu para entrega">A Caminho</button>
+        <button onclick="filtrarStatus('Concluído')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Concluído">Concluídos</button>
+        <button onclick="filtrarStatus('Recusado')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Recusado">Recusados</button>
+      </div>
+      <div id="lista-pedidos-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="col-span-full text-center py-12 text-gray-400 text-sm">Carregando pedidos...</div>
+      </div>
+    </section>
+
+    <!-- ABA 2: ESTOQUE -->
+    <section id="aba-stock" class="max-w-5xl mx-auto p-4 hidden">
+      <div class="bg-white p-5 rounded-2xl shadow-sm mb-6 border border-gray-200">
+        <h2 class="text-base font-extrabold text-[#411564] mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-mug-hot"></i> Copos do Cardápio
+        </h2>
+        <div id="lista-copos-stock" class="divide-y divide-gray-100">
+          <p class="text-xs text-gray-400 py-4 text-center">Carregando copos...</p>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+        <h2 class="text-base font-extrabold text-[#411564] mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-bowl-food"></i> Frutas e Complementos
+        </h2>
+        <div id="lista-complementos-stock" class="divide-y divide-gray-100">
+          <p class="text-xs text-gray-400 py-4 text-center">Carregando complementos...</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
   <script>
-    const SENHA_MESTRE = "3944";
-    const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
-    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
-
-    let pedidosCarregados = [];
-    let statusFiltroAtual = "todos";
-    let somHabilitado = true;
+    var SENHA_MESTRA = "3944";
+    var somAtivo = true;
 
     function tocarAlertaSonoro() {
-      if (!somHabilitado) return;
+      if (!somAtivo) return;
       try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+        var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        
         osc.type = "sine";
         osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
         osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15);
         gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
-        
         osc.start();
         osc.stop(audioCtx.currentTime + 0.6);
       } catch (e) {
-        console.warn("Áudio aguardando interação.");
+        console.warn("Áudio aguardando interação do usuário.");
       }
     }
 
     function alternarSom() {
-      somHabilitado = !somHabilitado;
-      document.getElementById('icone-som').className = somHabilitado ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
-      document.getElementById('texto-som').innerText = somHabilitado ? 'Som Ativo' : 'Mudo';
+      somAtivo = !somAtivo;
+      document.getElementById('icone-som').className = somAtivo ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
     }
 
-    function verificarSenha() {
-      const input = document.getElementById('input-senha').value.trim();
-      if (input === SENHA_MESTRE) {
-        document.getElementById('tela-login').classList.add('hidden');
-        localStorage.setItem('admin_autenticado', 'sim');
-        carregarPedidos();
-        iniciarMonitoramento();
+    function tentarEntrar() {
+      var campo = document.getElementById('campo-senha');
+      var erro = document.getElementById('erro-senha');
+      if (!campo) return;
+
+      var valorDigitado = campo.value.trim();
+
+      if (valorDigitado === SENHA_MESTRA) {
+        sessionStorage.setItem('admin_acaizeiro_auth', 'true');
+        liberarAcesso();
       } else {
-        document.getElementById('erro-senha').classList.remove('hidden');
+        erro.classList.remove('hidden');
+        campo.value = "";
       }
     }
 
-    // Inicialização direta caso já esteja autenticado
-    if (localStorage.getItem('admin_autenticado') === 'sim') {
-      document.getElementById('tela-login').classList.add('hidden');
+    function liberarAcesso() {
+      var tela = document.getElementById('tela-login');
+      var painel = document.getElementById('painel-conteudo');
+
+      if (tela) tela.classList.add('hidden');
+      if (painel) painel.classList.remove('hidden');
+
       carregarPedidos();
-      iniciarMonitoramento();
+      setInterval(carregarPedidos, 10000);
+    }
+
+    function verificarAutenticacao() {
+      if (sessionStorage.getItem('admin_acaizeiro_auth') === 'true') {
+        liberarAcesso();
+      }
+    }
+
+    function sairPainel() {
+      sessionStorage.removeItem('admin_acaizeiro_auth');
+      location.reload();
+    }
+
+    // SUPABASE E GESTÃO
+    var SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+    var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+    var client = null;
+
+    var listaGlobalPedidos = [];
+    var statusSelecionado = 'Todos';
+
+    function initClient() {
+      if (!client && window.supabase && window.supabase.createClient) {
+        client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+      return client;
+    }
+
+    function mudarAba(aba) {
+      ['pedidos', 'stock'].forEach(function(a) {
+        document.getElementById('aba-' + a).classList.add('hidden');
+        document.getElementById('tab-btn-' + a).className = "bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer";
+      });
+      document.getElementById('aba-' + aba).classList.remove('hidden');
+      document.getElementById('tab-btn-' + aba).className = "bg-purple-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer";
+
+      if (aba === 'stock') carregarStock();
     }
 
     async function carregarPedidos() {
-      try {
-        const { data, error } = await supabase
-          .from('pedidos')
-          .select('*')
-          .order('id', { ascending: false })
-          .limit(50);
+      var sb = initClient();
+      if (!sb) {
+        setTimeout(carregarPedidos, 500);
+        return;
+      }
 
-        if (error) throw error;
-        pedidosCarregados = data || [];
+      try {
+        var res = await sb.from('pedidos').select('*').order('id', { ascending: false }).limit(50);
+        if (res.error) {
+          console.error("Erro ao procurar pedidos:", res.error);
+          document.getElementById('lista-pedidos-admin').innerHTML = '<div class="col-span-full text-center py-8 text-red-500 text-sm">Erro ao carregar: ' + res.error.message + '</div>';
+          return;
+        }
+
+        listaGlobalPedidos = res.data || [];
         renderizarPedidos();
       } catch (err) {
-        console.error("Erro ao carregar pedidos:", err);
+        console.error("Erro inesperado:", err);
       }
     }
 
-    function filtrarStatus(status) {
-      statusFiltroAtual = status;
-      document.querySelectorAll('.filtro-btn').forEach(btn => {
-        if (btn.dataset.status === status) {
-          btn.className = "filtro-btn px-4 py-2 rounded-xl text-xs font-bold bg-[#411564] text-white transition cursor-pointer";
-        } else {
-          btn.className = "filtro-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 border transition hover:bg-purple-50 cursor-pointer";
-        }
+    function filtrarStatus(s) {
+      statusSelecionado = s;
+      document.querySelectorAll('.btn-filtro').forEach(function(b) {
+        b.className = b.getAttribute('data-status') === s 
+          ? "btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white cursor-pointer"
+          : "btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer";
       });
       renderizarPedidos();
     }
 
     function renderizarPedidos() {
-      const container = document.getElementById('lista-pedidos');
-      let lista = pedidosCarregados;
+      var container = document.getElementById('lista-pedidos-admin');
+      var filtrados = statusSelecionado === 'Todos' 
+        ? listaGlobalPedidos 
+        : listaGlobalPedidos.filter(function(p) { return p.status === statusSelecionado; });
 
-      if (statusFiltroAtual !== 'todos') {
-        lista = lista.filter(p => p.status === statusFiltroAtual);
-      }
-
-      if (lista.length === 0) {
-        container.innerHTML = '<div class="col-span-full bg-white p-8 rounded-2xl text-center text-gray-400 font-semibold border">Nenhum pedido encontrado nesta seção.</div>';
+      if (filtrados.length === 0) {
+        container.innerHTML = '<div class="col-span-full bg-white p-8 rounded-xl shadow-sm text-center text-gray-400 text-sm">Nenhum pedido encontrado.</div>';
         return;
       }
 
-      let temPendente = false;
+      var temPendente = false;
 
-      container.innerHTML = lista.map(p => {
-        const itens = Array.isArray(p.itens) ? p.itens : [];
-        const isAguardandoAceite = (p.status === 'Aguardando Aceite da Loja' || p.status === 'Recebido');
+      container.innerHTML = filtrados.map(function(p) {
+        var hora = p.created_at ? new Date(p.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+        var itensHtml = '';
+        if (Array.isArray(p.itens)) {
+          itensHtml = p.itens.map(function(i) {
+            var compl = (i.complementos && i.complementos.length > 0) ? '<p class="text-[11px] text-purple-700 pl-2">+ ' + i.complementos.join(', ') + '</p>' : '';
+            var obs = i.observacao ? '<p class="text-[11px] text-gray-500 italic pl-2">Obs: ' + i.observacao + '</p>' : '';
+            return '<div class="text-xs py-1 border-b border-gray-50">' +
+              '<span class="font-bold text-gray-900">' + i.quantidade + 'x ' + i.nome + '</span>' +
+              compl + obs +
+            '</div>';
+          }).join('');
+        }
+
+        var isAguardandoAceite = (p.status === 'Aguardando Aceite da Loja' || p.status === 'Recebido');
         if (isAguardandoAceite) temPendente = true;
 
-        let badgeCor = "bg-gray-100 text-gray-700";
-        if (isAguardandoAceite) badgeCor = "bg-amber-100 text-amber-800 border border-amber-300 animate-pulse";
-        if (p.status === 'Aguardando Pagamento Pix') badgeCor = "bg-blue-100 text-blue-800 border border-blue-200";
-        if (p.status === 'Em preparo') badgeCor = "bg-purple-100 text-purple-900 font-bold border border-purple-200";
-        if (p.status === 'Finalizado') badgeCor = "bg-emerald-100 text-emerald-800 border border-emerald-200";
-        if (p.status === 'Recusado') badgeCor = "bg-rose-100 text-rose-800 border border-rose-200";
+        var badge = "bg-amber-100 text-amber-800 border-amber-200";
+        if (isAguardandoAceite) badge = "bg-amber-100 text-amber-800 border-amber-300 animate-pulse font-black";
+        if (p.status === "Aguardando Pagamento Pix") badge = "bg-blue-100 text-blue-800 border-blue-200";
+        if (p.status === "Em preparo") badge = "bg-purple-100 text-purple-800 border-purple-200 font-bold";
+        if (p.status === "Saiu para entrega") badge = "bg-indigo-100 text-indigo-800 border-indigo-200";
+        if (p.status === "Concluído") badge = "bg-green-100 text-green-800 border-green-200";
+        if (p.status === "Recusado") badge = "bg-rose-100 text-rose-800 border-rose-200";
 
-        const itensHtml = itens.map(i => `
-          <div class="py-1.5 border-b border-gray-100 last:border-0 text-xs">
-            <div class="flex justify-between font-bold text-gray-800">
-              <span>${i.quantidade}x ${i.nome}</span>
-              <span>R$ ${(i.preco_unitario * i.quantidade).toFixed(2).replace('.', ',')}</span>
-            </div>
-            ${i.complementos && i.complementos.length > 0 ? `<p class="text-[11px] text-purple-700 font-medium">+ ${i.complementos.join(', ')}</p>` : ''}
-            ${i.observacao ? `<p class="text-[11px] text-gray-500 italic">Obs: ${i.observacao}</p>` : ''}
-          </div>
-        `).join('');
+        var obsGeral = p.observacoes ? '<p class="text-xs text-red-600 bg-red-50 p-2 rounded-lg font-medium mb-2">Obs: ' + p.observacoes + '</p>' : '';
 
-        return `
-          <div class="bg-white rounded-2xl p-4 shadow-sm border ${isAguardandoAceite ? 'border-amber-400 ring-2 ring-amber-300' : 'border-gray-200'} space-y-3 flex flex-col justify-between">
-            <div>
-              <div class="flex justify-between items-start border-b pb-2">
-                <div>
-                  <span class="text-[10px] font-black text-gray-400">PEDIDO #${p.id}</span>
-                  <h3 class="font-black text-gray-900 text-base leading-tight">${p.cliente_nome || 'Cliente'}</h3>
-                  <p class="text-xs text-gray-500"><i class="fa-solid fa-location-dot text-red-500 mr-1"></i>${p.cliente_endereco || 'Não informado'}</p>
-                </div>
-                <span class="text-xs px-2.5 py-1 rounded-full font-black ${badgeCor}">${p.status}</span>
-              </div>
+        // Botões de Ação
+        var botoesHtml = '';
+        if (isAguardandoAceite) {
+          botoesHtml = 
+            '<div class="grid grid-cols-2 gap-2">' +
+              '<button onclick="aceitarPedido(' + p.id + ', \'' + (p.forma_pagamento || '') + '\')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-2 rounded-lg shadow transition active:scale-95 flex items-center justify-center gap-1 cursor-pointer">' +
+                '<i class="fa-solid fa-check"></i> Aceitar Pedido' +
+              '</button>' +
+              '<button onclick="recusarPedido(' + p.id + ')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs py-2 rounded-lg border border-rose-200 transition active:scale-95 cursor-pointer">' +
+                '<i class="fa-solid fa-xmark"></i> Recusar' +
+              '</button>' +
+            '</div>';
+        } else if (p.status === "Aguardando Pagamento Pix") {
+          botoesHtml = 
+            '<div class="text-center py-1 text-xs text-blue-700 font-semibold bg-blue-50 rounded-lg border border-blue-100">' +
+              'Aguardando o cliente pagar o Pix no site...' +
+            '</div>';
+        } else {
+          botoesHtml = 
+            '<div class="grid grid-cols-3 gap-1.5">' +
+              '<button onclick="mudarStatus(' + p.id + ', \'Em preparo\')" class="bg-purple-50 hover:bg-purple-100 text-purple-700 text-[11px] font-bold py-1.5 rounded-lg border border-purple-200 transition active:scale-95 cursor-pointer">Preparo</button>' +
+              '<button onclick="mudarStatus(' + p.id + ', \'Saiu para entrega\')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold py-1.5 rounded-lg border border-indigo-200 transition active:scale-95 cursor-pointer">A Caminho</button>' +
+              '<button onclick="mudarStatus(' + p.id + ', \'Concluído\')" class="bg-green-50 hover:bg-green-100 text-green-700 text-[11px] font-bold py-1.5 rounded-lg border border-green-200 transition active:scale-95 cursor-pointer">Concluído</button>' +
+            '</div>';
+        }
 
-              <div class="my-2 bg-gray-50 rounded-xl p-2.5 max-h-40 overflow-y-auto">
-                ${itensHtml}
-              </div>
-
-              ${p.observacoes ? `<p class="text-xs bg-amber-50 text-amber-900 p-2 rounded-lg border border-amber-200 mb-2"><strong>Obs Entrega:</strong> ${p.observacoes}</p>` : ''}
-
-              <div class="flex justify-between items-center text-xs text-gray-500 pt-1">
-                <span>Forma de Pagto: <strong class="text-gray-800">${p.forma_pagamento}</strong></span>
-                <span class="text-sm font-black text-[#411564]">Total: R$ ${Number(p.total || 0).toFixed(2).replace('.', ',')}</span>
-              </div>
-            </div>
-
-            <!-- BOTÕES DE AÇÃO -->
-            <div class="pt-2 border-t border-gray-100 flex gap-2">
-              ${isAguardandoAceite ? `
-                <button onclick="aceitarPedido(${p.id}, '${p.forma_pagamento}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-xs transition active:scale-95 shadow flex items-center justify-center gap-1.5 cursor-pointer">
-                  <i class="fa-solid fa-check"></i> Aceitar Pedido
-                </button>
-                <button onclick="recusarPedido(${p.id})" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3 py-2.5 rounded-xl text-xs border border-rose-200 transition active:scale-95 cursor-pointer">
-                  <i class="fa-solid fa-xmark"></i> Recusar
-                </button>
-              ` : p.status === 'Em preparo' ? `
-                <button onclick="mudarStatus(${p.id}, 'Pronto para Entrega')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer">
-                  Marcar como Pronto
-                </button>
-              ` : p.status === 'Pronto para Entrega' ? `
-                <button onclick="mudarStatus(${p.id}, 'Finalizado')" class="flex-1 bg-gray-800 hover:bg-black text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer">
-                  Finalizar Pedido
-                </button>
-              ` : `
-                <span class="text-xs text-gray-400 italic">Pedido finalizado ou recusado</span>
-              `}
-            </div>
-          </div>
-        `;
+        return '<div class="bg-white rounded-2xl p-4 shadow-sm border ' + (isAguardandoAceite ? 'border-amber-400 ring-2 ring-amber-300' : 'border-gray-200') + ' flex flex-col justify-between">' +
+          '<div>' +
+            '<div class="flex justify-between items-start mb-2">' +
+              '<div>' +
+                '<span class="text-xs font-bold text-purple-900">#' + p.id + '</span>' +
+                '<span class="text-[11px] text-gray-400 ml-1.5">' + hora + '</span>' +
+                '<h3 class="font-extrabold text-gray-900 text-base leading-tight">' + (p.cliente_nome || 'Cliente') + '</h3>' +
+              '</div>' +
+              '<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border ' + badge + '">' + p.status + '</span>' +
+            '</div>' +
+            '<p class="text-xs text-gray-600 mb-2 flex items-start gap-1">' +
+              '<i class="fa-solid fa-location-dot mt-0.5 text-gray-400"></i>' +
+              '<span>' + (p.cliente_endereco || 'Não informado') + '</span>' +
+            '</p>' +
+            '<div class="bg-gray-50 p-2.5 rounded-xl my-2 max-h-36 overflow-y-auto">' + itensHtml + '</div>' +
+            obsGeral +
+          '</div>' +
+          '<div class="pt-3 border-t mt-2">' +
+            '<div class="flex justify-between items-center mb-3">' +
+              '<span class="text-xs text-gray-500">Pagamento: <strong>' + (p.forma_pagamento || '-') + '</strong></span>' +
+              '<span class="text-base font-black text-[#411564]">R$ ' + Number(p.total || 0).toFixed(2).replace('.', ',') + '</span>' +
+            '</div>' +
+            botoesHtml +
+          '</div>' +
+        '</div>';
       }).join('');
 
       if (temPendente) tocarAlertaSonoro();
     }
 
     async function aceitarPedido(id, formaPagamento) {
-      const isPix = formaPagamento && formaPagamento.toLowerCase().indexOf('pix') !== -1;
-      const novoStatus = isPix ? 'Aguardando Pagamento Pix' : 'Em preparo';
+      var isPix = formaPagamento && formaPagamento.toLowerCase().indexOf('pix') !== -1;
+      var novoStatus = isPix ? 'Aguardando Pagamento Pix' : 'Em preparo';
 
-      const { error } = await supabase
-        .from('pedidos')
-        .update({ status: novoStatus })
-        .eq('id', id);
-
-      if (!error) {
-        carregarPedidos();
-      } else {
-        alert("Erro ao aceitar pedido: " + error.message);
+      var sb = initClient();
+      var res = await sb.from('pedidos').update({ status: novoStatus }).eq('id', id);
+      if (res.error) {
+        alert("Erro ao aceitar pedido: " + res.error.message);
+        return;
       }
+      var p = listaGlobalPedidos.find(function(x) { return x.id === id; });
+      if (p) p.status = novoStatus;
+      renderizarPedidos();
     }
 
     async function recusarPedido(id) {
-      if (!confirm("Tem certeza que deseja recusar este pedido? O cliente será avisado imediatamente.")) return;
+      if (!confirm("Tem certeza que deseja recusar este pedido? O cliente será avisado imediatamente no site.")) return;
 
-      const { error } = await supabase
-        .from('pedidos')
-        .update({ status: 'Recusado' })
-        .eq('id', id);
+      var sb = initClient();
+      var res = await sb.from('pedidos').update({ status: 'Recusado' }).eq('id', id);
+      if (res.error) {
+        alert("Erro ao recusar pedido: " + res.error.message);
+        return;
+      }
+      var p = listaGlobalPedidos.find(function(x) { return x.id === id; });
+      if (p) p.status = 'Recusado';
+      renderizarPedidos();
+    }
 
-      if (!error) {
-        carregarPedidos();
+    async function mudarStatus(id, st) {
+      var sb = initClient();
+      await sb.from('pedidos').update({ status: st }).eq('id', id);
+      var p = listaGlobalPedidos.find(function(x) { return x.id === id; });
+      if (p) p.status = st;
+      renderizarPedidos();
+    }
+
+    async function carregarStock() {
+      var sb = initClient();
+      var rCopos = await sb.from('CARDAPIO ACAIZEIRO').select('*').order('id');
+      var rComp = await sb.from('COMPLEMENTOS').select('*').order('nome');
+
+      var cCopos = document.getElementById('lista-copos-stock');
+      if (rCopos.data && rCopos.data.length > 0) {
+        cCopos.innerHTML = rCopos.data.map(function(copo) {
+          var disponivel = copo.ativo !== false;
+          var btnClasse = disponivel ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300';
+          return '<div class="py-2.5 flex items-center justify-between">' +
+            '<div>' +
+              '<p class="text-sm font-bold text-gray-800">' + copo.nome + '</p>' +
+              '<p class="text-xs text-gray-400">' + (copo.categoria || '') + ' — R$ ' + Number(copo.preco).toFixed(2).replace('.', ',') + '</p>' +
+            '</div>' +
+            '<button onclick="toggleItem(\'CARDAPIO ACAIZEIRO\', ' + copo.id + ', ' + disponivel + ')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 cursor-pointer ' + btnClasse + '">' +
+              (disponivel ? 'Disponível' : 'Esgotado') +
+            '</button>' +
+          '</div>';
+        }).join('');
       } else {
-        alert("Erro ao recusar pedido: " + error.message);
+        cCopos.innerHTML = '<p class="text-xs text-gray-400 py-2">Nenhum copo registado.</p>';
+      }
+
+      var cComp = document.getElementById('lista-complementos-stock');
+      if (rComp.data && rComp.data.length > 0) {
+        cComp.innerHTML = rComp.data.map(function(comp) {
+          var disponivel = comp.ativo !== false;
+          var btnClasse = disponivel ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300';
+          return '<div class="py-2.5 flex items-center justify-between">' +
+            '<div>' +
+              '<p class="text-sm font-bold text-gray-800">' + comp.nome + '</p>' +
+              '<p class="text-xs text-gray-400">+ R$ ' + Number(comp.preco).toFixed(2).replace('.', ',') + '</p>' +
+            '</div>' +
+            '<button onclick="toggleItem(\'COMPLEMENTOS\', \'' + comp.id + '\', ' + disponivel + ')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 cursor-pointer ' + btnClasse + '">' +
+              (disponivel ? 'Disponível' : 'Esgotado') +
+            '</button>' +
+          '</div>';
+        }).join('');
+      } else {
+        cComp.innerHTML = '<p class="text-xs text-gray-400 py-2">Nenhum complemento registado.</p>';
       }
     }
 
-    async function mudarStatus(id, novoStatus) {
-      const { error } = await supabase
-        .from('pedidos')
-        .update({ status: novoStatus })
-        .eq('id', id);
-
-      if (!error) carregarPedidos();
+    async function toggleItem(tabela, id, ativoAtual) {
+      var sb = initClient();
+      await sb.from(tabela).update({ ativo: !ativoAtual }).eq('id', id);
+      carregarStock();
     }
 
-    function iniciarMonitoramento() {
-      setInterval(carregarPedidos, 5000);
-    }
+    window.addEventListener('DOMContentLoaded', function() {
+      var campo = document.getElementById('campo-senha');
+      if (campo) {
+        campo.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            tentarEntrar();
+          }
+        });
+      }
+      verificarAutenticacao();
+    });
   </script>
 </body>
 </html>
-
-
