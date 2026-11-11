@@ -117,37 +117,57 @@
     }
 
     // Sino característico de delivery (F#6 -> A6 metálico com decaimento suave)
+    // Sino de Delivery estilo campainha: alto, metálico e encorpado
     function emitirBipeDelivery() {
       if (!somAtivo) return;
       try {
         var ctx = obterAudioContext();
         var agora = ctx.currentTime;
 
-        // 1º Toque do Sino (F#6 - 1480Hz)
-        var osc1 = ctx.createOscillator();
-        var gain1 = ctx.createGain();
-        osc1.connect(gain1);
-        gain1.connect(ctx.destination);
-        osc1.type = "sine";
-        osc1.frequency.setValueAtTime(1479.98, agora);
-        
-        gain1.gain.setValueAtTime(0.5, agora);
-        gain1.gain.exponentialRampToValueAtTime(0.001, agora + 0.35);
-        osc1.start(agora);
-        osc1.stop(agora + 0.35);
+        // Função interna para tocar cada batida do sino com harmónicos metálicos
+        function tocarSino(frequenciaBase, momento, intensidade) {
+          // 1. Harmónico fundamental (corpo do sino)
+          var osc1 = ctx.createOscillator();
+          var gain1 = ctx.createGain();
+          osc1.type = "sine";
+          osc1.frequency.setValueAtTime(frequenciaBase, momento);
+          gain1.gain.setValueAtTime(intensidade, momento);
+          gain1.gain.exponentialRampToValueAtTime(0.001, momento + 0.65);
+          osc1.connect(gain1);
+          gain1.connect(ctx.destination);
+          osc1.start(momento);
+          osc1.stop(momento + 0.65);
 
-        // 2º Toque do Sino (A6 - 1760Hz)
-        var osc2 = ctx.createOscillator();
-        var gain2 = ctx.createGain();
-        osc2.connect(gain2);
-        gain2.connect(ctx.destination);
-        osc2.type = "sine";
-        osc2.frequency.setValueAtTime(1760.00, agora + 0.18);
-        
-        gain2.gain.setValueAtTime(0.6, agora + 0.18);
-        gain2.gain.exponentialRampToValueAtTime(0.001, agora + 0.75);
-        osc2.start(agora + 0.18);
-        osc2.stop(agora + 0.75);
+          // 2. Harmónico agudo (o brilho metálico que dá a sensação de sino)
+          var osc2 = ctx.createOscillator();
+          var gain2 = ctx.createGain();
+          osc2.type = "triangle"; // Onda cortante para dar volume e nitidez
+          osc2.frequency.setValueAtTime(frequenciaBase * 2.1, momento);
+          gain2.gain.setValueAtTime(intensidade * 0.45, momento);
+          gain2.gain.exponentialRampToValueAtTime(0.001, momento + 0.35);
+          osc2.connect(gain2);
+          gain2.connect(ctx.destination);
+          osc2.start(momento);
+          osc2.stop(momento + 0.35);
+
+          // 3. Batida de impacto (o 'plim' inicial da campainha)
+          var oscImpacto = ctx.createOscillator();
+          var gainImpacto = ctx.createGain();
+          oscImpacto.type = "sine";
+          oscImpacto.frequency.setValueAtTime(frequenciaBase * 3.8, momento);
+          gainImpacto.gain.setValueAtTime(intensidade * 0.3, momento);
+          gainImpacto.gain.exponentialRampToValueAtTime(0.001, momento + 0.12);
+          oscImpacto.connect(gainImpacto);
+          gainImpacto.connect(ctx.destination);
+          oscImpacto.start(momento);
+          oscImpacto.stop(momento + 0.12);
+        }
+
+        // 1ª Batida do Sino (Tom mais grave - 1046 Hz / C6) - Volume Alto (1.0)
+        tocarSino(1046.50, agora, 1.0);
+
+        // 2ª Batida do Sino (Tom mais agudo - 1567 Hz / G6) logo a seguir
+        tocarSino(1567.98, agora + 0.18, 1.0);
 
       } catch (e) {
         console.warn("Áudio:", e);
