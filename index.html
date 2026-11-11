@@ -257,12 +257,6 @@
     var categorias = ["Todos"];
     var categoriaAtiva = "Todos";
 
-    // Normalização limpa: preserva o nome digitado no admin e remove apenas espaços invisíveis
-    function normalizarCategoria(cat) {
-      if (!cat) return "Geral";
-      return String(cat).trim();
-    }
-
     var complementosDisponiveis = [
       { id: "c1", nome: "Morango", preco: 5.00 },
       { id: "c2", nome: "Banana", preco: 2.00 },
@@ -279,7 +273,6 @@
     ];
 
     var produtos = [];
-
     var carrinho = [];
     var produtoEmEdicao = null;
     var textoPedidoWhatsApp = "";
@@ -288,9 +281,9 @@
       var container = document.getElementById('lista-categorias');
       if (!container) return;
       container.innerHTML = categorias.map(function(cat) {
-        var ativo = categoriaAtiva === cat;
+        var ativo = categoriaAtiva.trim().toLowerCase() === cat.trim().toLowerCase();
         var classeCor = ativo ? 'bg-[#411564] text-white shadow-sm' : 'bg-white text-gray-600 border border-purple-100 hover:bg-purple-50';
-        return '<button onclick="selecionarCategoria(\'' + cat + '\')" class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ' + classeCor + '">' + cat + '</button>';
+        return '<button onclick="selecionarCategoria(\'' + cat.replace(/'/g, "\\'") + '\')" class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ' + classeCor + '">' + cat + '</button>';
       }).join('');
     }
 
@@ -306,8 +299,8 @@
 
       var filtrados = produtos.filter(function(p) {
         if (p.ativo === false) return false;
-        if (categoriaAtiva === "Todos") return true;
-        return normalizarCategoria(p.categoria) === categoriaAtiva;
+        if (categoriaAtiva.trim().toLowerCase() === "todos") return true;
+        return (p.categoria || "").trim().toLowerCase() === categoriaAtiva.trim().toLowerCase();
       });
 
       if (filtrados.length === 0) {
@@ -628,7 +621,7 @@
       document.getElementById("modalAguardandoAceite").style.display = "none";
     }
 
-    // Carregamento inicial do Cardápio via Supabase
+    // Carregamento dinâmico via Supabase
     setTimeout(function() {
       var s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
@@ -647,6 +640,7 @@
             var resComp = respostas[1];
 
             if (resCopos.data && resCopos.data.length > 0) {
+              // 1. Carrega todos os produtos limpando espaços em branco
               produtos = resCopos.data.map(function(item) {
                 var catLimpa = (item.categoria || "Geral").trim();
                 return {
@@ -661,15 +655,21 @@
                 };
               });
 
-              // Extrai categorias únicas sem duplicações e sem espaços extras
-              var categoriasUnicas = [];
+              // 2. Agrupa categorias sem duplicar por maiúsculas/minúsculas
+              var categoriasMapa = {};
               produtos.forEach(function(p) {
-                if (p.categoria && p.categoria !== "Todos" && !categoriasUnicas.includes(p.categoria)) {
-                  categoriasUnicas.push(p.categoria);
+                var chave = (p.categoria || "").trim().toLowerCase();
+                if (chave && chave !== "todos") {
+                  if (!categoriasMapa[chave]) {
+                    categoriasMapa[chave] = p.categoria;
+                  }
+                  // Força o produto a adotar o padrão unificado da aba
+                  p.categoria = categoriasMapa[chave];
                 }
               });
 
-              categorias = ["Todos"].concat(categoriasUnicas);
+              // Monta a lista oficial única das abas
+              categorias = ["Todos"].concat(Object.values(categoriasMapa));
 
               renderizarCategorias();
               carregarProdutos();
