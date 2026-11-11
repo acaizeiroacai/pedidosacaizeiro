@@ -701,8 +701,17 @@
               });
 
               // Extrai as categorias únicas dinamicamente do banco de dados
-              var catsDoBanco = Array.from(new Set(produtos.map(function(p) { return p.categoria; })));
-              categorias = ["Todos"].concat(catsDoBanco);
+              // Remove espaços extras e elimina categorias duplicadas
+              var categoriasUnicas = [];
+              produtos.forEach(function(p) {
+                var catLimpa = (p.categoria || "Geral").trim();
+                p.categoria = catLimpa;
+                if (catLimpa && catLimpa !== "Todos" && !categoriasUnicas.includes(catLimpa)) {
+                  categoriasUnicas.push(catLimpa);
+                }
+              });
+
+              categorias = ["Todos"].concat(categoriasUnicas);
 
               renderizarCategorias();
               carregarProdutos();
