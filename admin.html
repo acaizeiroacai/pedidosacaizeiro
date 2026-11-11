@@ -122,31 +122,36 @@
         var ctx = obterAudioContext();
         var agora = ctx.currentTime;
 
-        // Bipe 1 (Nota A5)
+        // 1º Toque do Sino (F#6 - 1480Hz)
         var osc1 = ctx.createOscillator();
         var gain1 = ctx.createGain();
         osc1.connect(gain1);
         gain1.connect(ctx.destination);
         osc1.type = "sine";
-        osc1.frequency.setValueAtTime(880, agora);
-        gain1.gain.setValueAtTime(0.4, agora);
-        gain1.gain.exponentialRampToValueAtTime(0.01, agora + 0.22);
+        osc1.frequency.setValueAtTime(1479.98, agora);
+        
+        gain1.gain.setValueAtTime(0.5, agora);
+        gain1.gain.exponentialRampToValueAtTime(0.001, agora + 0.35); // Ressonância metálica
+        
         osc1.start(agora);
-        osc1.stop(agora + 0.22);
+        osc1.stop(agora + 0.35);
 
-        // Bipe 2 (Nota D6 - agudo iFood)
+        // 2º Toque do Sino (A6 - 1760Hz, mais agudo)
         var osc2 = ctx.createOscillator();
         var gain2 = ctx.createGain();
         osc2.connect(gain2);
         gain2.connect(ctx.destination);
         osc2.type = "sine";
-        osc2.frequency.setValueAtTime(1174.66, agora + 0.26);
-        gain2.gain.setValueAtTime(0.4, agora + 0.26);
-        gain2.gain.exponentialRampToValueAtTime(0.01, agora + 0.60);
-        osc2.start(agora + 0.26);
-        osc2.stop(agora + 0.60);
+        osc2.frequency.setValueAtTime(1760.00, agora + 0.18);
+        
+        gain2.gain.setValueAtTime(0.6, agora + 0.18);
+        gain2.gain.exponentialRampToValueAtTime(0.001, agora + 0.75); // Sustentação mais longa
+        
+        osc2.start(agora + 0.18);
+        osc2.stop(agora + 0.75);
+
       } catch (e) {
-        console.warn("Áudio aguardando interação:", e);
+        console.warn("Áudio:", e);
       }
     }
 
