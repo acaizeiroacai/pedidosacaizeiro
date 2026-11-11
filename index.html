@@ -185,8 +185,6 @@
   <!-- Modal Pix com QR Code e Copia e Cola -->
   <div id="modalPix" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
     <div style="position: relative; background: #ffffff; color: #1e1e1e; max-width: 420px; width: 100%; border-radius: 16px; padding: 24px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); font-family: sans-serif;">
-
-      <!-- Botão de Fechar / Cancelar (X) -->
       <button onclick="cancelarModalPix()" style="position: absolute; top: 12px; right: 16px; background: transparent; border: none; font-size: 26px; font-weight: bold; color: #888; cursor: pointer; line-height: 1;" title="Cancelar">&times;</button>
       
       <div id="pixCarregando" style="padding: 20px 0;">
@@ -256,30 +254,13 @@
       taxaEntrega: 1.00
     };
 
-    var categorias = [
-      "Todos", 
-      "Copos Açaí Puro", 
-      "Copos Moranguete", 
-      "Copos Açaí Tradicional", 
-      "Copos Kids", 
-      "Copos Ninho c/ Creme de Avelã",
-      "Marmitas",
-      "Bebidas"
-    ];
+    var categorias = ["Todos"];
     var categoriaAtiva = "Todos";
 
+    // Normalização limpa: preserva o nome digitado no admin e remove apenas espaços invisíveis
     function normalizarCategoria(cat) {
-      if (!cat) return "Copos Açaí Tradicional";
-      var c = cat.trim().toLowerCase();
-      if (c.indexOf("puro") !== -1) return "Copos Açaí Puro";
-      if (c.indexOf("moranguete") !== -1) return "Copos Moranguete";
-      if (c.indexOf("traciona") !== -1 || c.indexOf("tradicional") !== -1) return "Copos Açaí Tradicional";
-      if (c.indexOf("kids") !== -1) return "Copos Kids";
-      if (c.indexOf("ninho") !== -1 || c.indexOf("avel") !== -1) return "Copos Ninho c/ Creme de Avelã";
-      if (c.indexOf("marmita") !== -1) return "Marmitas";
-      if (c.indexOf("bebida") !== -1 || c.indexOf("refrigerante") !== -1 || c.indexOf("suco") !== -1 || c.indexOf("agua") !== -1) return "Bebidas";
-      if (c.indexOf("complement") !== -1 || c.indexOf("extra") !== -1 || c.indexOf("adicional") !== -1) return "Complementos";
-      return cat;
+      if (!cat) return "Geral";
+      return String(cat).trim();
     }
 
     var complementosDisponiveis = [
@@ -297,18 +278,7 @@
       { id: "c12", nome: "Creme de Maracujá", preco: 3.00 }
     ];
 
-    var produtos = [
-      { id: 1, categoria: "Copos Açaí Puro", nome: "Copo Açaí Puro P - Monte o Seu", desc: "Açaí Puro 300ml - Servido com açaí puro. Adicione seus complementos favoritos.", preco: 18.40, imagem: "PURO.png", permiteComplementos: true, ativo: true },
-      { id: 2, categoria: "Copos Açaí Puro", nome: "Copo Açaí Puro M - Monte o Seu", desc: "Açaí Puro 500ml - Servido com açaí puro. Adicione seus complementos favoritos.", preco: 27.99, imagem: "PURO.png", permiteComplementos: true, ativo: true },
-      { id: 3, categoria: "Copos Moranguete", nome: "Copo Moranguete P", desc: "Copo 300ml - Servido com açaí, creme de morango e chocolate moranguete.", preco: 22.60, imagem: "MORANGUETE.png", permiteComplementos: true, ativo: true },
-      { id: 4, categoria: "Copos Moranguete", nome: "Copo Moranguete M", desc: "Copo 500ml - Servido com açaí, creme de morango e chocolate moranguete.", preco: 28.30, imagem: "MORANGUETE.png", permiteComplementos: true, ativo: true },
-      { id: 5, categoria: "Copos Açaí Tradicional", nome: "Copo Açaí Tradicional P", desc: "Copo 300ml - Servido com açaí, leite condensado e leite em pó.", preco: 19.80, imagem: "TRADICIONAL.png", permiteComplementos: true, ativo: true },
-      { id: 6, categoria: "Copos Açaí Tradicional", nome: "Copo Açaí Tradicional M", desc: "Copo 500ml - Servido com açaí, leite condensado e leite em pó.", preco: 25.70, imagem: "TRADICIONAL.png", permiteComplementos: true, ativo: true },
-      { id: 7, categoria: "Copos Kids", nome: "Copo Kids P", desc: "Copo 300ml - Servido com açaí, leite condensado, leite em pó e Confete.", preco: 24.50, imagem: "KIDS.png", permiteComplementos: true, ativo: true },
-      { id: 8, categoria: "Copos Kids", nome: "Copo Kids G", desc: "Copo 500ml - Servido com açaí, leite condensado, leite em pó e Confete.", preco: 34.50, imagem: "KIDS.png", permiteComplementos: true, ativo: true },
-      { id: 9, categoria: "Copos Ninho c/ Creme de Avelã", nome: "Copo Ninho Com Creme de Avelã P", desc: "Copo 300ml - Servido com açaí, creme de avelã e creme de Ninho.", preco: 29.50, imagem: "NINHO AVELA.png", permiteComplementos: true, ativo: true },
-      { id: 10, categoria: "Copos Ninho c/ Creme de Avelã", nome: "Copo Ninho com Creme de Avelã M", desc: "Copo 500ml - Servido com açaí, creme de avelã e creme de Ninho.", preco: 39.15, imagem: "NINHO AVELA.png", permiteComplementos: true, ativo: true }
-    ];
+    var produtos = [];
 
     var carrinho = [];
     var produtoEmEdicao = null;
@@ -389,7 +359,6 @@
       document.getElementById('modal-prod-desc').innerText = prod.desc;
       document.getElementById('modal-prod-obs').value = "";
       
-      // Inicia a sanfona recolhida
       document.getElementById('container-sanfona-complementos').classList.add('hidden');
       document.getElementById('icone-seta-comp').style.transform = 'rotate(0deg)';
       var badge = document.getElementById('badge-complementos-qtd');
@@ -550,7 +519,6 @@
         };
       });
 
-      // Monta a mensagem para o WhatsApp antes de salvar
       var texto = '*🍇 NOVO PEDIDO - AÇAIZEIRO*\n\n';
       texto += '*Cliente:* ' + nome + '\n';
       texto += '*Endereço:* ' + endereco + '\n';
@@ -599,11 +567,9 @@
           if (resPedido.data) {
             fecharModalCheckout();
             if (isPix) {
-              // Abre a tela de espera pelo aceite da loja antes de gerar o Pix
               iniciarEsperaAceiteLoja(resPedido.data, totais.total, nome);
               return;
             } else {
-              // Dinheiro / Cartão segue direto para o WhatsApp
               var linkWhatsapp = 'https://wa.me/' + config.whatsapp + '?text=' + encodeURIComponent(texto);
               window.open(linkWhatsapp, '_blank');
               return;
@@ -614,7 +580,6 @@
         console.warn("Aviso ao salvar pedido:", errBanco);
       }
 
-      // Fallback caso ocorra falha de conexão com o banco
       var linkWhatsapp = 'https://wa.me/' + config.whatsapp + '?text=' + encodeURIComponent(texto);
       window.open(linkWhatsapp, '_blank');
     }
@@ -638,14 +603,12 @@
           if (dados && dados.length > 0) {
             const status = dados[0].status;
 
-            // LOJA ACEITOU! Agora sim gera o Pix
             if (status === "Aguardando Pagamento Pix") {
               clearInterval(window.intervaloAceite);
               modalEspera.style.display = "none";
               processarPagamentoPix(pedidoCriado, valorTotal, nomeCliente, '');
             }
 
-            // LOJA RECUSOU
             if (status === "Recusado") {
               clearInterval(window.intervaloAceite);
               modalEspera.style.display = "none";
@@ -665,10 +628,8 @@
       document.getElementById("modalAguardandoAceite").style.display = "none";
     }
 
-    renderizarCategorias();
-    carregarProdutos();
-
-     setTimeout(function() {
+    // Carregamento inicial do Cardápio via Supabase
+    setTimeout(function() {
       var s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
       s.onload = function() {
@@ -686,28 +647,25 @@
             var resComp = respostas[1];
 
             if (resCopos.data && resCopos.data.length > 0) {
-              // Substitui os itens estáticos pelos itens reais cadastrados pelo lojista
               produtos = resCopos.data.map(function(item) {
+                var catLimpa = (item.categoria || "Geral").trim();
                 return {
                   id: item.id,
-                  categoria: item.categoria || "Geral",
+                  categoria: catLimpa,
                   nome: item.nome,
                   desc: item.descricao || "",
                   preco: parseFloat(item.preco) || 0,
                   imagem: item.imagem_url || "PURO.png",
-                  permiteComplementos: (item.categoria || "").toLowerCase() !== "complementos",
+                  permiteComplementos: catLimpa.toLowerCase() !== "complementos",
                   ativo: item.ativo !== false
                 };
               });
 
-              // Extrai as categorias únicas dinamicamente do banco de dados
-              // Remove espaços extras e elimina categorias duplicadas
+              // Extrai categorias únicas sem duplicações e sem espaços extras
               var categoriasUnicas = [];
               produtos.forEach(function(p) {
-                var catLimpa = (p.categoria || "Geral").trim();
-                p.categoria = catLimpa;
-                if (catLimpa && catLimpa !== "Todos" && !categoriasUnicas.includes(catLimpa)) {
-                  categoriasUnicas.push(catLimpa);
+                if (p.categoria && p.categoria !== "Todos" && !categoriasUnicas.includes(p.categoria)) {
+                  categoriasUnicas.push(p.categoria);
                 }
               });
 
@@ -730,7 +688,7 @@
         }
       };
       document.head.appendChild(s);
-    }, 800);
+    }, 200);
 
     async function processarPagamentoPix(pedidoCriado, valorTotal, nomeCliente, emailCliente) {
       const modal = document.getElementById("modalPix");
@@ -801,14 +759,10 @@
           if (dados && dados.length > 0 && dados[0].status === "Em preparo") {
             clearInterval(window.intervaloPix);
 
-            // 1. Fecha o modal do Pix imediatamente
             document.getElementById("modalPix").style.display = "none";
-
-            // 2. Limpa o carrinho local
             carrinho = [];
             atualizarBarra();
 
-            // 3. Redireciona na mesma aba direto para o WhatsApp
             if (textoPedidoWhatsApp) {
               var link = "https://wa.me/" + config.whatsapp + "?text=" + encodeURIComponent(textoPedidoWhatsApp + "\n\n*Status:* PAGO VIA PIX (Aprovado)");
               window.location.href = link;
@@ -853,5 +807,3 @@
   </script>
 </body>
 </html>
-
- 
