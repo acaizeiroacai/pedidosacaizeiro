@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Açaizeiro - Gestão Operacional</title>
+  <title>Açaizeiro - Gestão Comercial</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -22,7 +22,7 @@
       </div>
       <div>
         <h2 class="fonte-bryndan text-2xl font-bold text-[#411564]">AÇAIZEIRO</h2>
-        <p class="text-xs text-gray-500 font-medium mt-0.5">Acesso Restrito da Gerência</p>
+        <p class="text-xs text-gray-500 font-medium mt-0.5">Painel do Parceiro / Gerência</p>
       </div>
 
       <div class="space-y-3">
@@ -46,7 +46,7 @@
           </div>
           <div>
             <h1 class="fonte-bryndan text-xl font-bold tracking-wide">AÇAIZEIRO - GESTÃO</h1>
-            <p class="text-[11px] text-purple-200">Painel Operacional e Estoque</p>
+            <p class="text-[11px] text-purple-200">Painel Operacional & Cardápio</p>
           </div>
         </div>
         <!-- Alternador de Abas, Som e Logout -->
@@ -55,7 +55,7 @@
             <i id="icone-som" class="fa-solid fa-volume-high"></i>
           </button>
           <button onclick="mudarAba('pedidos')" id="tab-btn-pedidos" class="bg-purple-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">Pedidos</button>
-          <button onclick="mudarAba('stock')" id="tab-btn-stock" class="bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">Estoque</button>
+          <button onclick="mudarAba('stock')" id="tab-btn-stock" class="bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">Cardápio & Estoque</button>
           <button onclick="carregarPedidos()" class="bg-purple-800 hover:bg-purple-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer" title="Atualizar dados"><i class="fa-solid fa-rotate-right"></i></button>
           <button onclick="sairPainel()" class="bg-red-800 hover:bg-red-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer" title="Sair do painel"><i class="fa-solid fa-right-from-bracket"></i></button>
         </div>
@@ -74,30 +74,114 @@
         <button onclick="filtrarStatus('Recusado')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Recusado">Recusados</button>
       </div>
       <div id="lista-pedidos-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="col-span-full text-center py-12 text-gray-400 text-sm">Carregando pedidos...</div>
+        <div class="col-span-full text-center py-12 text-gray-400 text-sm">A carregar pedidos...</div>
       </div>
     </section>
 
-    <!-- ABA 2: ESTOQUE -->
-    <section id="aba-stock" class="max-w-5xl mx-auto p-4 hidden">
-      <div class="bg-white p-5 rounded-2xl shadow-sm mb-6 border border-gray-200">
-        <h2 class="text-base font-extrabold text-[#411564] mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-mug-hot"></i> Copos do Cardápio
-        </h2>
-        <div id="lista-copos-stock" class="divide-y divide-gray-100">
-          <p class="text-xs text-gray-400 py-4 text-center">Carregando copos...</p>
-        </div>
-      </div>
-
+    <!-- ABA 2: CARDÁPIO & ESTOQUE -->
+    <section id="aba-stock" class="max-w-5xl mx-auto p-4 hidden space-y-6">
+      
+      <!-- Cartão: Gestão de Copos/Produtos -->
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
-        <h2 class="text-base font-extrabold text-[#411564] mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-bowl-food"></i> Frutas e Complementos
-        </h2>
-        <div id="lista-complementos-stock" class="divide-y divide-gray-100">
-          <p class="text-xs text-gray-400 py-4 text-center">Carregando complementos...</p>
+        <div class="flex items-center justify-between pb-4 border-b border-gray-100 flex-wrap gap-2">
+          <div>
+            <h2 class="text-base font-extrabold text-[#411564] flex items-center gap-2">
+              <i class="fa-solid fa-mug-hot"></i> Copos & Produtos do Cardápio
+            </h2>
+            <p class="text-xs text-gray-500">Adicione novos itens, ajuste preços ou pause itens esgotados.</p>
+          </div>
+          <button onclick="abrirModalProduto()" class="bg-[#411564] hover:bg-purple-900 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-sm transition active:scale-95 cursor-pointer">
+            <i class="fa-solid fa-plus"></i> Novo Produto
+          </button>
+        </div>
+        <div id="lista-copos-stock" class="divide-y divide-gray-100 mt-2">
+          <p class="text-xs text-gray-400 py-4 text-center">A carregar produtos...</p>
+        </div>
+      </div>
+
+      <!-- Cartão: Gestão de Complementos/Adicionais -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+        <div class="flex items-center justify-between pb-4 border-b border-gray-100 flex-wrap gap-2">
+          <div>
+            <h2 class="text-base font-extrabold text-[#411564] flex items-center gap-2">
+              <i class="fa-solid fa-bowl-food"></i> Frutas & Complementos
+            </h2>
+            <p class="text-xs text-gray-500">Adicionais que o cliente pode escolher ao montar o copo.</p>
+          </div>
+          <button onclick="abrirModalComplemento()" class="bg-purple-800 hover:bg-purple-900 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-sm transition active:scale-95 cursor-pointer">
+            <i class="fa-solid fa-plus"></i> Novo Complemento
+          </button>
+        </div>
+        <div id="lista-complementos-stock" class="divide-y divide-gray-100 mt-2">
+          <p class="text-xs text-gray-400 py-4 text-center">A carregar complementos...</p>
         </div>
       </div>
     </section>
+  </div>
+
+  <!-- MODAL: Criar / Editar Produto -->
+  <div id="modal-form-produto" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-md rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 id="titulo-modal-produto" class="font-extrabold text-[#411564] text-base">Novo Produto</h3>
+        <button onclick="fecharModalProduto()" class="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none cursor-pointer">&times;</button>
+      </div>
+      <form id="form-cad-produto" onsubmit="salvarProduto(event)" class="space-y-3">
+        <input type="hidden" id="prod-edit-id">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Nome do Item *</label>
+          <input type="text" id="prod-nome" required placeholder="Ex: Copo Açaí Trufado 400ml" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Categoria *</label>
+            <input type="text" id="prod-categoria" required placeholder="Ex: Copos Especiais" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Preço (R$) *</label>
+            <input type="number" step="0.01" id="prod-preco" required placeholder="Ex: 24.50" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Descrição</label>
+          <textarea id="prod-desc" rows="2" placeholder="Ex: Servido com creme de avelã e morangos frescos..." class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Fotografia do Produto</label>
+          <input type="file" id="prod-arquivo-foto" accept="image/*" class="w-full text-xs text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer">
+          <input type="text" id="prod-foto-url" placeholder="Ou insira a URL da imagem..." class="w-full border border-gray-200 rounded-xl p-2 text-[11px] outline-purple-600 mt-1.5 text-gray-500">
+        </div>
+        <div class="pt-2 flex gap-2">
+          <button type="button" onclick="fecharModalProduto()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl text-xs transition cursor-pointer">Cancelar</button>
+          <button type="submit" id="btn-salvar-produto" class="flex-1 bg-[#411564] hover:bg-purple-900 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md cursor-pointer">Guardar Item</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Criar / Editar Complemento -->
+  <div id="modal-form-complemento" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 id="titulo-modal-complemento" class="font-extrabold text-[#411564] text-base">Novo Complemento</h3>
+        <button onclick="fecharModalComplemento()" class="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none cursor-pointer">&times;</button>
+      </div>
+      <form id="form-cad-comp" onsubmit="salvarComplemento(event)" class="space-y-3">
+        <input type="hidden" id="comp-edit-id">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Nome do Adicional *</label>
+          <input type="text" id="comp-nome" required placeholder="Ex: Nutella Pura" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Preço Adicional (R$) *</label>
+          <input type="number" step="0.01" id="comp-preco" required placeholder="Ex: 4.00" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
+        </div>
+        <div class="pt-2 flex gap-2">
+          <button type="button" onclick="fecharModalComplemento()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl text-xs transition cursor-pointer">Cancelar</button>
+          <button type="submit" id="btn-salvar-comp" class="flex-1 bg-[#411564] hover:bg-purple-900 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md cursor-pointer">Guardar</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script>
@@ -116,21 +200,18 @@
       return audioCtx;
     }
 
-    // Sino característico de delivery (F#6 -> A6 metálico com decaimento suave)
-    // Sino de Delivery estilo campainha: alto, metálico e encorpado
+    // Sino de Delivery estilo campainha: harmónicos combinados com decaimento metálico
     function emitirBipeDelivery() {
       if (!somAtivo) return;
       try {
         var ctx = obterAudioContext();
         var agora = ctx.currentTime;
 
-        // Função interna para tocar cada batida do sino com harmónicos metálicos
-        function tocarSino(frequenciaBase, momento, intensidade) {
-          // 1. Harmónico fundamental (corpo do sino)
+        function tocarSino(freqBase, momento, intensidade) {
           var osc1 = ctx.createOscillator();
           var gain1 = ctx.createGain();
           osc1.type = "sine";
-          osc1.frequency.setValueAtTime(frequenciaBase, momento);
+          osc1.frequency.setValueAtTime(freqBase, momento);
           gain1.gain.setValueAtTime(intensidade, momento);
           gain1.gain.exponentialRampToValueAtTime(0.001, momento + 0.65);
           osc1.connect(gain1);
@@ -138,37 +219,20 @@
           osc1.start(momento);
           osc1.stop(momento + 0.65);
 
-          // 2. Harmónico agudo (o brilho metálico que dá a sensação de sino)
           var osc2 = ctx.createOscillator();
           var gain2 = ctx.createGain();
-          osc2.type = "triangle"; // Onda cortante para dar volume e nitidez
-          osc2.frequency.setValueAtTime(frequenciaBase * 2.1, momento);
+          osc2.type = "triangle";
+          osc2.frequency.setValueAtTime(freqBase * 2.1, momento);
           gain2.gain.setValueAtTime(intensidade * 0.45, momento);
           gain2.gain.exponentialRampToValueAtTime(0.001, momento + 0.35);
           osc2.connect(gain2);
           gain2.connect(ctx.destination);
           osc2.start(momento);
           osc2.stop(momento + 0.35);
-
-          // 3. Batida de impacto (o 'plim' inicial da campainha)
-          var oscImpacto = ctx.createOscillator();
-          var gainImpacto = ctx.createGain();
-          oscImpacto.type = "sine";
-          oscImpacto.frequency.setValueAtTime(frequenciaBase * 3.8, momento);
-          gainImpacto.gain.setValueAtTime(intensidade * 0.3, momento);
-          gainImpacto.gain.exponentialRampToValueAtTime(0.001, momento + 0.12);
-          oscImpacto.connect(gainImpacto);
-          gainImpacto.connect(ctx.destination);
-          oscImpacto.start(momento);
-          oscImpacto.stop(momento + 0.12);
         }
 
-        // 1ª Batida do Sino (Tom mais grave - 1046 Hz / C6) - Volume Alto (1.0)
         tocarSino(1046.50, agora, 1.0);
-
-        // 2ª Batida do Sino (Tom mais agudo - 1567 Hz / G6) logo a seguir
         tocarSino(1567.98, agora + 0.18, 1.0);
-
       } catch (e) {
         console.warn("Áudio:", e);
       }
@@ -199,7 +263,7 @@
       if (!somAtivo) {
         pararAlarmeSonoro();
       } else {
-        emitirBipeDelivery(); // Feedback sonoro de ativação
+        emitirBipeDelivery();
       }
     }
 
@@ -248,6 +312,8 @@
     var client = null;
 
     var listaGlobalPedidos = [];
+    var listaGlobalProdutos = [];
+    var listaGlobalComplementos = [];
     var statusSelecionado = 'Todos';
 
     function initClient() {
@@ -278,7 +344,7 @@
       try {
         var res = await sb.from('pedidos').select('*').order('id', { ascending: false }).limit(50);
         if (res.error) {
-          console.error("Erro ao procurar pedidos:", res.error);
+          console.error("Erro ao carregar pedidos:", res.error);
           document.getElementById('lista-pedidos-admin').innerHTML = '<div class="col-span-full text-center py-8 text-red-500 text-sm">Erro ao carregar: ' + res.error.message + '</div>';
           return;
         }
@@ -341,7 +407,6 @@
 
         var obsGeral = p.observacoes ? '<p class="text-xs text-red-600 bg-red-50 p-2 rounded-lg font-medium mb-2">Obs: ' + p.observacoes + '</p>' : '';
 
-        // Botões de Ação
         var botoesHtml = '';
         if (isAguardandoAceite) {
           botoesHtml = 
@@ -438,33 +503,49 @@
       renderizarPedidos();
     }
 
+    // ==========================================
+    // GESTÃO DE CARDÁPIO E ESTOQUE (PRODUTOS & COMPLEMENTOS)
+    // ==========================================
+
     async function carregarStock() {
       var sb = initClient();
       var rCopos = await sb.from('CARDAPIO ACAIZEIRO').select('*').order('id');
       var rComp = await sb.from('COMPLEMENTOS').select('*').order('nome');
 
+      listaGlobalProdutos = rCopos.data || [];
+      listaGlobalComplementos = rComp.data || [];
+
       var cCopos = document.getElementById('lista-copos-stock');
-      if (rCopos.data && rCopos.data.length > 0) {
-        cCopos.innerHTML = rCopos.data.map(function(copo) {
+      if (listaGlobalProdutos.length > 0) {
+        cCopos.innerHTML = listaGlobalProdutos.map(function(copo) {
           var disponivel = copo.ativo !== false;
           var btnClasse = disponivel ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300';
-          return '<div class="py-2.5 flex items-center justify-between">' +
-            '<div>' +
-              '<p class="text-sm font-bold text-gray-800">' + copo.nome + '</p>' +
-              '<p class="text-xs text-gray-400">' + (copo.categoria || '') + ' — R$ ' + Number(copo.preco).toFixed(2).replace('.', ',') + '</p>' +
+          var imgFoto = copo.imagem_url ? '<img src="' + copo.imagem_url + '" class="w-10 h-10 object-cover rounded-lg flex-shrink-0 bg-purple-50" onerror="this.src=\'PURO.png\'">' : '<div class="w-10 h-10 bg-purple-100 text-[#411564] font-bold text-xs flex items-center justify-center rounded-lg flex-shrink-0">IMG</div>';
+
+          return '<div class="py-3 flex items-center justify-between gap-3">' +
+            '<div class="flex items-center gap-3 min-w-0 flex-1">' +
+              imgFoto +
+              '<div class="min-w-0">' +
+                '<p class="text-sm font-bold text-gray-800 truncate">' + copo.nome + '</p>' +
+                '<p class="text-xs text-gray-400">' + (copo.categoria || '') + ' — <span class="text-purple-900 font-extrabold">R$ ' + Number(copo.preco).toFixed(2).replace('.', ',') + '</span></p>' +
+              '</div>' +
             '</div>' +
-            '<button onclick="toggleItem(\'CARDAPIO ACAIZEIRO\', ' + copo.id + ', ' + disponivel + ')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 cursor-pointer ' + btnClasse + '">' +
-              (disponivel ? 'Disponível' : 'Esgotado') +
-            '</button>' +
+            '<div class="flex items-center gap-2">' +
+              '<button onclick="toggleItem(\'CARDAPIO ACAIZEIRO\', ' + copo.id + ', ' + disponivel + ')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 cursor-pointer ' + btnClasse + '">' +
+                (disponivel ? 'Disponível' : 'Esgotado') +
+              '</button>' +
+              '<button onclick="editarProduto(' + copo.id + ')" class="p-1.5 text-gray-500 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition" title="Editar item"><i class="fa-solid fa-pen-to-square"></i></button>' +
+              '<button onclick="excluirItem(\'CARDAPIO ACAIZEIRO\', ' + copo.id + ')" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Excluir"><i class="fa-solid fa-trash"></i></button>' +
+            '</div>' +
           '</div>';
         }).join('');
       } else {
-        cCopos.innerHTML = '<p class="text-xs text-gray-400 py-2">Nenhum copo registado.</p>';
+        cCopos.innerHTML = '<p class="text-xs text-gray-400 py-4 text-center">Nenhum produto cadastrado no momento.</p>';
       }
 
       var cComp = document.getElementById('lista-complementos-stock');
-      if (rComp.data && rComp.data.length > 0) {
-        cComp.innerHTML = rComp.data.map(function(comp) {
+      if (listaGlobalComplementos.length > 0) {
+        cComp.innerHTML = listaGlobalComplementos.map(function(comp) {
           var disponivel = comp.ativo !== false;
           var btnClasse = disponivel ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300';
           return '<div class="py-2.5 flex items-center justify-between">' +
@@ -472,13 +553,17 @@
               '<p class="text-sm font-bold text-gray-800">' + comp.nome + '</p>' +
               '<p class="text-xs text-gray-400">+ R$ ' + Number(comp.preco).toFixed(2).replace('.', ',') + '</p>' +
             '</div>' +
-            '<button onclick="toggleItem(\'COMPLEMENTOS\', \'' + comp.id + '\', ' + disponivel + ')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 cursor-pointer ' + btnClasse + '">' +
-              (disponivel ? 'Disponível' : 'Esgotado') +
-            '</button>' +
+            '<div class="flex items-center gap-2">' +
+              '<button onclick="toggleItem(\'COMPLEMENTOS\', \'' + comp.id + '\', ' + disponivel + ')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 cursor-pointer ' + btnClasse + '">' +
+                (disponivel ? 'Disponível' : 'Esgotado') +
+              '</button>' +
+              '<button onclick="editarComplemento(\'' + comp.id + '\')" class="p-1.5 text-gray-500 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>' +
+              '<button onclick="excluirItem(\'COMPLEMENTOS\', \'' + comp.id + '\')" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Excluir"><i class="fa-solid fa-trash"></i></button>' +
+            '</div>' +
           '</div>';
         }).join('');
       } else {
-        cComp.innerHTML = '<p class="text-xs text-gray-400 py-2">Nenhum complemento registado.</p>';
+        cComp.innerHTML = '<p class="text-xs text-gray-400 py-4 text-center">Nenhum complemento cadastrado.</p>';
       }
     }
 
@@ -486,6 +571,148 @@
       var sb = initClient();
       await sb.from(tabela).update({ ativo: !ativoAtual }).eq('id', id);
       carregarStock();
+    }
+
+    async function excluirItem(tabela, id) {
+      if (!confirm("Tem certeza que deseja apagar este item do cardápio?")) return;
+      var sb = initClient();
+      var res = await sb.from(tabela).delete().eq('id', id);
+      if (res.error) {
+        alert("Erro ao excluir: " + res.error.message);
+      } else {
+        carregarStock();
+      }
+    }
+
+    // Modais e Upload de Fotos
+    function abrirModalProduto() {
+      document.getElementById('prod-edit-id').value = "";
+      document.getElementById('form-cad-produto').reset();
+      document.getElementById('titulo-modal-produto').innerText = "Novo Produto";
+      document.getElementById('modal-form-produto').classList.remove('hidden');
+    }
+
+    function fecharModalProduto() {
+      document.getElementById('modal-form-produto').classList.add('hidden');
+    }
+
+    function editarProduto(id) {
+      var prod = listaGlobalProdutos.find(function(p) { return p.id === id; });
+      if (!prod) return;
+      document.getElementById('prod-edit-id').value = prod.id;
+      document.getElementById('prod-nome').value = prod.nome || '';
+      document.getElementById('prod-categoria').value = prod.categoria || '';
+      document.getElementById('prod-preco').value = prod.preco || '';
+      document.getElementById('prod-desc').value = prod.descricao || '';
+      document.getElementById('prod-foto-url').value = prod.imagem_url || '';
+      document.getElementById('titulo-modal-produto').innerText = "Editar Produto #" + prod.id;
+      document.getElementById('modal-form-produto').classList.remove('hidden');
+    }
+
+    async function salvarProduto(e) {
+      e.preventDefault();
+      var btn = document.getElementById('btn-salvar-produto');
+      btn.innerText = "A guardar...";
+      btn.disabled = true;
+
+      var id = document.getElementById('prod-edit-id').value;
+      var nome = document.getElementById('prod-nome').value.trim();
+      var categoria = document.getElementById('prod-categoria').value.trim();
+      var preco = parseFloat(document.getElementById('prod-preco').value) || 0;
+      var desc = document.getElementById('prod-desc').value.trim();
+      var urlFoto = document.getElementById('prod-foto-url').value.trim();
+      var arquivoFoto = document.getElementById('prod-arquivo-foto').files[0];
+
+      var sb = initClient();
+
+      try {
+        // Upload automático para o Supabase Storage se um ficheiro foi escolhido
+        if (arquivoFoto) {
+          var nomeArquivo = Date.now() + '_' + arquivoFoto.name.replace(/[^a-zA-Z0-9.]/g, '_');
+          var uploadRes = await sb.storage.from('fotos-produtos').upload(nomeArquivo, arquivoFoto);
+          if (uploadRes.error) {
+            console.warn("Aviso upload fotos:", uploadRes.error);
+          } else {
+            var publicUrlData = sb.storage.from('fotos-produtos').getPublicUrl(nomeArquivo);
+            if (publicUrlData && publicUrlData.data) {
+              urlFoto = publicUrlData.data.publicUrl;
+            }
+          }
+        }
+
+        var dados = {
+          nome: nome,
+          categoria: categoria,
+          preco: preco,
+          descricao: desc,
+          imagem_url: urlFoto || "PURO.png",
+          ativo: true
+        };
+
+        if (id) {
+          await sb.from('CARDAPIO ACAIZEIRO').update(dados).eq('id', id);
+        } else {
+          await sb.from('CARDAPIO ACAIZEIRO').insert([dados]);
+        }
+
+        fecharModalProduto();
+        carregarStock();
+      } catch (err) {
+        alert("Erro ao guardar produto: " + err.message);
+      } finally {
+        btn.innerText = "Guardar Item";
+        btn.disabled = false;
+      }
+    }
+
+    function abrirModalComplemento() {
+      document.getElementById('comp-edit-id').value = "";
+      document.getElementById('form-cad-comp').reset();
+      document.getElementById('titulo-modal-complemento').innerText = "Novo Complemento";
+      document.getElementById('modal-form-complemento').classList.remove('hidden');
+    }
+
+    function fecharModalComplemento() {
+      document.getElementById('modal-form-complemento').classList.add('hidden');
+    }
+
+    function editarComplemento(id) {
+      var comp = listaGlobalComplementos.find(function(c) { return String(c.id) === String(id); });
+      if (!comp) return;
+      document.getElementById('comp-edit-id').value = comp.id;
+      document.getElementById('comp-nome').value = comp.nome || '';
+      document.getElementById('comp-preco').value = comp.preco || '';
+      document.getElementById('titulo-modal-complemento').innerText = "Editar Complemento";
+      document.getElementById('modal-form-complemento').classList.remove('hidden');
+    }
+
+    async function salvarComplemento(e) {
+      e.preventDefault();
+      var btn = document.getElementById('btn-salvar-comp');
+      btn.innerText = "A guardar...";
+      btn.disabled = true;
+
+      var id = document.getElementById('comp-edit-id').value;
+      var nome = document.getElementById('comp-nome').value.trim();
+      var preco = parseFloat(document.getElementById('comp-preco').value) || 0;
+
+      var sb = initClient();
+
+      try {
+        var dados = { nome: nome, preco: preco, ativo: true };
+        if (id) {
+          await sb.from('COMPLEMENTOS').update(dados).eq('id', id);
+        } else {
+          await sb.from('COMPLEMENTOS').insert([dados]);
+        }
+        fecharModalComplemento();
+        carregarStock();
+      } catch (err) {
+        alert("Erro ao guardar complemento: " + err.message);
+      } finally {
+        btn.innerText = "Guardar";
+        btn.disabled = false;
+      }
     }
 
     window.addEventListener('DOMContentLoaded', function() {
