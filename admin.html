@@ -103,30 +103,77 @@
   <script>
     var SENHA_MESTRA = "3944";
     var somAtivo = true;
+    var intervaloCampainha = null;
+    var audioCtx = null;
 
-    function tocarAlertaSonoro() {
+    function obterAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function emitirBipeDelivery() {
       if (!somAtivo) return;
       try {
-        var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        var osc = audioCtx.createOscillator();
-        var gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.6);
+        var ctx = obterAudioContext();
+        var agora = ctx.currentTime;
+
+        // Bipe 1 (Nota A5)
+        var osc1 = ctx.createOscillator();
+        var gain1 = ctx.createGain();
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.type = "sine";
+        osc1.frequency.setValueAtTime(880, agora);
+        gain1.gain.setValueAtTime(0.4, agora);
+        gain1.gain.exponentialRampToValueAtTime(0.01, agora + 0.22);
+        osc1.start(agora);
+        osc1.stop(agora + 0.22);
+
+        // Bipe 2 (Nota D6 - agudo iFood)
+        var osc2 = ctx.createOscillator();
+        var gain2 = ctx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(1174.66, agora + 0.26);
+        gain2.gain.setValueAtTime(0.4, agora + 0.26);
+        gain2.gain.exponentialRampToValueAtTime(0.01, agora + 0.60);
+        osc2.start(agora + 0.26);
+        osc2.stop(agora + 0.60);
       } catch (e) {
-        console.warn("Áudio aguardando interação do usuário.");
+        console.warn("Áudio aguardando interação:", e);
+      }
+    }
+
+    function iniciarAlarmeSonoro() {
+      if (intervaloCampainha) return;
+      emitirBipeDelivery();
+      intervaloCampainha = setInterval(function() {
+        emitirBipeDelivery();
+      }, 2500);
+    }
+
+    function pararAlarmeSonoro() {
+      if (intervaloCampainha) {
+        clearInterval(intervaloCampainha);
+        intervaloCampainha = null;
       }
     }
 
     function alternarSom() {
       somAtivo = !somAtivo;
-      document.getElementById('icone-som').className = somAtivo ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+      var icone = document.getElementById('icone-som');
+      if (icone) {
+        icone.className = somAtivo ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+      }
+      if (!somAtivo) {
+        pararAlarmeSonoro();
+      }
     }
 
     function tentarEntrar() {
@@ -137,6 +184,7 @@
       var valorDigitado = campo.value.trim();
 
       if (valorDigitado === SENHA_MESTRA) {
+        obterAudioContext();
         sessionStorage.setItem('admin_acaizeiro_auth', 'true');
         liberarAcesso();
       } else {
@@ -233,6 +281,7 @@
 
       if (filtrados.length === 0) {
         container.innerHTML = '<div class="col-span-full bg-white p-8 rounded-xl shadow-sm text-center text-gray-400 text-sm">Nenhum pedido encontrado.</div>';
+        pararAlarmeSonoro();
         return;
       }
 
@@ -318,7 +367,11 @@
         '</div>';
       }).join('');
 
-      if (temPendente) tocarAlertaSonoro();
+      if (temPendente) {
+        iniciarAlarmeSonoro();
+      } else {
+        pararAlarmeSonoro();
+      }
     }
 
     async function aceitarPedido(id, formaPagamento) {
