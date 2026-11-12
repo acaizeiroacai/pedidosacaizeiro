@@ -200,36 +200,21 @@
       return audioCtx;
     }
 
-    // Sino de Delivery estilo campainha: harmónicos combinados com decaimento metálico
-    function emitirBipeDelivery() {
-      if (!somAtivo) return;
-      try {
-        var ctx = obterAudioContext();
-        var agora = ctx.currentTime;
+    // Carrega o arquivo mp3 colocado na raiz do projeto
+var somAlertaPedido = new Audio('toque.mp3');
 
-        function tocarSino(freqBase, momento, intensidade) {
-          var osc1 = ctx.createOscillator();
-          var gain1 = ctx.createGain();
-          osc1.type = "sine";
-          osc1.frequency.setValueAtTime(freqBase, momento);
-          gain1.gain.setValueAtTime(intensidade, momento);
-          gain1.gain.exponentialRampToValueAtTime(0.001, momento + 0.65);
-          osc1.connect(gain1);
-          gain1.connect(ctx.destination);
-          osc1.start(momento);
-          osc1.stop(momento + 0.65);
-
-          var osc2 = ctx.createOscillator();
-          var gain2 = ctx.createGain();
-          osc2.type = "triangle";
-          osc2.frequency.setValueAtTime(freqBase * 2.1, momento);
-          gain2.gain.setValueAtTime(intensidade * 0.45, momento);
-          gain2.gain.exponentialRampToValueAtTime(0.001, momento + 0.35);
-          osc2.connect(gain2);
-          gain2.connect(ctx.destination);
-          osc2.start(momento);
-          osc2.stop(momento + 0.35);
-        }
+// Função chamada sempre que entra um novo pedido
+function emitirBipeDelivery() {
+  if (!somAtivo) return;
+  try {
+    somAlertaPedido.currentTime = 0; // Reinicia o áudio do início caso toque em sequência
+    somAlertaPedido.play().catch(function(erro) {
+      console.warn("Áudio aguardando clique na página para ser liberado:", erro);
+    });
+  } catch (e) {
+    console.warn("Falha ao reproduzir áudio:", e);
+  }
+}
 
         tocarSino(1046.50, agora, 1.0);
         tocarSino(1567.98, agora + 0.18, 1.0);
