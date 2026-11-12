@@ -16,6 +16,11 @@
 
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body class="bg-[#fcfaff] text-gray-800 pb-28 antialiased">
@@ -50,7 +55,7 @@
         <p class="text-[11px] text-gray-500 uppercase font-semibold">Total do Pedido</p>
         <p class="text-xl font-black text-[#411564]" id="total-barra">R$ 0,00</p>
       </div>
-      <button onclick="abrirModalCheckout()" id="btn-sacola" class="bg-[#411564] hover:bg-purple-900 active:scale-95 text-white font-bold px-5 py-3 rounded-xl flex items-center gap-2.5 shadow-md transition disabled:opacity-40 disabled:pointer-events-none">
+      <button onclick="abrirModalCheckout()" id="btn-sacola" class="bg-[#411564] hover:bg-purple-900 active:scale-95 text-white font-bold px-5 py-3 rounded-xl flex items-center gap-2.5 shadow-md transition disabled:opacity-40 disabled:pointer-events-none cursor-pointer">
         <i class="fa-solid fa-bag-shopping"></i>
         <span>Ver Sacola (<span id="qtd-itens">0</span>)</span>
       </button>
@@ -65,7 +70,7 @@
           <h2 class="text-lg font-black text-[#411564]" id="modal-prod-nome">Nome do Açaí</h2>
           <p class="text-xs text-gray-500 mt-0.5" id="modal-prod-desc">Descrição</p>
         </div>
-        <button onclick="fecharModalProduto()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none">&times;</button>
+        <button onclick="fecharModalProduto()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none cursor-pointer">&times;</button>
       </div>
 
       <!-- Sanfona de Complementos -->
@@ -97,71 +102,307 @@
           <p class="text-[11px] text-gray-500">Valor do Item</p>
           <p class="text-lg font-black text-[#411564]" id="modal-prod-total">R$ 0,00</p>
         </div>
-        <button onclick="confirmarAdicionarItem()" class="flex-1 bg-[#411564] hover:bg-purple-900 text-white font-bold py-3 px-4 rounded-xl shadow-md active:scale-95 transition text-sm">
+        <button onclick="confirmarAdicionarItem()" class="flex-1 bg-[#411564] hover:bg-purple-900 text-white font-bold py-3 px-4 rounded-xl shadow-md active:scale-95 transition text-sm cursor-pointer">
           Adicionar ao Pedido
         </button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: Finalizar Pedido -->
-  <div id="modal-checkout" class="fixed inset-0 bg-black/60 hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
-    <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto p-5 space-y-4">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h2 class="text-lg font-black text-gray-900 flex items-center gap-2">
-          <i class="fa-solid fa-receipt text-[#411564]"></i> Finalizar Pedido
-        </h2>
-        <button onclick="fecharModalCheckout()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none">&times;</button>
-      </div>
-
-      <div id="itens-carrinho" class="divide-y divide-gray-100 text-sm max-h-48 overflow-y-auto pr-1"></div>
-
-      <div class="bg-purple-50/70 p-3.5 rounded-xl space-y-1.5 text-sm border border-purple-100">
-        <div class="flex justify-between text-gray-600">
-          <span>Subtotal:</span>
-          <span id="resumo-subtotal" class="font-semibold">R$ 0,00</span>
-        </div>
-        <div class="flex justify-between text-gray-600">
-          <span>Taxa de Entrega:</span>
-          <span id="resumo-taxa" class="font-semibold">R$ 1,00</span>
-        </div>
-        <div class="flex justify-between font-black text-base text-[#411564] border-t border-purple-200/80 pt-2">
-          <span>Total Geral:</span>
-          <span id="resumo-total">R$ 0,00</span>
-        </div>
-      </div>
-
-      <form id="form-pedido" class="space-y-3" onsubmit="enviarPedido(event)">
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Seu Nome *</label>
-          <input type="text" id="cliente-nome" required class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-purple-600" placeholder="Ex: Maria Santos">
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Endereço de Entrega (Rua, Nº e Bairro) *</label>
-          <input type="text" id="cliente-endereco" required class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-purple-600" placeholder="Ex: Rua São Domingos, 120 - Centro">
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Forma de Pagamento *</label>
-          <select id="forma-pagamento" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-purple-600">
-            <option value="Pix">Pix</option>
-            <option value="Cartão de Crédito">Cartão de Crédito (Levar maquininha)</option>
-            <option value="Cartão de Débito">Cartão de Débito (Levar maquininha)</option>
-            <option value="Dinheiro">Dinheiro</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Observações Gerais</label>
-          <textarea id="cliente-obs" rows="2" class="w-full border border-gray-300 rounded-xl p-2 text-sm outline-purple-600" placeholder="Ex: Troco para R$ 50..."></textarea>
-        </div>
-
-        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition">
-          <i class="fa-solid fa-paper-plane text-lg"></i>
-          <span>Enviar Pedido para a Cozinha</span>
+  <!-- MODAL CHECKOUT MULTI-ETAPAS (Estilo App) -->
+  <div id="modal-checkout" class="fixed inset-0 bg-white sm:bg-black/60 hidden z-50 flex flex-col sm:items-center sm:justify-center sm:p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-lg h-full sm:h-auto sm:max-h-[92vh] sm:rounded-3xl flex flex-col overflow-hidden shadow-2xl">
+      
+      <!-- Cabeçalho com Seta Voltar -->
+      <div class="flex items-center justify-between px-4 py-3.5 border-b border-gray-100 bg-white sticky top-0 z-10">
+        <button type="button" onclick="voltarEtapaCheckout()" class="w-9 h-9 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-[#411564] hover:bg-purple-50 transition cursor-pointer">
+          <i class="fa-solid fa-arrow-left text-sm"></i>
         </button>
-      </form>
+        <h2 id="titulo-etapa-checkout" class="text-base font-extrabold text-gray-900">Sua Sacola</h2>
+        <div class="w-9"></div>
+      </div>
+
+      <!-- Corpo Rolável das Etapas -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+
+        <!-- ETAPA 0: REVISÃO DA SACOLA -->
+        <div id="checkout-step-0" class="space-y-4">
+          <div id="itens-carrinho" class="divide-y divide-gray-100 text-sm"></div>
+
+          <div class="bg-purple-50/70 p-4 rounded-2xl space-y-2 text-sm border border-purple-100">
+            <div class="flex justify-between text-gray-600">
+              <span>Subtotal dos itens</span>
+              <span id="step0-subtotal" class="font-bold text-gray-800">R$ 0,00</span>
+            </div>
+            <p class="text-[11px] text-gray-500">A taxa de entrega será calculada na próxima etapa.</p>
+          </div>
+        </div>
+
+        <!-- ETAPA 1: ENTREGA E AGENDAMENTO -->
+        <div id="checkout-step-1" class="hidden space-y-5">
+          <!-- Quando deseja receber -->
+          <div>
+            <p class="text-xs font-bold text-gray-700 mb-2">Quando deseja receber seu pedido?</p>
+            <div class="space-y-2.5">
+              <div onclick="selecionarQuando('Agora')" id="card-quando-agora" class="p-3.5 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex items-center justify-between cursor-pointer transition">
+                <div>
+                  <p class="text-sm font-extrabold text-gray-900">Agora</p>
+                  <p class="text-xs text-gray-500">Entrega em 40 a 60 minutos</p>
+                </div>
+                <div id="radio-quando-agora" class="w-5 h-5 rounded-full border-2 border-[#411564] flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded-full bg-[#411564]"></div>
+                </div>
+              </div>
+
+              <div onclick="selecionarQuando('Agendar')" id="card-quando-agendar" class="rounded-2xl border border-gray-200 bg-white overflow-hidden cursor-pointer transition">
+                <div class="p-3.5 flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-extrabold text-gray-900">Agendar</p>
+                    <p id="texto-horario-agendado" class="text-xs text-gray-500">Escolher horário para hoje</p>
+                  </div>
+                  <div id="radio-quando-agendar" class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                    <div class="w-2.5 h-2.5 rounded-full bg-transparent"></div>
+                  </div>
+                </div>
+                <div id="box-input-agendar" class="hidden bg-gray-100 p-3 border-t border-gray-200" onclick="event.stopPropagation()">
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Escolha o horário desejado:</label>
+                  <input type="time" id="input-horario-agendamento" onchange="atualizarTextoAgendamento()" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs font-bold outline-purple-600">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Como deseja receber -->
+          <div>
+            <p class="text-xs font-bold text-gray-700 mb-2">Como deseja receber seu pedido?</p>
+            <div class="grid grid-cols-2 gap-3">
+              <button type="button" onclick="selecionarTipoRecebimento('Entrega')" id="btn-tipo-entrega" class="p-3.5 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex flex-col items-center justify-center gap-1.5 text-[#411564] transition cursor-pointer">
+                <i class="fa-solid fa-truck text-lg"></i>
+                <span class="text-xs font-extrabold">Entrega</span>
+              </button>
+              <button type="button" onclick="selecionarTipoRecebimento('Retirada')" id="btn-tipo-retirada" class="p-3.5 rounded-2xl border border-gray-200 bg-white flex flex-col items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 transition cursor-pointer">
+                <i class="fa-solid fa-bag-shopping text-lg"></i>
+                <span class="text-xs font-extrabold">Retirada</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Endereço de Entrega -->
+          <div id="secao-endereco-entrega" class="space-y-3">
+            <p class="text-xs font-bold text-gray-700">Selecione o endereço de entrega</p>
+            
+            <button type="button" onclick="abrirFormNovoEndereco()" class="w-full py-3 px-4 rounded-2xl border-2 border-[#411564] text-[#411564] font-extrabold text-xs flex items-center justify-center gap-2 hover:bg-purple-50 transition cursor-pointer">
+              <i class="fa-solid fa-location-dot"></i>
+              <span id="label-btn-endereco">Adicionar novo endereço</span>
+            </button>
+
+            <!-- Cartão do Endereço Salvo -->
+            <div id="card-endereco-salvo" class="hidden p-4 rounded-2xl border-2 border-[#411564] bg-white flex items-start justify-between shadow-sm">
+              <div class="space-y-1 text-xs">
+                <p class="font-extrabold text-sm text-gray-900" id="end-salvo-apelido">Casa</p>
+                <p class="text-gray-700 font-medium" id="end-salvo-rua">Rua...</p>
+                <p class="text-gray-500" id="end-salvo-bairro">Bairro...</p>
+                <div class="pt-1.5 flex items-center gap-4 text-[11px] font-bold text-[#411564]">
+                  <span><i class="fa-regular fa-clock mr-1"></i>40-60 min</span>
+                  <span><i class="fa-solid fa-truck mr-1"></i>R$ 1,00</span>
+                </div>
+              </div>
+              <div class="flex flex-col items-center justify-between h-full gap-4">
+                <div class="w-5 h-5 rounded-full border-2 border-[#411564] flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded-full bg-[#411564]"></div>
+                </div>
+                <button type="button" onclick="abrirFormNovoEndereco()" class="text-gray-400 hover:text-[#411564] p-1 cursor-pointer" title="Editar endereço">
+                  <i class="fa-solid fa-pen text-sm"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Formulário Inline de Endereço -->
+            <div id="form-inline-endereco" class="hidden bg-gray-50 p-3.5 rounded-2xl border border-purple-200 space-y-2.5">
+              <div class="grid grid-cols-3 gap-2">
+                <div class="col-span-2">
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Rua / Avenida *</label>
+                  <input type="text" id="input-end-rua" placeholder="Ex: Rua Orlando Luis Miola" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Número *</label>
+                  <input type="text" id="input-end-numero" placeholder="Ex: 651" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Bairro *</label>
+                  <input type="text" id="input-end-bairro" placeholder="Ex: São Domingos 2" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Complemento / Ref.</label>
+                  <input type="text" id="input-end-comp" placeholder="Ex: Casa, Fundos..." class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+              </div>
+              <button type="button" onclick="salvarEnderecoLocal()" class="w-full bg-[#411564] text-white font-bold py-2 rounded-xl text-xs shadow cursor-pointer">
+                Confirmar Endereço
+              </button>
+            </div>
+          </div>
+
+          <!-- Dados do Cliente -->
+          <div class="space-y-2.5 pt-2 border-t border-gray-100">
+            <p class="text-xs font-bold text-gray-700">Seus dados para contato</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-gray-600 mb-1">Seu Nome *</label>
+                <input type="text" id="cliente-nome" placeholder="Ex: Rafael Manzoni" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-gray-600 mb-1">Seu WhatsApp *</label>
+                <input type="tel" id="cliente-telefone" placeholder="Ex: (16) 99738-3522" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ETAPA 2: FORMA DE PAGAMENTO -->
+        <div id="checkout-step-2" class="hidden space-y-5">
+          <!-- Pagar Online -->
+          <div>
+            <p class="text-xs font-extrabold text-[#411564] flex items-center gap-2 mb-2.5">
+              <i class="fa-solid fa-mobile-screen-button"></i> Pagar online
+            </p>
+            <div onclick="selecionarPagamento('Pix', 'PIX (Online)')" id="pay-card-Pix" class="pay-option p-4 rounded-2xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer transition">
+              <div class="flex items-center gap-3">
+                <i class="fa-brands fa-pix text-[#411564] text-lg"></i>
+                <span class="text-sm font-bold text-gray-800">PIX</span>
+              </div>
+              <div class="pay-radio w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                <div class="w-2.5 h-2.5 rounded-full bg-transparent"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pagar na Entrega / Retirada -->
+          <div>
+            <p class="text-xs font-extrabold text-[#411564] flex items-center gap-2 mb-2.5">
+              <i class="fa-solid fa-house"></i> <span id="titulo-pagar-entrega">Pagar na entrega</span>
+            </p>
+            <div class="space-y-2.5">
+              <div onclick="selecionarPagamento('Dinheiro', 'Dinheiro')" id="pay-card-Dinheiro" class="pay-option p-4 rounded-2xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer transition">
+                <div class="flex items-center gap-3">
+                  <i class="fa-solid fa-money-bill-wave text-gray-600 text-base"></i>
+                  <span class="text-sm font-bold text-gray-800">Dinheiro</span>
+                </div>
+                <div class="pay-radio w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded-full bg-transparent"></div>
+                </div>
+              </div>
+
+              <!-- Campo de Troco se escolher Dinheiro -->
+              <div id="box-troco-dinheiro" class="hidden bg-purple-50/60 p-3 rounded-2xl border border-purple-200">
+                <label class="block text-xs font-bold text-[#411564] mb-1">Precisa de troco para quanto?</label>
+                <input type="text" id="input-troco-para" placeholder="Ex: Troco para R$ 50,00 (ou deixe vazio)" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+              </div>
+
+              <div onclick="selecionarPagamento('Cartão de Crédito', 'Cartão de Crédito (Entrega)')" id="pay-card-CartaoCredito" class="pay-option p-4 rounded-2xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer transition">
+                <div class="flex items-center gap-3">
+                  <i class="fa-regular fa-credit-card text-gray-600 text-base"></i>
+                  <span class="text-sm font-bold text-gray-800">Cartão de Crédito</span>
+                </div>
+                <div class="pay-radio w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded-full bg-transparent"></div>
+                </div>
+              </div>
+
+              <div onclick="selecionarPagamento('Cartão de Débito', 'Cartão de Débito (Entrega)')" id="pay-card-CartaoDebito" class="pay-option p-4 rounded-2xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer transition">
+                <div class="flex items-center gap-3">
+                  <i class="fa-regular fa-credit-card text-gray-600 text-base"></i>
+                  <span class="text-sm font-bold text-gray-800">Cartão de Débito</span>
+                </div>
+                <div class="pay-radio w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded-full bg-transparent"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Observações Gerais (Opcional)</label>
+            <input type="text" id="cliente-obs" placeholder="Ex: Interfone quebrado, ligar ao chegar..." class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
+          </div>
+        </div>
+
+        <!-- ETAPA 3: RESUMO DO PEDIDO -->
+        <div id="checkout-step-3" class="hidden space-y-4">
+          <div class="space-y-4 text-sm">
+            <div class="flex items-start gap-3">
+              <i class="fa-solid fa-truck text-gray-400 mt-1"></i>
+              <div>
+                <p class="text-xs text-gray-500 font-medium" id="resumo-final-tipo">Entrega</p>
+                <p class="font-extrabold text-gray-900 text-sm leading-snug" id="resumo-final-endereco">Endereço...</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <i class="fa-regular fa-clock text-gray-400 mt-1"></i>
+              <div>
+                <p class="text-xs text-gray-500 font-medium">Tempo de entrega</p>
+                <p class="font-extrabold text-gray-900 text-sm" id="resumo-final-tempo">40-60 min</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <i class="fa-solid fa-wallet text-gray-400 mt-1"></i>
+              <div>
+                <p class="text-xs text-gray-500 font-medium">Pagamento</p>
+                <p class="font-extrabold text-gray-900 text-sm" id="resumo-final-pagamento">PIX (Online)</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <i class="fa-regular fa-user text-gray-400 mt-1"></i>
+              <div>
+                <p class="text-xs text-gray-500 font-medium">Suas informações</p>
+                <p class="font-extrabold text-gray-900 text-sm" id="resumo-final-cliente">Nome</p>
+                <p class="text-xs text-gray-600 font-semibold" id="resumo-final-telefone">(16) 99999-9999</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloco de Valores -->
+          <div class="border-t border-gray-200 pt-4 space-y-2 text-sm">
+            <p class="font-extrabold text-gray-800 text-xs uppercase tracking-wider">Resumo</p>
+            <div class="flex justify-between text-gray-600">
+              <span>Subtotal</span>
+              <span id="resumo-final-subtotal" class="font-semibold">R$ 0,00</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+              <span>Taxa de entrega</span>
+              <span id="resumo-final-taxa" class="font-semibold">R$ 1,00</span>
+            </div>
+            <div class="flex justify-between text-base font-black text-gray-900 pt-1">
+              <span>Total</span>
+              <span id="resumo-final-total" class="text-[#411564]">R$ 0,00</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Rodapé Fixo com Indicador de 4 Pontos e Botão Principal -->
+      <div class="p-4 bg-white border-t border-gray-100 space-y-3">
+        <!-- Stepper 4 Bolinhas -->
+        <div class="flex items-center justify-center gap-0">
+          <div id="dot-0" class="w-2.5 h-2.5 rounded-full bg-[#411564] transition-all"></div>
+          <div id="line-1" class="w-6 h-0.5 bg-gray-200 transition-all"></div>
+          <div id="dot-1" class="w-2.5 h-2.5 rounded-full bg-gray-300 transition-all"></div>
+          <div id="line-2" class="w-6 h-0.5 bg-gray-200 transition-all"></div>
+          <div id="dot-2" class="w-2.5 h-2.5 rounded-full bg-gray-300 transition-all"></div>
+          <div id="line-3" class="w-6 h-0.5 bg-gray-200 transition-all"></div>
+          <div id="dot-3" class="w-2.5 h-2.5 rounded-full bg-gray-300 transition-all"></div>
+        </div>
+
+        <button type="button" id="btn-acao-checkout" onclick="avancarEtapaCheckout()" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-extrabold py-3.5 rounded-2xl shadow-lg transition active:scale-95 text-sm cursor-pointer">
+          Continuar
+        </button>
+      </div>
     </div>
   </div>
 
@@ -183,60 +424,80 @@
     </div>
   </div>
   
-  <!-- Modal Pix com QR Code e Copia e Cola -->
-  <div id="modalPix" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
-    <div style="position: relative; background: #ffffff; color: #1e1e1e; max-width: 420px; width: 100%; border-radius: 16px; padding: 24px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); font-family: sans-serif;">
-      <button onclick="cancelarModalPix()" style="position: absolute; top: 12px; right: 16px; background: transparent; border: none; font-size: 26px; font-weight: bold; color: #888; cursor: pointer; line-height: 1;" title="Cancelar">&times;</button>
+  <!-- Modal Pix com QR Code, Cronômetro e Copia e Cola (Estilo App) -->
+  <div id="modalPix" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: #ffffff; z-index: 9999; flex-direction: column; overflow-y: auto; font-family: sans-serif;">
+    <div style="max-width: 480px; width: 100%; margin: 0 auto; padding: 16px; flex: 1; display: flex; flex-direction: column;">
       
-      <div id="pixCarregando" style="padding: 20px 0;">
-        <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #6b117b; border-radius: 50%; width: 44px; height: 44px; animation: spin 1s linear infinite; margin: 0 auto 16px auto;"></div>
-        <h3 style="margin: 0; color: #6b117b; font-weight: bold;">Gerando o seu Pix...</h3>
-        <p style="color: #666; font-size: 14px;">Aguarde alguns segundos.</p>
+      <!-- Topo do Pix -->
+      <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">
+        <button onclick="cancelarModalPix()" style="width: 36px; height: 36px; border-radius: 50%; background: #fff; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #411564;">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <span style="font-weight: 800; font-size: 16px; color: #111;">Pagamento PIX</span>
+        <div style="width: 36px;"></div>
       </div>
 
-      <div id="pixConteudo" style="display: none;">
-        <span id="pixPedidoNumeroBadge" style="background: #ede7f6; color: #411564; font-size: 12px; font-weight: bold; padding: 3px 10px; border-radius: 10px; display: inline-block; margin-bottom: 8px;">PEDIDO #...</span>
-        <h3 style="margin: 0 0 8px 0; color: #6b117b; font-size: 20px; font-weight: bold;">Pague com Pix</h3>
-        <p style="font-size: 13px; color: #555; margin: 0 0 16px 0;">Leia o QR Code abaixo no app do seu banco ou copie o código Pix.</p>
+      <!-- Carregando -->
+      <div id="pixCarregando" style="padding: 60px 0; text-align: center;">
+        <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #411564; border-radius: 50%; width: 44px; height: 44px; animation: spin 1s linear infinite; margin: 0 auto 16px auto;"></div>
+        <h3 style="margin: 0; color: #411564; font-weight: bold;">Gerando o seu Pix...</h3>
+        <p style="color: #666; font-size: 14px; margin-top: 4px;">Aguarde alguns segundos.</p>
+      </div>
 
-        <div style="background: #f9f9f9; padding: 12px; border-radius: 12px; display: inline-block; border: 1px solid #eee; margin-bottom: 16px;">
-          <img id="pixQrImg" src="" alt="QR Code Pix" style="width: 200px; height: 200px; display: block; margin: 0 auto;">
+      <!-- Conteúdo QR Code -->
+      <div id="pixConteudo" style="display: none; text-align: center; padding-top: 20px; flex: 1; flex-direction: column; justify-content: space-between;">
+        <div>
+          <h3 style="margin: 0 0 8px 0; color: #111827; font-size: 19px; font-weight: 800;">Pague o PIX para enviar seu pedido</h3>
+          <span style="background: #fef08a; color: #854d0e; font-size: 12px; font-weight: 700; padding: 4px 14px; border-radius: 20px; display: inline-block; margin-bottom: 16px;">
+            Aguardando pagamento
+          </span>
+
+          <div style="background: #fff; padding: 12px; border-radius: 16px; display: inline-block; border: 1px solid #e5e7eb; margin-bottom: 16px;">
+            <img id="pixQrImg" src="" alt="QR Code Pix" style="width: 210px; height: 210px; display: block; margin: 0 auto;">
+          </div>
+
+          <!-- Cronômetro -->
+          <div style="margin-bottom: 16px;">
+            <p style="font-size: 12px; color: #6b7280; margin: 0;">Expira em</p>
+            <p id="pixTimerTexto" style="font-size: 22px; font-weight: 900; color: #111827; margin: 2px 0 8px 0;">29 : 59</p>
+            <div style="width: 220px; height: 4px; background: #e5e7eb; border-radius: 4px; margin: 0 auto; overflow: hidden;">
+              <div id="pixTimerBarra" style="width: 100%; height: 100%; background: #411564; transition: width 1s linear;"></div>
+            </div>
+          </div>
+
+          <!-- Copia e Cola -->
+          <div style="text-align: left; margin-top: 16px;">
+            <p style="font-size: 13px; font-weight: 700; color: #1f2937; margin: 0 0 2px 0;">
+              <i class="fa-solid fa-qrcode mr-1 text-[#411564]"></i> Clique no código abaixo para copiar
+            </p>
+            <p style="font-size: 11px; color: #6b7280; margin: 0 0 8px 0;">Pague antes do tempo acabar, ou o pedido é cancelado</p>
+            
+            <div onclick="copiarPixPayload()" style="background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; font-family: monospace; font-size: 11px; color: #374151; word-break: break-all; cursor: pointer; max-height: 85px; overflow-y: auto;" id="pixCodigoBox">
+              Carregando código...
+            </div>
+            <input type="hidden" id="pixCodigoCopia">
+          </div>
         </div>
 
-        <div style="margin-bottom: 16px;">
-          <input type="text" id="pixCodigoCopia" readonly style="width: 100%; padding: 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; background: #fdfdfd; text-overflow: ellipsis;">
-          <button id="btnCopiarPix" onclick="copiarPixPayload()" style="width: 100%; margin-top: 8px; padding: 12px; background: #6b117b; color: #fff; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">
-            Copiar Código Pix
+        <div style="padding-top: 20px; padding-bottom: 8px;">
+          <button id="btnCopiarPix" onclick="copiarPixPayload()" style="width: 100%; padding: 15px; background: #411564; color: #fff; font-weight: 800; font-size: 15px; border: none; border-radius: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(65, 21, 100, 0.25);">
+            Copiar código
           </button>
         </div>
-
-        <div style="background: #eef7ed; border: 1px solid #cce5c7; border-radius: 8px; padding: 10px; margin-bottom: 16px;">
-          <p style="margin: 0; font-size: 13px; color: #2e6628; display: flex; align-items: center; justify-content: center; gap: 6px;">
-            <span style="font-size: 16px;">⏳</span> Aguardando confirmação do banco...
-          </p>
-        </div>
-
-        <p style="font-size: 12px; color: #888; margin: 0;">Assim que o pagamento for concluído, o seu pedido entrará automaticamente em preparo.</p>
       </div>
 
-      <div id="pixConfirmado" style="display: none; padding: 20px 0;">
-        <div style="font-size: 50px; color: #28a745; margin-bottom: 12px;">✅</div>
-        <h3 style="color: #28a745; margin: 0 0 8px 0; font-weight: bold;">Pagamento Confirmado!</h3>
-        <p style="color: #555; font-size: 14px; margin: 0 0 20px 0;">O seu pedido já seguiu para a cozinha e está em preparo.</p>
-        <button onclick="concluirFluxoPix()" style="width: 100%; padding: 12px; background: #28a745; color: #fff; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">
+      <!-- Confirmado -->
+      <div id="pixConfirmado" style="display: none; padding: 40px 0; text-align: center;">
+        <div style="font-size: 54px; color: #16a34a; margin-bottom: 12px;">✅</div>
+        <h3 style="color: #16a34a; margin: 0 0 8px 0; font-weight: 800; font-size: 20px;">Pagamento Confirmado!</h3>
+        <p style="color: #555; font-size: 14px; margin: 0 0 24px 0;">O seu pedido já seguiu para a cozinha e está em preparo.</p>
+        <button onclick="concluirFluxoPix()" style="width: 100%; padding: 14px; background: #16a34a; color: #fff; font-weight: bold; border: none; border-radius: 12px; cursor: pointer;">
           Acompanhar Pedido
         </button>
       </div>
 
     </div>
   </div>
-
-  <style>
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  </style>
 
   <script>
     function alternarListaComplementos() {
@@ -279,13 +540,40 @@
     var produtoEmEdicao = null;
     var textoPedidoWhatsApp = "";
 
+    // Estado do Checkout em Etapas
+    var etapaAtualCheckout = 0;
+    var estadoCheckout = {
+      quando: "Agora",
+      horarioAgendado: "",
+      tipoRecebimento: "Entrega",
+      enderecoSalvo: null,
+      pagamentoValor: "",
+      pagamentoLabel: ""
+    };
+
+    function carregarDadosSalvosCliente() {
+      try {
+        var nomeSalvo = localStorage.getItem('acaizeiro_cli_nome');
+        var telSalvo = localStorage.getItem('acaizeiro_cli_tel');
+        var endJson = localStorage.getItem('acaizeiro_cli_end');
+
+        if (nomeSalvo) document.getElementById('cliente-nome').value = nomeSalvo;
+        if (telSalvo) document.getElementById('cliente-telefone').value = telSalvo;
+
+        if (endJson) {
+          estadoCheckout.enderecoSalvo = JSON.parse(endJson);
+          exibirCartaoEnderecoSalvo();
+        }
+      } catch (e) {}
+    }
+
     function renderizarCategorias() {
       var container = document.getElementById('lista-categorias');
       if (!container) return;
       container.innerHTML = categorias.map(function(cat) {
         var ativo = categoriaAtiva.trim().toLowerCase() === cat.trim().toLowerCase();
         var classeCor = ativo ? 'bg-[#411564] text-white shadow-sm' : 'bg-white text-gray-600 border border-purple-100 hover:bg-purple-50';
-        return '<button onclick="selecionarCategoria(\'' + cat.replace(/'/g, "\\'") + '\')" class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ' + classeCor + '">' + cat + '</button>';
+        return '<button onclick="selecionarCategoria(\'' + cat.replace(/'/g, "\\'") + '\')" class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer ' + classeCor + '">' + cat + '</button>';
       }).join('');
     }
 
@@ -435,7 +723,8 @@
         carrinho = carrinho.filter(function(i) { return i.cartId !== cartId; });
       }
       atualizarBarra();
-      renderizarItensCheckout();
+      renderizarItensSacola();
+      if (carrinho.length === 0) fecharModalCheckout();
     }
 
     function calcularTotais() {
@@ -445,8 +734,9 @@
         subtotal += item.precoTotal * item.qtd;
         totalQtd += item.qtd;
       });
-      var total = subtotal > 0 ? (subtotal + config.taxaEntrega) : 0;
-      return { subtotal: subtotal, total: total, totalQtd: totalQtd };
+      var taxaAtual = (estadoCheckout.tipoRecebimento === 'Entrega') ? config.taxaEntrega : 0;
+      var total = subtotal > 0 ? (subtotal + taxaAtual) : 0;
+      return { subtotal: subtotal, taxa: taxaAtual, total: total, totalQtd: totalQtd };
     }
 
     function atualizarBarra() {
@@ -456,7 +746,7 @@
       document.getElementById('btn-sacola').disabled = totais.totalQtd === 0;
     }
 
-    function renderizarItensCheckout() {
+    function renderizarItensSacola() {
       var totais = calcularTotais();
       var container = document.getElementById('itens-carrinho');
       
@@ -466,28 +756,31 @@
           : '';
         var obsTexto = item.obs ? '<p class="text-[11px] text-gray-500 italic">Obs: ' + item.obs + '</p>' : '';
 
-        return '<div class="flex justify-between items-center py-2.5">' +
+        return '<div class="flex justify-between items-center py-3">' +
           '<div class="pr-2 flex-1">' +
             '<p class="font-bold text-gray-800 text-sm leading-tight">' + item.nome + '</p>' +
             complTexto + obsTexto +
-            '<p class="text-xs text-gray-500 mt-0.5">R$ ' + item.precoTotal.toFixed(2).replace('.', ',') + ' cada</p>' +
+            '<p class="text-xs font-bold text-[#411564] mt-1">R$ ' + (item.precoTotal * item.qtd).toFixed(2).replace('.', ',') + '</p>' +
           '</div>' +
-          '<div class="flex items-center gap-2">' +
-            '<button onclick="alterarQtd(' + item.cartId + ', -1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 font-bold text-gray-700 text-sm flex items-center justify-center">-</button>' +
-            '<span class="font-bold text-sm w-4 text-center">' + item.qtd + '</span>' +
-            '<button onclick="alterarQtd(' + item.cartId + ', 1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 font-bold text-gray-700 text-sm flex items-center justify-center">+</button>' +
+          '<div class="flex items-center gap-2.5 bg-gray-100 rounded-xl px-2 py-1">' +
+            '<button type="button" onclick="alterarQtd(' + item.cartId + ', -1)" class="w-6 h-6 rounded-lg bg-white shadow-sm font-bold text-[#411564] text-sm flex items-center justify-center cursor-pointer">-</button>' +
+            '<span class="font-extrabold text-sm w-4 text-center">' + item.qtd + '</span>' +
+            '<button type="button" onclick="alterarQtd(' + item.cartId + ', 1)" class="w-6 h-6 rounded-lg bg-white shadow-sm font-bold text-[#411564] text-sm flex items-center justify-center cursor-pointer">+</button>' +
           '</div>' +
         '</div>';
       }).join('');
 
-      container.innerHTML = itensHtml || '<p class="text-center py-4 text-gray-400 text-sm">Sua sacola está vazia</p>';
-      document.getElementById('resumo-subtotal').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
-      document.getElementById('resumo-taxa').innerText = 'R$ ' + config.taxaEntrega.toFixed(2).replace('.', ',');
-      document.getElementById('resumo-total').innerText = 'R$ ' + totais.total.toFixed(2).replace('.', ',');
+      container.innerHTML = itensHtml || '<p class="text-center py-6 text-gray-400 text-sm">Sua sacola está vazia</p>';
+      document.getElementById('step0-subtotal').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
     }
 
+    // ==========================================
+    // CONTROLE DE ETAPAS DO CHECKOUT
+    // ==========================================
     function abrirModalCheckout() {
-      renderizarItensCheckout();
+      carregarDadosSalvosCliente();
+      renderizarItensSacola();
+      irParaEtapaCheckout(0);
       document.getElementById('modal-checkout').classList.remove('hidden');
     }
 
@@ -495,13 +788,300 @@
       document.getElementById('modal-checkout').classList.add('hidden');
     }
 
-    async function enviarPedido(e) {
-      e.preventDefault();
-      var nome = document.getElementById('cliente-nome').value.trim();
-      var endereco = document.getElementById('cliente-endereco').value.trim();
-      var pagamento = document.getElementById('forma-pagamento').value;
-      var obsGeral = document.getElementById('cliente-obs').value.trim();
+    function irParaEtapaCheckout(step) {
+      etapaAtualCheckout = step;
+
+      [0, 1, 2, 3].forEach(function(idx) {
+        var el = document.getElementById('checkout-step-' + idx);
+        if (el) el.classList.add('hidden');
+      });
+      document.getElementById('checkout-step-' + step).classList.remove('hidden');
+
+      var titulos = [
+        "Sua Sacola",
+        "Entrega e agendamento",
+        "Forma de pagamento",
+        "Resumo do pedido"
+      ];
+      document.getElementById('titulo-etapa-checkout').innerText = titulos[step];
+
+      for (var i = 0; i <= 3; i++) {
+        var dot = document.getElementById('dot-' + i);
+        if (dot) {
+          dot.className = (i <= step) 
+            ? "w-2.5 h-2.5 rounded-full bg-[#411564] transition-all" 
+            : "w-2.5 h-2.5 rounded-full bg-gray-300 transition-all";
+        }
+        if (i > 0) {
+          var line = document.getElementById('line-' + i);
+          if (line) {
+            line.className = (i <= step) 
+              ? "w-6 h-0.5 bg-[#411564] transition-all" 
+              : "w-6 h-0.5 bg-gray-200 transition-all";
+          }
+        }
+      }
+
+      var btn = document.getElementById('btn-acao-checkout');
+      btn.disabled = false;
+      btn.className = "w-full bg-[#411564] hover:bg-purple-900 text-white font-extrabold py-3.5 rounded-2xl shadow-lg transition active:scale-95 text-sm cursor-pointer";
+
+      if (step === 0) {
+        btn.innerText = "Continuar";
+      } else if (step === 1) {
+        btn.innerText = "Continuar para Pagamento";
+      } else if (step === 2) {
+        btn.innerText = "Revisar Pedido";
+        if (!estadoCheckout.pagamentoValor) {
+          btn.disabled = true;
+          btn.className = "w-full bg-gray-200 text-gray-400 font-extrabold py-3.5 rounded-2xl text-sm cursor-not-allowed";
+        }
+      } else if (step === 3) {
+        preencherResumoFinal();
+        var isPix = (estadoCheckout.pagamentoValor === 'Pix');
+        btn.innerText = isPix ? "Ir para Pagamento" : "Finalizar Pedido";
+      }
+    }
+
+    function voltarEtapaCheckout() {
+      if (etapaAtualCheckout > 0) {
+        irParaEtapaCheckout(etapaAtualCheckout - 1);
+      } else {
+        fecharModalCheckout();
+      }
+    }
+
+    function avancarEtapaCheckout() {
+      if (etapaAtualCheckout === 0) {
+        if (carrinho.length === 0) return;
+        irParaEtapaCheckout(1);
+      } else if (etapaAtualCheckout === 1) {
+        var nome = document.getElementById('cliente-nome').value.trim();
+        var tel = document.getElementById('cliente-telefone').value.trim();
+
+        if (!nome || !tel) {
+          alert("Por favor, preencha seu Nome e WhatsApp para continuar.");
+          return;
+        }
+        if (estadoCheckout.quando === 'Agendar' && !estadoCheckout.horarioAgendado) {
+          alert("Selecione o horário desejado para o agendamento.");
+          return;
+        }
+        if (estadoCheckout.tipoRecebimento === 'Entrega' && !estadoCheckout.enderecoSalvo) {
+          alert("Por favor, adicione seu endereço de entrega.");
+          abrirFormNovoEndereco();
+          return;
+        }
+
+        localStorage.setItem('acaizeiro_cli_nome', nome);
+        localStorage.setItem('acaizeiro_cli_tel', tel);
+
+        irParaEtapaCheckout(2);
+      } else if (etapaAtualCheckout === 2) {
+        if (!estadoCheckout.pagamentoValor) return;
+        irParaEtapaCheckout(3);
+      } else if (etapaAtualCheckout === 3) {
+        enviarPedidoFinal();
+      }
+    }
+
+    // Seleções Etapa 1
+    function selecionarQuando(opcao) {
+      estadoCheckout.quando = opcao;
+      var cardAgora = document.getElementById('card-quando-agora');
+      var radioAgora = document.getElementById('radio-quando-agora');
+      var cardAgendar = document.getElementById('card-quando-agendar');
+      var radioAgendar = document.getElementById('radio-quando-agendar');
+      var boxInput = document.getElementById('box-input-agendar');
+
+      if (opcao === 'Agora') {
+        cardAgora.className = "p-3.5 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex items-center justify-between cursor-pointer transition";
+        radioAgora.className = "w-5 h-5 rounded-full border-2 border-[#411564] flex items-center justify-center";
+        radioAgora.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-[#411564]"></div>';
+
+        cardAgendar.className = "rounded-2xl border border-gray-200 bg-white overflow-hidden cursor-pointer transition";
+        radioAgendar.className = "w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center";
+        radioAgendar.innerHTML = '';
+        boxInput.classList.add('hidden');
+      } else {
+        cardAgendar.className = "rounded-2xl border-2 border-[#411564] bg-purple-50/30 overflow-hidden cursor-pointer transition";
+        radioAgendar.className = "w-5 h-5 rounded-full border-2 border-[#411564] flex items-center justify-center";
+        radioAgendar.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-[#411564]"></div>';
+
+        cardAgora.className = "p-3.5 rounded-2xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer transition";
+        radioAgora.className = "w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center";
+        radioAgora.innerHTML = '';
+        boxInput.classList.remove('hidden');
+      }
+    }
+
+    function atualizarTextoAgendamento() {
+      var val = document.getElementById('input-horario-agendamento').value;
+      estadoCheckout.horarioAgendado = val;
+      document.getElementById('texto-horario-agendado').innerText = val ? ("Para Hoje às " + val) : "Escolher horário para hoje";
+    }
+
+    function selecionarTipoRecebimento(tipo) {
+      estadoCheckout.tipoRecebimento = tipo;
+      var btnEnt = document.getElementById('btn-tipo-entrega');
+      var btnRet = document.getElementById('btn-tipo-retirada');
+      var secEnd = document.getElementById('secao-endereco-entrega');
+      var titPag = document.getElementById('titulo-pagar-entrega');
+
+      if (tipo === 'Entrega') {
+        btnEnt.className = "p-3.5 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex flex-col items-center justify-center gap-1.5 text-[#411564] transition cursor-pointer";
+        btnRet.className = "p-3.5 rounded-2xl border border-gray-200 bg-white flex flex-col items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 transition cursor-pointer";
+        secEnd.classList.remove('hidden');
+        if (titPag) titPag.innerText = "Pagar na entrega";
+      } else {
+        btnRet.className = "p-3.5 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex flex-col items-center justify-center gap-1.5 text-[#411564] transition cursor-pointer";
+        btnEnt.className = "p-3.5 rounded-2xl border border-gray-200 bg-white flex flex-col items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 transition cursor-pointer";
+        secEnd.classList.add('hidden');
+        if (titPag) titPag.innerText = "Pagar na retirada";
+      }
+    }
+
+    function abrirFormNovoEndereco() {
+      var form = document.getElementById('form-inline-endereco');
+      form.classList.remove('hidden');
+      if (estadoCheckout.enderecoSalvo) {
+        document.getElementById('input-end-rua').value = estadoCheckout.enderecoSalvo.rua || '';
+        document.getElementById('input-end-numero').value = estadoCheckout.enderecoSalvo.numero || '';
+        document.getElementById('input-end-bairro').value = estadoCheckout.enderecoSalvo.bairro || '';
+        document.getElementById('input-end-comp').value = estadoCheckout.enderecoSalvo.comp || '';
+      }
+    }
+
+    function salvarEnderecoLocal() {
+      var rua = document.getElementById('input-end-rua').value.trim();
+      var numero = document.getElementById('input-end-numero').value.trim();
+      var bairro = document.getElementById('input-end-bairro').value.trim();
+      var comp = document.getElementById('input-end-comp').value.trim();
+
+      if (!rua || !numero || !bairro) {
+        alert("Preencha Rua, Número e Bairro para continuar.");
+        return;
+      }
+
+      estadoCheckout.enderecoSalvo = { rua: rua, numero: numero, bairro: bairro, comp: comp };
+      localStorage.setItem('acaizeiro_cli_end', JSON.stringify(estadoCheckout.enderecoSalvo));
+      document.getElementById('form-inline-endereco').classList.add('hidden');
+      exibirCartaoEnderecoSalvo();
+    }
+
+    function exibirCartaoEnderecoSalvo() {
+      var end = estadoCheckout.enderecoSalvo;
+      if (!end) return;
+      document.getElementById('card-endereco-salvo').classList.remove('hidden');
+      document.getElementById('label-btn-endereco').innerText = "Alterar endereço";
+      document.getElementById('end-salvo-rua').innerText = end.rua + ", " + end.numero + (end.comp ? " (" + end.comp + ")" : "");
+      document.getElementById('end-salvo-bairro').innerText = end.bairro + " - Ibitinga/SP";
+    }
+
+    // Seleções Etapa 2
+    function selecionarPagamento(valor, label) {
+      estadoCheckout.pagamentoValor = valor;
+      estadoCheckout.pagamentoLabel = label;
+
+      document.querySelectorAll('.pay-option').forEach(function(card) {
+        card.className = "pay-option p-4 rounded-2xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer transition";
+        var r = card.querySelector('.pay-radio');
+        if (r) {
+          r.className = "pay-radio w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center";
+          r.innerHTML = '';
+        }
+      });
+
+      var mapaIds = {
+        'Pix': 'pay-card-Pix',
+        'Dinheiro': 'pay-card-Dinheiro',
+        'Cartão de Crédito': 'pay-card-CartaoCredito',
+        'Cartão de Débito': 'pay-card-CartaoDebito'
+      };
+
+      var escolhido = document.getElementById(mapaIds[valor]);
+      if (escolhido) {
+        escolhido.className = "pay-option p-4 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex items-center justify-between cursor-pointer transition";
+        var rAtivo = escolhido.querySelector('.pay-radio');
+        if (rAtivo) {
+          rAtivo.className = "pay-radio w-5 h-5 rounded-full border-2 border-[#411564] flex items-center justify-center";
+          rAtivo.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-[#411564]"></div>';
+        }
+      }
+
+      var boxTroco = document.getElementById('box-troco-dinheiro');
+      if (valor === 'Dinheiro') {
+        boxTroco.classList.remove('hidden');
+      } else {
+        boxTroco.classList.add('hidden');
+      }
+
+      var btn = document.getElementById('btn-acao-checkout');
+      btn.disabled = false;
+      btn.className = "w-full bg-[#411564] hover:bg-purple-900 text-white font-extrabold py-3.5 rounded-2xl shadow-lg transition active:scale-95 text-sm cursor-pointer";
+    }
+
+    // Etapa 3: Preencher Resumo Final
+    function preencherResumoFinal() {
       var totais = calcularTotais();
+      var nome = document.getElementById('cliente-nome').value.trim();
+      var tel = document.getElementById('cliente-telefone').value.trim();
+
+      document.getElementById('resumo-final-tipo').innerText = estadoCheckout.tipoRecebimento;
+
+      if (estadoCheckout.tipoRecebimento === 'Entrega' && estadoCheckout.enderecoSalvo) {
+        var e = estadoCheckout.enderecoSalvo;
+        document.getElementById('resumo-final-endereco').innerText = e.rua + ", " + e.numero + (e.comp ? " - " + e.comp : "") + " • " + e.bairro;
+      } else {
+        document.getElementById('resumo-final-endereco').innerText = "Retirar no balcão da loja";
+      }
+
+      document.getElementById('resumo-final-tempo').innerText = (estadoCheckout.quando === 'Agendar') 
+        ? ("Agendado para Hoje às " + estadoCheckout.horarioAgendado) 
+        : "40-60 min";
+
+      var pagTexto = estadoCheckout.pagamentoLabel;
+      var troco = document.getElementById('input-troco-para').value.trim();
+      if (estadoCheckout.pagamentoValor === 'Dinheiro' && troco) {
+        pagTexto += " (" + troco + ")";
+      }
+      document.getElementById('resumo-final-pagamento').innerText = pagTexto;
+
+      document.getElementById('resumo-final-cliente').innerText = nome;
+      document.getElementById('resumo-final-telefone').innerText = tel;
+
+      document.getElementById('resumo-final-subtotal').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
+      document.getElementById('resumo-final-taxa').innerText = 'R$ ' + totais.taxa.toFixed(2).replace('.', ',');
+      document.getElementById('resumo-final-total').innerText = 'R$ ' + totais.total.toFixed(2).replace('.', ',');
+    }
+
+    // ==========================================
+    // ENVIO FINAL PARA SUPABASE
+    // ==========================================
+    async function enviarPedidoFinal() {
+      var btn = document.getElementById('btn-acao-checkout');
+      btn.disabled = true;
+      btn.innerText = "Enviando pedido...";
+
+      var nome = document.getElementById('cliente-nome').value.trim();
+      var tel = document.getElementById('cliente-telefone').value.trim();
+      var obsInput = document.getElementById('cliente-obs').value.trim();
+      var troco = document.getElementById('input-troco-para').value.trim();
+      var pagamento = estadoCheckout.pagamentoValor;
+      var totais = calcularTotais();
+
+      var enderecoFormatado = "Retirada na Loja";
+      if (estadoCheckout.tipoRecebimento === 'Entrega' && estadoCheckout.enderecoSalvo) {
+        var e = estadoCheckout.enderecoSalvo;
+        enderecoFormatado = e.rua + ", " + e.numero + (e.comp ? " (" + e.comp + ")" : "") + " - " + e.bairro;
+      }
+
+      var obsLista = [];
+      if (tel) obsLista.push("Tel: " + tel);
+      if (estadoCheckout.quando === 'Agendar') obsLista.push("AGENDADO: " + estadoCheckout.horarioAgendado);
+      if (pagamento === 'Dinheiro' && troco) obsLista.push("Troco: " + troco);
+      if (obsInput) obsLista.push(obsInput);
+      var obsFinal = obsLista.join(" | ");
 
       var itensParaSalvar = carrinho.map(function(item) {
         return {
@@ -521,15 +1101,14 @@
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE"
           );
 
-          // Salva com status 'Aguardando Aceite da Loja' para QUALQUER forma de pagamento
           var resPedido = await client.from('pedidos').insert([{
             cliente_nome: nome,
-            cliente_endereco: endereco,
+            cliente_endereco: enderecoFormatado,
             forma_pagamento: pagamento,
-            observacoes: obsGeral,
+            observacoes: obsFinal,
             itens: itensParaSalvar,
             subtotal: totais.subtotal,
-            taxa_entrega: config.taxaEntrega,
+            taxa_entrega: totais.taxa,
             total: totais.total,
             status: 'Aguardando Aceite da Loja'
           }]).select().single();
@@ -538,13 +1117,13 @@
             var pedidoSalvo = resPedido.data;
             fecharModalCheckout();
 
-            // Monta mensagem WhatsApp com número oficial do pedido
             var texto = '*PEDIDO #' + pedidoSalvo.id + ' - AÇAIZEIRO*\n\n';
-            texto += '*CLIENTE:* ' + nome + '\n';
-            texto += '*ENDEREÇO:* ' + endereco + '\n';
-            texto += '*PAGAMENTOo:* ' + pagamento + '\n';
-            if (obsGeral) texto += '*Obs Entrega:* ' + obsGeral + '\n';
-            texto += '\n* ITENS DO PEDIDO:*\n';
+            texto += '*CLIENTE:* ' + nome + ' (' + tel + ')\n';
+            texto += '*TIPO:* ' + estadoCheckout.tipoRecebimento + (estadoCheckout.quando === 'Agendar' ? ' (Agendado: ' + estadoCheckout.horarioAgendado + ')' : '') + '\n';
+            texto += '*ENDEREÇO:* ' + enderecoFormatado + '\n';
+            texto += '*PAGAMENTO:* ' + pagamento + '\n';
+            if (obsFinal) texto += '*Obs:* ' + obsFinal + '\n';
+            texto += '\n*ITENS DO PEDIDO:*\n';
 
             carrinho.forEach(function(item) {
               var sub = item.precoTotal * item.qtd;
@@ -558,12 +1137,11 @@
             });
 
             texto += '\n*SUBTOTAL:* R$ ' + totais.subtotal.toFixed(2).replace('.', ',') + '\n';
-            texto += '*TAXA DE ENTREGA:* R$ ' + config.taxaEntrega.toFixed(2).replace('.', ',') + '\n';
+            texto += '*TAXA DE ENTREGA:* R$ ' + totais.taxa.toFixed(2).replace('.', ',') + '\n';
             texto += '*TOTAL DO PEDIDO:* R$ ' + totais.total.toFixed(2).replace('.', ',') + '\n';
 
             textoPedidoWhatsApp = texto;
 
-            // Inicia tela de espera e sinal de aceite para TODOS os pedidos
             iniciarEsperaAceiteLoja(pedidoSalvo, totais.total, nome, pagamento);
             return;
           }
@@ -572,6 +1150,8 @@
         console.warn("Aviso ao salvar pedido:", errBanco);
       }
 
+      btn.disabled = false;
+      btn.innerText = "Finalizar Pedido";
       alert("Não foi possível conectar ao servidor para enviar o pedido. Tente novamente.");
     }
 
@@ -597,14 +1177,12 @@
             const status = dados[0].status;
             var isPix = (formaPagamento && formaPagamento.toLowerCase().indexOf('pix') !== -1);
 
-            // ACEITE PARA PIX
             if (isPix && status === "Aguardando Pagamento Pix") {
               clearInterval(window.intervaloAceite);
               modalEspera.style.display = "none";
               processarPagamentoPix(pedidoCriado, valorTotal, nomeCliente, '');
             }
 
-            // ACEITE PARA CARTÃO OU DINHEIRO (Loja muda para "Em preparo" ou "Aceito")
             if (!isPix && (status === "Em preparo" || status === "Aceito")) {
               clearInterval(window.intervaloAceite);
               modalEspera.style.display = "none";
@@ -619,7 +1197,6 @@
               }
             }
 
-            // RECUSADO PELA LOJA
             if (status === "Recusado") {
               clearInterval(window.intervaloAceite);
               modalEspera.style.display = "none";
@@ -704,13 +1281,38 @@
       document.head.appendChild(s);
     }, 200);
 
+    // ==========================================
+    // PIX COM CRONÔMETRO REGRESSIVO
+    // ==========================================
+    var intervaloTimerPix = null;
+
+    function iniciarCronometroPix() {
+      if (intervaloTimerPix) clearInterval(intervaloTimerPix);
+      var segundosRestantes = 30 * 60; // 30 minutos
+      var totalSegundos = segundosRestantes;
+
+      intervaloTimerPix = setInterval(function() {
+        segundosRestantes--;
+        if (segundosRestantes <= 0) {
+          clearInterval(intervaloTimerPix);
+          document.getElementById("pixTimerTexto").innerText = "00 : 00";
+          document.getElementById("pixTimerBarra").style.width = "0%";
+          return;
+        }
+        var min = String(Math.floor(segundosRestantes / 60)).padStart(2, '0');
+        var seg = String(segundosRestantes % 60).padStart(2, '0');
+        document.getElementById("pixTimerTexto").innerText = min + " : " + seg;
+
+        var pct = (segundosRestantes / totalSegundos) * 100;
+        document.getElementById("pixTimerBarra").style.width = pct + "%";
+      }, 1000);
+    }
+
     async function processarPagamentoPix(pedidoCriado, valorTotal, nomeCliente, emailCliente) {
       const modal = document.getElementById("modalPix");
       const carregando = document.getElementById("pixCarregando");
       const conteudo = document.getElementById("pixConteudo");
       const confirmado = document.getElementById("pixConfirmado");
-      const badgePix = document.getElementById("pixPedidoNumeroBadge");
-      if (badgePix) badgePix.innerText = "PEDIDO #" + pedidoCriado.id;
 
       modal.style.display = "flex";
       carregando.style.display = "block";
@@ -744,10 +1346,12 @@
 
         document.getElementById("pixQrImg").src = `data:image/png;base64,${data.qrCodeBase64}`;
         document.getElementById("pixCodigoCopia").value = data.qrCode;
+        document.getElementById("pixCodigoBox").innerText = data.qrCode;
 
         carregando.style.display = "none";
-        conteudo.style.display = "block";
+        conteudo.style.display = "flex";
 
+        iniciarCronometroPix();
         escutarConfirmacaoPix(pedidoCriado.id);
 
       } catch (err) {
@@ -774,6 +1378,7 @@
 
           if (dados && dados.length > 0 && dados[0].status === "Em preparo") {
             clearInterval(window.intervaloPix);
+            if (intervaloTimerPix) clearInterval(intervaloTimerPix);
 
             document.getElementById("modalPix").style.display = "none";
             carrinho = [];
@@ -791,26 +1396,25 @@
     }
 
     function cancelarModalPix() {
-      if (window.intervaloPix) {
-        clearInterval(window.intervaloPix);
-      }
+      if (window.intervaloPix) clearInterval(window.intervaloPix);
+      if (intervaloTimerPix) clearInterval(intervaloTimerPix);
       document.getElementById("modalPix").style.display = "none";
     }
 
     function copiarPixPayload() {
-      const input = document.getElementById("pixCodigoCopia");
-      input.select();
-      input.setSelectionRange(0, 99999);
-      navigator.clipboard.writeText(input.value);
+      const codigo = document.getElementById("pixCodigoCopia").value;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(codigo);
+      }
 
       const btn = document.getElementById("btnCopiarPix");
       const textoOriginal = btn.innerText;
       btn.innerText = "Código Copiado! ✓";
-      btn.style.background = "#28a745";
+      btn.style.background = "#16a34a";
 
       setTimeout(() => {
         btn.innerText = textoOriginal;
-        btn.style.background = "#6b117b";
+        btn.style.background = "#411564";
       }, 3000);
     }
 
