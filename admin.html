@@ -674,7 +674,7 @@
       var confirmacao = confirm("⚠️ ATENÇÃO!\n\nVocê está prestes a apagar todos os registros de vendas deste mês.\nEssa ação não pode ser desfeita. Recomendamos baixar o PDF antes de continuar.\n\nDeseja prosseguir?");
       if (!confirmacao) return;
 
-      var senhaDigitada = prompt("PARA CONFIRMAR A EXCLUSÃO, DIGITE SUA SENHA:");
+      var senhaDigitada = prompt("Para confirmar a exclusão, digite a Senha Mestra do Painel:");
       if (!senhaDigitada) return;
 
       if (senhaDigitada.trim() !== SENHA_MESTRA) {
@@ -685,15 +685,32 @@
       var sb = initClient();
       if (!sb) return;
 
-      var agora = new Date();
-      var ano = agora.getFullYear();
-      var mes = String(agora.getMonth() + 1).padStart(2, '0');
-      var inicioMesIso = ano + '-' + mes + '-01T00:00:00';
-
       try {
-        var res = await sb.from('pedidos').delete().gte('created_at', inicioMesIso);
+        var agora = new Date();
+        var ano = agora.getFullYear();
+        var mes = String(agora.getMonth() + 1).padStart(2, '0');
+        var inicioMesIso = ano + '-' + mes + '-01T00:00:00Z';
+
+        // 1. Busca os IDs do mês atual
+        var busca = await sb.from('pedidos').select('id').gte('created_at', inicioMesIso);
+        
+        if (busca.error) {
+          alert("Erro ao consultar pedidos para limpeza: " + busca.error.message);
+          return;
+        }
+
+        var ids = (busca.data || []).map(function(item) { return item.id; });
+
+        if (ids.length === 0) {
+          alert("Não há pedidos registrados neste mês para apagar.");
+          return;
+        }
+
+        // 2. Apaga pelos IDs encontrados
+        var res = await sb.from('pedidos').delete().in('id', ids);
+
         if (res.error) {
-          alert("Erro ao limpar dados no banco: " + res.error.message);
+          alert("Erro ao excluir registros no Supabase: " + res.error.message + "\n(Verifique as políticas RLS de DELETE na tabela pedidos)");
         } else {
           alert("✓ Histórico de vendas do mês limpo com sucesso!");
           carregarRelatorios();
