@@ -13,7 +13,7 @@
     @import url("https://db.onlinewebfonts.com/c/20e48b2ec8c64b2a1ceb5b28d9bcc9d0?family=Bryndan+Write");
     .fonte-bryndan { font-family: "Bryndan Write", cursive, sans-serif; letter-spacing: 1px; }
 
-    /* Estilos exclusivos para impressão de comanda térmica (80mm / 58mm) */
+    /* Estilos exclusivos para impressão de comanda térmica (50mm) */
     @media print {
       body * {
         visibility: hidden;
@@ -25,12 +25,14 @@
         position: absolute;
         left: 0;
         top: 0;
-        width: 80mm; /* Altere para 58mm se usar bobina menor */
+        width: 48mm; /* Área útil ideal para papel de 50mm sem cortar bordas */
         font-family: 'Courier New', Courier, monospace;
-        font-size: 12px;
+        font-size: 10px;
+        line-height: 1.2;
         color: #000;
         background: #fff;
-        padding: 4mm;
+        padding: 1.5mm;
+        box-sizing: border-box;
       }
       @page {
         margin: 0;
@@ -418,51 +420,51 @@
     }
 
     // ==========================================
-    // FUNÇÃO DE IMPRESSÃO DE COMANDA TÉRMICA
+    // FUNÇÃO DE IMPRESSÃO DE COMANDA TÉRMICA (50mm)
     // ==========================================
     function imprimirPedido(id) {
       var p = listaGlobalPedidos.find(function(x) { return x.id === id; });
       if (!p) return;
 
-      var dataHora = p.created_at ? new Date(p.created_at).toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR');
+      var dataHora = p.created_at ? new Date(p.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleString('pt-BR');
       
       var itensTexto = '';
       if (Array.isArray(p.itens)) {
         itensTexto = p.itens.map(function(i) {
-          var linha = '<div style="margin-bottom: 6px; border-bottom: 1px dashed #ccc; padding-bottom: 4px;">' +
-            '<strong>' + i.quantidade + 'x ' + i.nome + '</strong>';
+          var linha = '<div style="margin-bottom: 4px; border-bottom: 1px dashed #999; padding-bottom: 3px;">' +
+            '<strong style="font-size: 10px;">' + i.quantidade + 'x ' + i.nome + '</strong>';
           if (i.complementos && i.complementos.length > 0) {
-            linha += '<div style="padding-left: 8px; font-size: 11px;">+ ' + i.complementos.join('<br>+ ') + '</div>';
+            linha += '<div style="padding-left: 4px; font-size: 9px;">+ ' + i.complementos.join('<br>+ ') + '</div>';
           }
           if (i.observacao) {
-            linha += '<div style="padding-left: 8px; font-size: 11px; font-style: italic;">Obs: ' + i.observacao + '</div>';
+            linha += '<div style="padding-left: 4px; font-size: 9px; font-style: italic;">Obs: ' + i.observacao + '</div>';
           }
           linha += '</div>';
           return linha;
         }).join('');
       }
 
-      var obsGeral = p.observacoes ? '<div style="margin-top: 6px; font-weight: bold;">OBS GERAL: ' + p.observacoes + '</div>' : '';
+      var obsGeral = p.observacoes ? '<div style="margin-top: 4px; font-weight: bold; font-size: 9px;">OBS: ' + p.observacoes + '</div>' : '';
 
       var htmlCupom = 
-        '<div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 6px; margin-bottom: 6px;">' +
-          '<strong style="font-size: 15px;">AÇAIZEIRO DELIVERY</strong><br>' +
-          '<span style="font-size: 11px;">' + dataHora + '</span><br>' +
-          '<strong style="font-size: 14px;">PEDIDO #' + p.id + '</strong>' +
+        '<div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 4px; margin-bottom: 4px;">' +
+          '<strong style="font-size: 12px;">AÇAIZEIRO DELIVERY</strong><br>' +
+          '<span style="font-size: 9px;">' + dataHora + '</span><br>' +
+          '<strong style="font-size: 11px;">PEDIDO #' + p.id + '</strong>' +
         '</div>' +
-        '<div style="margin-bottom: 8px; font-size: 12px;">' +
-          '<strong>Cliente:</strong> ' + (p.cliente_nome || 'Não informado') + '<br>' +
-          '<strong>Endereço:</strong> ' + (p.cliente_endereco || 'Retirada') +
+        '<div style="margin-bottom: 6px; font-size: 10px;">' +
+          '<strong>Cli:</strong> ' + (p.cliente_nome || 'Não informado') + '<br>' +
+          '<strong>End:</strong> ' + (p.cliente_endereco || 'Retirada') +
         '</div>' +
-        '<div style="border-top: 1px dashed #000; padding-top: 6px; margin-bottom: 8px;">' +
+        '<div style="border-top: 1px dashed #000; padding-top: 4px; margin-bottom: 6px;">' +
           itensTexto +
           obsGeral +
         '</div>' +
-        '<div style="border-top: 1px dashed #000; padding-top: 6px; font-size: 13px;">' +
-          '<strong>Pagamento:</strong> ' + (p.forma_pagamento || '-') + '<br>' +
-          '<strong style="font-size: 15px;">TOTAL: R$ ' + Number(p.total || 0).toFixed(2).replace('.', ',') + '</strong>' +
+        '<div style="border-top: 1px dashed #000; padding-top: 4px; font-size: 10px;">' +
+          '<strong>Pagto:</strong> ' + (p.forma_pagamento || '-') + '<br>' +
+          '<strong style="font-size: 12px;">TOTAL: R$ ' + Number(p.total || 0).toFixed(2).replace('.', ',') + '</strong>' +
         '</div>' +
-        '<div style="text-align: center; margin-top: 12px; font-size: 10px;">' +
+        '<div style="text-align: center; margin-top: 8px; font-size: 9px;">' +
           '*** Obrigado pela preferência! ***' +
         '</div>';
 
