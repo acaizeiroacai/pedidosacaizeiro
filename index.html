@@ -539,12 +539,12 @@
             fecharModalCheckout();
 
             // Monta mensagem WhatsApp com número oficial do pedido
-            var texto = '* PEDIDO #' + pedidoSalvo.id + ' - AÇAIZEIRO*\n\n';
-            texto += '*Cliente:* ' + nome + '\n';
-            texto += '*Endereço:* ' + endereco + '\n';
-            texto += '*Pagamento:* ' + pagamento + '\n';
+            var texto = '*PEDIDO #' + pedidoSalvo.id + ' - AÇAIZEIRO*\n\n';
+            texto += '*CLIENTE:* ' + nome + '\n';
+            texto += '*ENDEREÇO:* ' + endereco + '\n';
+            texto += '*PAGAMENTOo:* ' + pagamento + '\n';
             if (obsGeral) texto += '*Obs Entrega:* ' + obsGeral + '\n';
-            texto += '\n*📋 ITENS DO PEDIDO:*\n';
+            texto += '\n* ITENS DO PEDIDO:*\n';
 
             carrinho.forEach(function(item) {
               var sub = item.precoTotal * item.qtd;
