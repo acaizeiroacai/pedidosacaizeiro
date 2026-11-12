@@ -7,6 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Biblioteca para gerar PDF diretamente no navegador -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     @import url("https://db.onlinewebfonts.com/c/20e48b2ec8c64b2a1ceb5b28d9bcc9d0?family=Bryndan+Write");
     .fonte-bryndan { font-family: "Bryndan Write", cursive, sans-serif; letter-spacing: 1px; }
@@ -88,54 +90,74 @@
           </h2>
           <p class="text-xs text-gray-500">Histórico completo de pedidos faturados e fechamento mensal.</p>
         </div>
-        <button onclick="carregarRelatorios()" class="bg-purple-100 hover:bg-purple-200 text-[#411564] font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer">
-          <i class="fa-solid fa-arrows-rotate"></i> Atualizar Relatório
-        </button>
-      </div>
-
-      <!-- Métricas Resumidas -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
-          <p class="text-xs text-gray-500 font-semibold uppercase">Faturamento Concluído</p>
-          <p class="text-2xl font-black text-emerald-600 mt-1" id="relatorio-total-faturado">R$ 0,00</p>
-          <span class="text-[11px] text-gray-400">Total do mês vigente</span>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
-          <p class="text-xs text-gray-500 font-semibold uppercase">Pedidos Concluídos</p>
-          <p class="text-2xl font-black text-[#411564] mt-1" id="relatorio-qtd-pedidos">0</p>
-          <span class="text-[11px] text-gray-400">Entregues com sucesso</span>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
-          <p class="text-xs text-gray-500 font-semibold uppercase">Ticket Médio</p>
-          <p class="text-2xl font-black text-blue-600 mt-1" id="relatorio-ticket-medio">R$ 0,00</p>
-          <span class="text-[11px] text-gray-400">Média por pedido</span>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="baixarRelatorioPDF()" id="btn-baixar-pdf" class="bg-red-700 hover:bg-red-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer">
+            <i class="fa-solid fa-file-pdf"></i> Baixar Relatório (PDF)
+          </button>
+          <button onclick="solicitarLimpezaMes()" class="bg-gray-100 hover:bg-red-50 text-red-600 border border-red-200 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer" title="Apagar registros fechados do mês com senha">
+            <i class="fa-solid fa-trash-can"></i> Limpar Mês
+          </button>
+          <button onclick="carregarRelatorios()" class="bg-purple-100 hover:bg-purple-200 text-[#411564] font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer">
+            <i class="fa-solid fa-arrows-rotate"></i> Atualizar
+          </button>
         </div>
       </div>
 
-      <!-- Tabela Detalhada -->
-      <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-gray-100 font-bold text-sm text-gray-800">
-          Listagem Geral de Pedidos do Mês
+      <!-- Área que será impressa no PDF -->
+      <div id="area-impressao-pdf" class="space-y-6 bg-transparent">
+        
+        <!-- Cabeçalho do PDF (Exibido apenas no arquivo exportado) -->
+        <div class="hidden print:block p-4 border-b border-gray-300 text-center" id="cabecalho-pdf">
+          <h1 class="text-2xl font-black text-[#411564]">AÇAIZEIRO DELIVERY</h1>
+          <p class="text-xs text-gray-500 font-medium">Relatório Oficial de Fechamento de Vendas</p>
+          <p class="text-[11px] text-gray-400 mt-1" id="pdf-data-emissao"></p>
         </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-gray-600">
-            <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100">
-              <tr>
-                <th class="p-3">#ID</th>
-                <th class="p-3">Data / Hora</th>
-                <th class="p-3">Cliente</th>
-                <th class="p-3">Pagamento</th>
-                <th class="p-3">Status</th>
-                <th class="p-3 text-right">Valor</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-relatorios-corpo" class="divide-y divide-gray-100 font-medium">
-              <tr>
-                <td colspan="6" class="p-6 text-center text-gray-400">A carregar dados do relatório...</td>
-              </tr>
-            </tbody>
-          </table>
+
+        <!-- Métricas Resumidas -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-xs text-gray-500 font-semibold uppercase">Faturamento Concluído</p>
+            <p class="text-2xl font-black text-emerald-600 mt-1" id="relatorio-total-faturado">R$ 0,00</p>
+            <span class="text-[11px] text-gray-400">Total do mês vigente</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-xs text-gray-500 font-semibold uppercase">Pedidos Concluídos</p>
+            <p class="text-2xl font-black text-[#411564] mt-1" id="relatorio-qtd-pedidos">0</p>
+            <span class="text-[11px] text-gray-400">Entregues com sucesso</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-xs text-gray-500 font-semibold uppercase">Ticket Médio</p>
+            <p class="text-2xl font-black text-blue-600 mt-1" id="relatorio-ticket-medio">R$ 0,00</p>
+            <span class="text-[11px] text-gray-400">Média por pedido</span>
+          </div>
         </div>
+
+        <!-- Tabela Detalhada -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-gray-100 font-bold text-sm text-gray-800">
+            Listagem Geral de Pedidos do Mês
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-600">
+              <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100">
+                <tr>
+                  <th class="p-3">#ID</th>
+                  <th class="p-3">Data / Hora</th>
+                  <th class="p-3">Cliente</th>
+                  <th class="p-3">Pagamento</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3 text-right">Valor</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-relatorios-corpo" class="divide-y divide-gray-100 font-medium">
+                <tr>
+                  <td colspan="6" class="p-6 text-center text-gray-400">A carregar dados do relatório...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -250,7 +272,7 @@
     var intervaloCampainha = null;
 
     // Carrega o arquivo de som (campainha.mp3 na raiz do projeto)
-    var somAlertaPedido = new Audio('pedido.mp3');
+    var somAlertaPedido = new Audio('campainha.mp3');
 
     function emitirBipeDelivery() {
       if (!somAtivo) return;
@@ -376,7 +398,6 @@
       }
 
       try {
-        // Filtra a partir das 00:00:00 da data atual no horário local
         var agora = new Date();
         var ano = agora.getFullYear();
         var mes = String(agora.getMonth() + 1).padStart(2, '0');
@@ -548,7 +569,7 @@
     }
 
     // ==========================================
-    // ABA 2: RELATÓRIOS DO MÊS
+    // ABA 2: RELATÓRIOS DO MÊS & EXPORTAÇÃO PDF
     // ==========================================
     async function carregarRelatorios() {
       var sb = initClient();
@@ -558,7 +579,6 @@
       tabela.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">A processar faturamento do mês...</td></tr>';
 
       try {
-        // Primeiro dia do mês vigente às 00:00:00
         var agora = new Date();
         var ano = agora.getFullYear();
         var mes = String(agora.getMonth() + 1).padStart(2, '0');
@@ -611,6 +631,76 @@
 
       } catch (e) {
         console.error("Erro no relatório:", e);
+      }
+    }
+
+    // Geração do PDF
+    function baixarRelatorioPDF() {
+      var elemento = document.getElementById('area-impressao-pdf');
+      var cabecalho = document.getElementById('cabecalho-pdf');
+      var btn = document.getElementById('btn-baixar-pdf');
+
+      // Define a data de emissão e mostra o cabeçalho no PDF
+      var dataAtual = new Date().toLocaleString('pt-BR');
+      document.getElementById('pdf-data-emissao').innerText = 'Emissão em: ' + dataAtual;
+      cabecalho.classList.remove('hidden');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Gerando PDF...';
+
+      var opcoes = {
+        margin: [10, 10, 10, 10],
+        filename: 'Relatorio_Vendas_Acaizeiro_' + new Date().toISOString().slice(0,7) + '.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opcoes).from(elemento).save().then(function() {
+        cabecalho.classList.add('hidden');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Baixar Relatório (PDF)';
+      }).catch(function(err) {
+        console.error("Erro ao gerar PDF:", err);
+        cabecalho.classList.add('hidden');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Baixar Relatório (PDF)';
+        alert("Ocorreu um erro ao gerar o arquivo PDF.");
+      });
+    }
+
+    // Exclusão do Mês com Senha Mestra
+    async function solicitarLimpezaMes() {
+      var confirmacao = confirm("⚠️ ATENÇÃO!\n\nVocê está prestes a apagar todos os registros de vendas deste mês.\nEssa ação não pode ser desfeita. Recomendamos baixar o PDF antes de continuar.\n\nDeseja prosseguir?");
+      if (!confirmacao) return;
+
+      var senhaDigitada = prompt("Para confirmar a exclusão, digite a Senha Mestra do Painel:");
+      if (!senhaDigitada) return;
+
+      if (senhaDigitada.trim() !== SENHA_MESTRA) {
+        alert("❌ Senha incorreta! Os registros foram mantidos intactos.");
+        return;
+      }
+
+      var sb = initClient();
+      if (!sb) return;
+
+      var agora = new Date();
+      var ano = agora.getFullYear();
+      var mes = String(agora.getMonth() + 1).padStart(2, '0');
+      var inicioMesIso = ano + '-' + mes + '-01T00:00:00';
+
+      try {
+        var res = await sb.from('pedidos').delete().gte('created_at', inicioMesIso);
+        if (res.error) {
+          alert("Erro ao limpar dados no banco: " + res.error.message);
+        } else {
+          alert("✓ Histórico de vendas do mês limpo com sucesso!");
+          carregarRelatorios();
+          carregarPedidos();
+        }
+      } catch (err) {
+        alert("Falha na operação: " + err.message);
       }
     }
 
