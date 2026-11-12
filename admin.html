@@ -65,7 +65,7 @@
     <!-- ABA 1: PEDIDOS -->
     <section id="aba-pedidos" class="max-w-5xl mx-auto p-4">
       <div class="flex gap-2 overflow-x-auto pb-3">
-        <button onclick="filtrarStatus('Todos')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white cursor-pointer" data-status="Todos">Todos</button>
+        <button onclick="filtrarStatus('Todos')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white cursor-pointer" data-status="Todos">Todos (Hoje)</button>
         <button onclick="filtrarStatus('Aguardando Aceite da Loja')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Aguardando Aceite da Loja">Novos (Aguardando Aceite)</button>
         <button onclick="filtrarStatus('Aguardando Pagamento Pix')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Aguardando Pagamento Pix">Aguardando Pix</button>
         <button onclick="filtrarStatus('Em preparo')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Em preparo">Em Preparação</button>
@@ -188,38 +188,20 @@
     var SENHA_MESTRA = "3944";
     var somAtivo = true;
     var intervaloCampainha = null;
-    var audioCtx = null;
-
-    function obterAudioContext() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-      return audioCtx;
-    }
 
     // Carrega o arquivo mp3 colocado na raiz do projeto
-var somAlertaPedido = new Audio('toque.mp3');
+    var somAlertaPedido = new Audio('campainha.mp3');
 
-// Função chamada sempre que entra um novo pedido
-function emitirBipeDelivery() {
-  if (!somAtivo) return;
-  try {
-    somAlertaPedido.currentTime = 0; // Reinicia o áudio do início caso toque em sequência
-    somAlertaPedido.play().catch(function(erro) {
-      console.warn("Áudio aguardando clique na página para ser liberado:", erro);
-    });
-  } catch (e) {
-    console.warn("Falha ao reproduzir áudio:", e);
-  }
-}
-
-        tocarSino(1046.50, agora, 1.0);
-        tocarSino(1567.98, agora + 0.18, 1.0);
+    // Função chamada sempre que entra um novo pedido
+    function emitirBipeDelivery() {
+      if (!somAtivo) return;
+      try {
+        somAlertaPedido.currentTime = 0;
+        somAlertaPedido.play().catch(function(erro) {
+          console.warn("Áudio aguardando clique na página para ser liberado:", erro);
+        });
       } catch (e) {
-        console.warn("Áudio:", e);
+        console.warn("Falha ao reproduzir áudio:", e);
       }
     }
 
@@ -228,7 +210,7 @@ function emitirBipeDelivery() {
       emitirBipeDelivery();
       intervaloCampainha = setInterval(function() {
         emitirBipeDelivery();
-      }, 2500);
+      }, 3500);
     }
 
     function pararAlarmeSonoro() {
@@ -240,7 +222,6 @@ function emitirBipeDelivery() {
 
     function alternarSom() {
       somAtivo = !somAtivo;
-      obterAudioContext();
       var icone = document.getElementById('icone-som');
       if (icone) {
         icone.className = somAtivo ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
@@ -260,7 +241,6 @@ function emitirBipeDelivery() {
       var valorDigitado = campo.value.trim();
 
       if (valorDigitado === SENHA_MESTRA) {
-        obterAudioContext();
         sessionStorage.setItem('admin_acaizeiro_auth', 'true');
         liberarAcesso();
       } else {
@@ -327,7 +307,16 @@ function emitirBipeDelivery() {
       }
 
       try {
-        var res = await sb.from('pedidos').select('*').order('id', { ascending: false }).limit(50);
+        // Limpeza automática do dia: busca apenas pedidos feitos a partir das 00:00 da data atual (Horário Local)
+        var hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        var inicioHojeIso = hoje.toISOString();
+
+        var res = await sb.from('pedidos')
+          .select('*')
+          .gte('created_at', inicioHojeIso)
+          .order('id', { ascending: false });
+
         if (res.error) {
           console.error("Erro ao carregar pedidos:", res.error);
           document.getElementById('lista-pedidos-admin').innerHTML = '<div class="col-span-full text-center py-8 text-red-500 text-sm">Erro ao carregar: ' + res.error.message + '</div>';
@@ -358,7 +347,7 @@ function emitirBipeDelivery() {
         : listaGlobalPedidos.filter(function(p) { return p.status === statusSelecionado; });
 
       if (filtrados.length === 0) {
-        container.innerHTML = '<div class="col-span-full bg-white p-8 rounded-xl shadow-sm text-center text-gray-400 text-sm">Nenhum pedido encontrado.</div>';
+        container.innerHTML = '<div class="col-span-full bg-white p-8 rounded-xl shadow-sm text-center text-gray-400 text-sm">Nenhum pedido recebido hoje até o momento.</div>';
         pararAlarmeSonoro();
         return;
       }
@@ -421,9 +410,9 @@ function emitirBipeDelivery() {
           '<div>' +
             '<div class="flex justify-between items-start mb-2">' +
               '<div>' +
-                '<span class="text-xs font-bold text-purple-900">#' + p.id + '</span>' +
+                '<span class="text-xs font-black bg-purple-100 text-purple-900 px-2 py-0.5 rounded-md">#' + p.id + '</span>' +
                 '<span class="text-[11px] text-gray-400 ml-1.5">' + hora + '</span>' +
-                '<h3 class="font-extrabold text-gray-900 text-base leading-tight">' + (p.cliente_nome || 'Cliente') + '</h3>' +
+                '<h3 class="font-extrabold text-gray-900 text-base leading-tight mt-1">' + (p.cliente_nome || 'Cliente') + '</h3>' +
               '</div>' +
               '<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border ' + badge + '">' + p.status + '</span>' +
             '</div>' +
@@ -451,6 +440,7 @@ function emitirBipeDelivery() {
       }
     }
 
+    // Aceita pedidos para Pix (gerando QR Code no site) e para Cartão/Dinheiro (colocando em preparo de imediato)
     async function aceitarPedido(id, formaPagamento) {
       var isPix = formaPagamento && formaPagamento.toLowerCase().indexOf('pix') !== -1;
       var novoStatus = isPix ? 'Aguardando Pagamento Pix' : 'Em preparo';
@@ -611,7 +601,6 @@ function emitirBipeDelivery() {
       var sb = initClient();
 
       try {
-        // Upload automático para o Supabase Storage se um ficheiro foi escolhido
         if (arquivoFoto) {
           var nomeArquivo = Date.now() + '_' + arquivoFoto.name.replace(/[^a-zA-Z0-9.]/g, '_');
           var uploadRes = await sb.storage.from('fotos-produtos').upload(nomeArquivo, arquivoFoto);
