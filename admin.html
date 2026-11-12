@@ -674,7 +674,7 @@
       var confirmacao = confirm("⚠️ ATENÇÃO!\n\nVocê está prestes a apagar todos os registros de vendas deste mês.\nEssa ação não pode ser desfeita. Recomendamos baixar o PDF antes de continuar.\n\nDeseja prosseguir?");
       if (!confirmacao) return;
 
-      var senhaDigitada = prompt("Para confirmar a exclusão, digite a Senha Mestra do Painel:");
+      var senhaDigitada = prompt("PARA CONFIRMAR A EXCLUSÃO, DIGITE SUA SENHA:");
       if (!senhaDigitada) return;
 
       if (senhaDigitada.trim() !== SENHA_MESTRA) {
