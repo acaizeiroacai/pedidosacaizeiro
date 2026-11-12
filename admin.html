@@ -12,6 +12,30 @@
   <style>
     @import url("https://db.onlinewebfonts.com/c/20e48b2ec8c64b2a1ceb5b28d9bcc9d0?family=Bryndan+Write");
     .fonte-bryndan { font-family: "Bryndan Write", cursive, sans-serif; letter-spacing: 1px; }
+
+    /* Estilos exclusivos para impressão de comanda térmica (80mm / 58mm) */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #area-cupom-termico, #area-cupom-termico * {
+        visibility: visible;
+      }
+      #area-cupom-termico {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 80mm; /* Altere para 58mm se usar bobina menor */
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 12px;
+        color: #000;
+        background: #fff;
+        padding: 4mm;
+      }
+      @page {
+        margin: 0;
+      }
+    }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800 antialiased min-h-screen">
@@ -269,6 +293,9 @@
     </div>
   </div>
 
+  <!-- Molde invisível do Cupom Térmico -->
+  <div id="area-cupom-termico" class="hidden print:block"></div>
+
   <script>
     var SENHA_MESTRA = "3944";
     var somAtivo = true;
@@ -391,6 +418,66 @@
     }
 
     // ==========================================
+    // FUNÇÃO DE IMPRESSÃO DE COMANDA TÉRMICA
+    // ==========================================
+    function imprimirPedido(id) {
+      var p = listaGlobalPedidos.find(function(x) { return x.id === id; });
+      if (!p) return;
+
+      var dataHora = p.created_at ? new Date(p.created_at).toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR');
+      
+      var itensTexto = '';
+      if (Array.isArray(p.itens)) {
+        itensTexto = p.itens.map(function(i) {
+          var linha = '<div style="margin-bottom: 6px; border-bottom: 1px dashed #ccc; padding-bottom: 4px;">' +
+            '<strong>' + i.quantidade + 'x ' + i.nome + '</strong>';
+          if (i.complementos && i.complementos.length > 0) {
+            linha += '<div style="padding-left: 8px; font-size: 11px;">+ ' + i.complementos.join('<br>+ ') + '</div>';
+          }
+          if (i.observacao) {
+            linha += '<div style="padding-left: 8px; font-size: 11px; font-style: italic;">Obs: ' + i.observacao + '</div>';
+          }
+          linha += '</div>';
+          return linha;
+        }).join('');
+      }
+
+      var obsGeral = p.observacoes ? '<div style="margin-top: 6px; font-weight: bold;">OBS GERAL: ' + p.observacoes + '</div>' : '';
+
+      var htmlCupom = 
+        '<div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 6px; margin-bottom: 6px;">' +
+          '<strong style="font-size: 15px;">AÇAIZEIRO DELIVERY</strong><br>' +
+          '<span style="font-size: 11px;">' + dataHora + '</span><br>' +
+          '<strong style="font-size: 14px;">PEDIDO #' + p.id + '</strong>' +
+        '</div>' +
+        '<div style="margin-bottom: 8px; font-size: 12px;">' +
+          '<strong>Cliente:</strong> ' + (p.cliente_nome || 'Não informado') + '<br>' +
+          '<strong>Endereço:</strong> ' + (p.cliente_endereco || 'Retirada') +
+        '</div>' +
+        '<div style="border-top: 1px dashed #000; padding-top: 6px; margin-bottom: 8px;">' +
+          itensTexto +
+          obsGeral +
+        '</div>' +
+        '<div style="border-top: 1px dashed #000; padding-top: 6px; font-size: 13px;">' +
+          '<strong>Pagamento:</strong> ' + (p.forma_pagamento || '-') + '<br>' +
+          '<strong style="font-size: 15px;">TOTAL: R$ ' + Number(p.total || 0).toFixed(2).replace('.', ',') + '</strong>' +
+        '</div>' +
+        '<div style="text-align: center; margin-top: 12px; font-size: 10px;">' +
+          '*** Obrigado pela preferência! ***' +
+        '</div>';
+
+      var area = document.getElementById('area-cupom-termico');
+      area.innerHTML = htmlCupom;
+      area.classList.remove('hidden');
+
+      window.print();
+
+      setTimeout(function() {
+        area.classList.add('hidden');
+      }, 500);
+    }
+
+    // ==========================================
     // ABA 1: PEDIDOS DO DIA
     // ==========================================
     async function carregarPedidos() {
@@ -508,7 +595,10 @@
                 '<span class="text-[11px] text-gray-400 ml-1.5">' + hora + '</span>' +
                 '<h3 class="font-extrabold text-gray-900 text-base leading-tight mt-1">' + (p.cliente_nome || 'Cliente') + '</h3>' +
               '</div>' +
-              '<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border ' + badge + '">' + p.status + '</span>' +
+              '<div class="flex items-center gap-1.5">' +
+                '<button onclick="imprimirPedido(' + p.id + ')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer" title="Imprimir Comanda"><i class="fa-solid fa-print"></i></button>' +
+                '<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border ' + badge + '">' + p.status + '</span>' +
+              '</div>' +
             '</div>' +
             '<p class="text-xs text-gray-600 mb-2 flex items-start gap-1">' +
               '<i class="fa-solid fa-location-dot mt-0.5 text-gray-400"></i>' +
@@ -547,6 +637,9 @@
       var p = listaGlobalPedidos.find(function(x) { return x.id === id; });
       if (p) p.status = novoStatus;
       renderizarPedidos();
+
+      // Imprime a comanda automaticamente ao aceitar o pedido
+      imprimirPedido(id);
     }
 
     async function recusarPedido(id) {
