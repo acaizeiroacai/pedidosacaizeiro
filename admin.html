@@ -39,7 +39,7 @@
   <div id="painel-conteudo" class="hidden">
     <!-- Topo / Cabeçalho -->
     <header class="bg-[#411564] text-white p-4 shadow-md sticky top-0 z-30">
-      <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <div class="max-w-5xl mx-auto flex items-center justify-between flex-wrap gap-3">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-black flex items-center justify-center overflow-hidden border border-purple-300">
             <img src="LOGO2.png" alt="Açaizeiro" class="w-full h-full object-contain p-0.5" onerror="this.onerror=null; this.src='PURO.png';">
@@ -50,11 +50,12 @@
           </div>
         </div>
         <!-- Alternador de Abas, Som e Logout -->
-        <div class="flex gap-2 items-center">
+        <div class="flex gap-2 items-center flex-wrap">
           <button onclick="alternarSom()" id="btn-som" class="bg-purple-950/60 hover:bg-purple-900 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="Ativar/Desativar som de alerta">
             <i id="icone-som" class="fa-solid fa-volume-high"></i>
           </button>
-          <button onclick="mudarAba('pedidos')" id="tab-btn-pedidos" class="bg-purple-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">Pedidos</button>
+          <button onclick="mudarAba('pedidos')" id="tab-btn-pedidos" class="bg-purple-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">Pedidos (Hoje)</button>
+          <button onclick="mudarAba('relatorios')" id="tab-btn-relatorios" class="bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">Relatórios</button>
           <button onclick="mudarAba('stock')" id="tab-btn-stock" class="bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">Cardápio & Estoque</button>
           <button onclick="carregarPedidos()" class="bg-purple-800 hover:bg-purple-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer" title="Atualizar dados"><i class="fa-solid fa-rotate-right"></i></button>
           <button onclick="sairPainel()" class="bg-red-800 hover:bg-red-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer" title="Sair do painel"><i class="fa-solid fa-right-from-bracket"></i></button>
@@ -62,7 +63,7 @@
       </div>
     </header>
 
-    <!-- ABA 1: PEDIDOS -->
+    <!-- ABA 1: PEDIDOS DO DIA -->
     <section id="aba-pedidos" class="max-w-5xl mx-auto p-4">
       <div class="flex gap-2 overflow-x-auto pb-3">
         <button onclick="filtrarStatus('Todos')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white cursor-pointer" data-status="Todos">Todos (Hoje)</button>
@@ -74,14 +75,73 @@
         <button onclick="filtrarStatus('Recusado')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Recusado">Recusados</button>
       </div>
       <div id="lista-pedidos-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="col-span-full text-center py-12 text-gray-400 text-sm">A carregar pedidos...</div>
+        <div class="col-span-full text-center py-12 text-gray-400 text-sm">A carregar pedidos de hoje...</div>
       </div>
     </section>
 
-    <!-- ABA 2: CARDÁPIO & ESTOQUE -->
+    <!-- ABA 2: RELATÓRIOS DO MÊS -->
+    <section id="aba-relatorios" class="max-w-5xl mx-auto p-4 hidden space-y-6">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h2 class="text-lg font-extrabold text-[#411564] flex items-center gap-2">
+            <i class="fa-solid fa-chart-line"></i> Relatório de Vendas do Mês
+          </h2>
+          <p class="text-xs text-gray-500">Histórico completo de pedidos faturados e fechamento mensal.</p>
+        </div>
+        <button onclick="carregarRelatorios()" class="bg-purple-100 hover:bg-purple-200 text-[#411564] font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer">
+          <i class="fa-solid fa-arrows-rotate"></i> Atualizar Relatório
+        </button>
+      </div>
+
+      <!-- Métricas Resumidas -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+          <p class="text-xs text-gray-500 font-semibold uppercase">Faturamento Concluído</p>
+          <p class="text-2xl font-black text-emerald-600 mt-1" id="relatorio-total-faturado">R$ 0,00</p>
+          <span class="text-[11px] text-gray-400">Total do mês vigente</span>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+          <p class="text-xs text-gray-500 font-semibold uppercase">Pedidos Concluídos</p>
+          <p class="text-2xl font-black text-[#411564] mt-1" id="relatorio-qtd-pedidos">0</p>
+          <span class="text-[11px] text-gray-400">Entregues com sucesso</span>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+          <p class="text-xs text-gray-500 font-semibold uppercase">Ticket Médio</p>
+          <p class="text-2xl font-black text-blue-600 mt-1" id="relatorio-ticket-medio">R$ 0,00</p>
+          <span class="text-[11px] text-gray-400">Média por pedido</span>
+        </div>
+      </div>
+
+      <!-- Tabela Detalhada -->
+      <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-100 font-bold text-sm text-gray-800">
+          Listagem Geral de Pedidos do Mês
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100">
+              <tr>
+                <th class="p-3">#ID</th>
+                <th class="p-3">Data / Hora</th>
+                <th class="p-3">Cliente</th>
+                <th class="p-3">Pagamento</th>
+                <th class="p-3">Status</th>
+                <th class="p-3 text-right">Valor</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-relatorios-corpo" class="divide-y divide-gray-100 font-medium">
+              <tr>
+                <td colspan="6" class="p-6 text-center text-gray-400">A carregar dados do relatório...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA 3: CARDÁPIO & ESTOQUE -->
     <section id="aba-stock" class="max-w-5xl mx-auto p-4 hidden space-y-6">
-      
-      <!-- Cartão: Gestão de Copos/Produtos -->
+      <!-- Copos / Produtos -->
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
         <div class="flex items-center justify-between pb-4 border-b border-gray-100 flex-wrap gap-2">
           <div>
@@ -99,7 +159,7 @@
         </div>
       </div>
 
-      <!-- Cartão: Gestão de Complementos/Adicionais -->
+      <!-- Complementos -->
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
         <div class="flex items-center justify-between pb-4 border-b border-gray-100 flex-wrap gap-2">
           <div>
@@ -189,19 +249,18 @@
     var somAtivo = true;
     var intervaloCampainha = null;
 
-    // Carrega o arquivo mp3 colocado na raiz do projeto
+    // Carrega o arquivo de som (campainha.mp3 na raiz do projeto)
     var somAlertaPedido = new Audio('pedido.mp3');
 
-    // Função chamada sempre que entra um novo pedido
     function emitirBipeDelivery() {
       if (!somAtivo) return;
       try {
         somAlertaPedido.currentTime = 0;
         somAlertaPedido.play().catch(function(erro) {
-          console.warn("Áudio aguardando clique na página para ser liberado:", erro);
+          console.warn("Áudio aguardando clique inicial na tela:", erro);
         });
       } catch (e) {
-        console.warn("Falha ao reproduzir áudio:", e);
+        console.warn("Falha ao tocar som:", e);
       }
     }
 
@@ -271,7 +330,7 @@
       location.reload();
     }
 
-    // SUPABASE E GESTÃO
+    // SUPABASE
     var SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
     var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
     var client = null;
@@ -288,17 +347,27 @@
       return client;
     }
 
+    // Controle de Abas
     function mudarAba(aba) {
-      ['pedidos', 'stock'].forEach(function(a) {
-        document.getElementById('aba-' + a).classList.add('hidden');
-        document.getElementById('tab-btn-' + a).className = "bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer";
+      ['pedidos', 'relatorios', 'stock'].forEach(function(a) {
+        var el = document.getElementById('aba-' + a);
+        var btn = document.getElementById('tab-btn-' + a);
+        if (el) el.classList.add('hidden');
+        if (btn) btn.className = "bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer";
       });
-      document.getElementById('aba-' + aba).classList.remove('hidden');
-      document.getElementById('tab-btn-' + aba).className = "bg-purple-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer";
+
+      var ativa = document.getElementById('aba-' + aba);
+      var btnAtivo = document.getElementById('tab-btn-' + aba);
+      if (ativa) ativa.classList.remove('hidden');
+      if (btnAtivo) btnAtivo.className = "bg-purple-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer";
 
       if (aba === 'stock') carregarStock();
+      if (aba === 'relatorios') carregarRelatorios();
     }
 
+    // ==========================================
+    // ABA 1: PEDIDOS DO DIA
+    // ==========================================
     async function carregarPedidos() {
       var sb = initClient();
       if (!sb) {
@@ -307,10 +376,12 @@
       }
 
       try {
-        // Limpeza automática do dia: busca apenas pedidos feitos a partir das 00:00 da data atual (Horário Local)
-        var hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
-        var inicioHojeIso = hoje.toISOString();
+        // Filtra a partir das 00:00:00 da data atual no horário local
+        var agora = new Date();
+        var ano = agora.getFullYear();
+        var mes = String(agora.getMonth() + 1).padStart(2, '0');
+        var dia = String(agora.getDate()).padStart(2, '0');
+        var inicioHojeIso = ano + '-' + mes + '-' + dia + 'T00:00:00';
 
         var res = await sb.from('pedidos')
           .select('*')
@@ -319,7 +390,6 @@
 
         if (res.error) {
           console.error("Erro ao carregar pedidos:", res.error);
-          document.getElementById('lista-pedidos-admin').innerHTML = '<div class="col-span-full text-center py-8 text-red-500 text-sm">Erro ao carregar: ' + res.error.message + '</div>';
           return;
         }
 
@@ -440,7 +510,6 @@
       }
     }
 
-    // Aceita pedidos para Pix (gerando QR Code no site) e para Cartão/Dinheiro (colocando em preparo de imediato)
     async function aceitarPedido(id, formaPagamento) {
       var isPix = formaPagamento && formaPagamento.toLowerCase().indexOf('pix') !== -1;
       var novoStatus = isPix ? 'Aguardando Pagamento Pix' : 'Em preparo';
@@ -457,12 +526,12 @@
     }
 
     async function recusarPedido(id) {
-      if (!confirm("Tem certeza que deseja recusar este pedido? O cliente será avisado imediatamente no site.")) return;
+      if (!confirm("Tem certeza que deseja recusar este pedido? O cliente será avisado no site.")) return;
 
       var sb = initClient();
       var res = await sb.from('pedidos').update({ status: 'Recusado' }).eq('id', id);
       if (res.error) {
-        alert("Erro ao recusar pedido: " + res.error.message);
+        alert("Erro ao recusar: " + res.error.message);
         return;
       }
       var p = listaGlobalPedidos.find(function(x) { return x.id === id; });
@@ -479,9 +548,75 @@
     }
 
     // ==========================================
-    // GESTÃO DE CARDÁPIO E ESTOQUE (PRODUTOS & COMPLEMENTOS)
+    // ABA 2: RELATÓRIOS DO MÊS
     // ==========================================
+    async function carregarRelatorios() {
+      var sb = initClient();
+      if (!sb) return;
 
+      var tabela = document.getElementById('tabela-relatorios-corpo');
+      tabela.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">A processar faturamento do mês...</td></tr>';
+
+      try {
+        // Primeiro dia do mês vigente às 00:00:00
+        var agora = new Date();
+        var ano = agora.getFullYear();
+        var mes = String(agora.getMonth() + 1).padStart(2, '0');
+        var inicioMesIso = ano + '-' + mes + '-01T00:00:00';
+
+        var res = await sb.from('pedidos')
+          .select('*')
+          .gte('created_at', inicioMesIso)
+          .order('id', { ascending: false });
+
+        if (res.error) {
+          tabela.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-red-500">Erro: ' + res.error.message + '</td></tr>';
+          return;
+        }
+
+        var todosDoMes = res.data || [];
+        var concluidos = todosDoMes.filter(function(p) { return p.status === 'Concluído'; });
+
+        var totalFaturado = 0;
+        concluidos.forEach(function(p) { totalFaturado += Number(p.total || 0); });
+
+        var qtdConcluidos = concluidos.length;
+        var ticketMedio = qtdConcluidos > 0 ? (totalFaturado / qtdConcluidos) : 0;
+
+        document.getElementById('relatorio-total-faturado').innerText = 'R$ ' + totalFaturado.toFixed(2).replace('.', ',');
+        document.getElementById('relatorio-qtd-pedidos').innerText = qtdConcluidos;
+        document.getElementById('relatorio-ticket-medio').innerText = 'R$ ' + ticketMedio.toFixed(2).replace('.', ',');
+
+        if (todosDoMes.length === 0) {
+          tabela.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Nenhum pedido registrado neste mês até o momento.</td></tr>';
+          return;
+        }
+
+        tabela.innerHTML = todosDoMes.map(function(p) {
+          var dataFormatada = p.created_at ? new Date(p.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
+          var corStatus = 'text-gray-600 bg-gray-100';
+          if (p.status === 'Concluído') corStatus = 'text-green-700 bg-green-50 border border-green-200';
+          if (p.status === 'Recusado') corStatus = 'text-rose-700 bg-rose-50 border border-rose-200';
+          if (p.status === 'Em preparo' || p.status === 'Saiu para entrega') corStatus = 'text-purple-700 bg-purple-50 border border-purple-200';
+
+          return '<tr class="hover:bg-gray-50/80 transition">' +
+            '<td class="p-3 font-bold text-purple-900">#' + p.id + '</td>' +
+            '<td class="p-3 whitespace-nowrap">' + dataFormatada + '</td>' +
+            '<td class="p-3 font-semibold text-gray-800">' + (p.cliente_nome || 'Cliente') + '</td>' +
+            '<td class="p-3">' + (p.forma_pagamento || '-') + '</td>' +
+            '<td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ' + corStatus + '">' + p.status + '</span></td>' +
+            '<td class="p-3 text-right font-black text-gray-900">R$ ' + Number(p.total || 0).toFixed(2).replace('.', ',') + '</td>' +
+          '</tr>';
+        }).join('');
+
+      } catch (e) {
+        console.error("Erro no relatório:", e);
+      }
+    }
+
+    // ==========================================
+    // ABA 3: CARDÁPIO & ESTOQUE
+    // ==========================================
     async function carregarStock() {
       var sb = initClient();
       var rCopos = await sb.from('CARDAPIO ACAIZEIRO').select('*').order('id');
