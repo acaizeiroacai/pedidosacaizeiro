@@ -453,7 +453,7 @@
           '<strong style="font-size: 11px;">PEDIDO #' + p.id + '</strong>' +
         '</div>' +
         '<div style="margin-bottom: 6px; font-size: 10px;">' +
-          '<strong>Cli:</strong> ' + (p.cliente_nome || 'Não informado') + '<br>' +
+          '<strong>Cliente:</strong> ' + (p.cliente_nome || 'Não informado') + '<br>' +
           '<strong>End:</strong> ' + (p.cliente_endereco || 'Retirada') +
         '</div>' +
         '<div style="border-top: 1px dashed #000; padding-top: 4px; margin-bottom: 6px;">' +
@@ -465,7 +465,7 @@
           '<strong style="font-size: 12px;">TOTAL: R$ ' + Number(p.total || 0).toFixed(2).replace('.', ',') + '</strong>' +
         '</div>' +
         '<div style="text-align: center; margin-top: 8px; font-size: 9px;">' +
-          '*** Obrigado pela preferência! ***' +
+          
         '</div>';
 
       var area = document.getElementById('area-cupom-termico');
