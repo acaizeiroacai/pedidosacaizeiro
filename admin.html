@@ -217,7 +217,10 @@
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-bold text-gray-700 mb-1">Categoria *</label>
-            <input type="text" id="prod-categoria" required placeholder="Ex: Copos Especiais" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
+            <select id="prod-categoria-select" onchange="verificarNovaCategoria()" required class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600 bg-white">
+              <option value="">Selecione...</option>
+            </select>
+            <input type="text" id="prod-categoria-nova" placeholder="Nome da nova categoria..." class="hidden w-full border border-purple-400 bg-purple-50/40 rounded-xl p-2.5 text-xs outline-purple-600 mt-1.5">
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-700 mb-1">Preço (R$) *</label>
@@ -640,7 +643,6 @@
       var cabecalho = document.getElementById('cabecalho-pdf');
       var btn = document.getElementById('btn-baixar-pdf');
 
-      // Define a data de emissão e mostra o cabeçalho no PDF
       var dataAtual = new Date().toLocaleString('pt-BR');
       document.getElementById('pdf-data-emissao').innerText = 'Emissão em: ' + dataAtual;
       cabecalho.classList.remove('hidden');
@@ -691,7 +693,6 @@
         var mes = String(agora.getMonth() + 1).padStart(2, '0');
         var inicioMesIso = ano + '-' + mes + '-01T00:00:00Z';
 
-        // 1. Busca os IDs do mês atual
         var busca = await sb.from('pedidos').select('id').gte('created_at', inicioMesIso);
         
         if (busca.error) {
@@ -706,7 +707,6 @@
           return;
         }
 
-        // 2. Apaga pelos IDs encontrados
         var res = await sb.from('pedidos').delete().in('id', ids);
 
         if (res.error) {
@@ -801,10 +801,58 @@
       }
     }
 
-    // Modais e Upload de Fotos
+    // ==========================================
+    // MODAIS E SELETOR DE CATEGORIAS
+    // ==========================================
+    function popularSelectCategorias(categoriaSelecionada) {
+      var select = document.getElementById('prod-categoria-select');
+      var inputNova = document.getElementById('prod-categoria-nova');
+      if (!select) return;
+
+      var mapaCats = {};
+      listaGlobalProdutos.forEach(function(p) {
+        if (p.categoria && p.categoria.trim() !== "") {
+          var chave = p.categoria.trim().toLowerCase();
+          if (!mapaCats[chave]) {
+            mapaCats[chave] = p.categoria.trim();
+          }
+        }
+      });
+
+      var listaCats = Object.values(mapaCats).sort();
+
+      var htmlOptions = '<option value="">Selecione...</option>';
+      listaCats.forEach(function(cat) {
+        var selected = (categoriaSelecionada && categoriaSelecionada.trim().toLowerCase() === cat.toLowerCase()) ? 'selected' : '';
+        htmlOptions += '<option value="' + cat + '" ' + selected + '>' + cat + '</option>';
+      });
+      htmlOptions += '<option value="__NOVA__" class="font-bold text-purple-800">+ Criar nova categoria...</option>';
+
+      select.innerHTML = htmlOptions;
+
+      inputNova.value = "";
+      inputNova.classList.add('hidden');
+      inputNova.required = false;
+    }
+
+    function verificarNovaCategoria() {
+      var select = document.getElementById('prod-categoria-select');
+      var inputNova = document.getElementById('prod-categoria-nova');
+      if (select.value === '__NOVA__') {
+        inputNova.classList.remove('hidden');
+        inputNova.required = true;
+        inputNova.focus();
+      } else {
+        inputNova.classList.add('hidden');
+        inputNova.required = false;
+        inputNova.value = "";
+      }
+    }
+
     function abrirModalProduto() {
       document.getElementById('prod-edit-id').value = "";
       document.getElementById('form-cad-produto').reset();
+      popularSelectCategorias("");
       document.getElementById('titulo-modal-produto').innerText = "Novo Produto";
       document.getElementById('modal-form-produto').classList.remove('hidden');
     }
@@ -818,7 +866,7 @@
       if (!prod) return;
       document.getElementById('prod-edit-id').value = prod.id;
       document.getElementById('prod-nome').value = prod.nome || '';
-      document.getElementById('prod-categoria').value = prod.categoria || '';
+      popularSelectCategorias(prod.categoria || '');
       document.getElementById('prod-preco').value = prod.preco || '';
       document.getElementById('prod-desc').value = prod.descricao || '';
       document.getElementById('prod-foto-url').value = prod.imagem_url || '';
@@ -834,7 +882,18 @@
 
       var id = document.getElementById('prod-edit-id').value;
       var nome = document.getElementById('prod-nome').value.trim();
-      var categoria = document.getElementById('prod-categoria').value.trim();
+      
+      var selectCat = document.getElementById('prod-categoria-select').value;
+      var novaCat = document.getElementById('prod-categoria-nova').value.trim();
+      var categoria = (selectCat === '__NOVA__') ? novaCat : selectCat.trim();
+
+      if (!categoria) {
+        alert("Por favor, selecione ou digite o nome da categoria.");
+        btn.innerText = "Guardar Item";
+        btn.disabled = false;
+        return;
+      }
+
       var preco = parseFloat(document.getElementById('prod-preco').value) || 0;
       var desc = document.getElementById('prod-desc').value.trim();
       var urlFoto = document.getElementById('prod-foto-url').value.trim();
