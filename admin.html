@@ -108,9 +108,9 @@
                 <span class="flex items-center gap-2.5"><i class="fa-solid fa-users w-4 text-center"></i> Clientes</span>
                 <span class="text-[9px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded">Etapa 6</span>
               </button>
-              <button onclick="mudarAba('estoque')" id="nav-btn-estoque" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-purple-200/80 hover:bg-purple-800/60 transition cursor-pointer">
+              <button onclick="mudarAba('estoque')" id="nav-btn-estoque" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-purple-100 hover:bg-purple-800/60 transition cursor-pointer">
                 <span class="flex items-center gap-2.5"><i class="fa-solid fa-boxes-stacked w-4 text-center"></i> Estoque</span>
-                <span class="text-[9px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded">Etapa 5</span>
+                <span id="badge-alerta-estoque" class="hidden bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">0</span>
               </button>
               <button onclick="mudarAba('precificacao')" id="nav-btn-precificacao" class="nav-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold text-purple-100 hover:bg-purple-800/60 transition cursor-pointer">
                 <i class="fa-solid fa-calculator w-4 text-center"></i> Precificação e ficha técnica
@@ -738,10 +738,9 @@
       </section>
 
       <!-- ========================================================= -->
-      <!-- ABA 6: FECHAMENTO DE CAIXA (ETAPA 4)                      -->
+      <!-- ABA 6: FECHAMENTO DE CAIXA                                -->
       <!-- ========================================================= -->
       <section id="aba-caixa" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
-        
         <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-wrap items-end justify-between gap-3">
           <div class="flex flex-wrap items-end gap-3">
             <div>
@@ -763,12 +762,8 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <!-- Resumo do Sistema + Conferência Física -->
           <div class="lg:col-span-5 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-            <h3 class="text-sm font-extrabold text-[#411564] border-b pb-2 flex items-center gap-2">
-              <i class="fa-solid fa-cash-register"></i> Conferência & Fechamento
-            </h3>
-
+            <h3 class="text-sm font-extrabold text-[#411564] border-b pb-2 flex items-center gap-2"><i class="fa-solid fa-cash-register"></i> Conferência & Fechamento</h3>
             <div class="grid grid-cols-2 gap-2.5 text-xs">
               <div class="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100">
                 <p class="text-[10px] font-bold text-emerald-800 uppercase">Total Vendas Concluídas</p>
@@ -825,7 +820,6 @@
             </form>
           </div>
 
-          <!-- Histórico de Fechamentos + Auditoria de Alterações -->
           <div class="lg:col-span-7 space-y-6">
             <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div class="p-4 border-b border-gray-100 flex items-center justify-between">
@@ -847,9 +841,7 @@
             </div>
 
             <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm space-y-2">
-              <h4 class="text-xs font-extrabold text-gray-700 uppercase flex items-center gap-1.5">
-                <i class="fa-solid fa-clock-rotate-left text-purple-700"></i> Log de Auditoria de Retificações
-              </h4>
+              <h4 class="text-xs font-extrabold text-gray-700 uppercase flex items-center gap-1.5"><i class="fa-solid fa-clock-rotate-left text-purple-700"></i> Log de Auditoria de Retificações</h4>
               <div id="lista-auditoria-caixa" class="space-y-1.5 text-xs text-gray-600 max-h-44 overflow-y-auto">
                 <p class="text-gray-400">Nenhuma retificação registrada.</p>
               </div>
@@ -859,7 +851,122 @@
       </section>
 
       <!-- ========================================================= -->
-      <!-- ABA 7: CONFIGURAÇÕES DA LOJA                              -->
+      <!-- ABA 7: ESTOQUE INTEGRADO (ETAPA 5)                        -->
+      <!-- ========================================================= -->
+      <section id="aba-estoque" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold text-gray-500 uppercase">Insumos Monitorados</p>
+              <p class="text-2xl font-black text-[#411564] mt-1" id="est-card-total">0</p>
+            </div>
+            <span class="w-10 h-10 rounded-xl bg-purple-50 text-[#411564] flex items-center justify-center text-lg"><i class="fa-solid fa-boxes-stacked"></i></span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-amber-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold text-amber-700 uppercase">Estoque Baixo (Abaixo do Mín.)</p>
+              <p class="text-2xl font-black text-amber-600 mt-1" id="est-card-baixo">0</p>
+            </div>
+            <span class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg"><i class="fa-solid fa-triangle-exclamation"></i></span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-rose-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold text-rose-700 uppercase">Estoque Zerado / Negativo</p>
+              <p class="text-2xl font-black text-rose-600 mt-1" id="est-card-zerado">0</p>
+            </div>
+            <span class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg"><i class="fa-solid fa-circle-xmark"></i></span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-5 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+            <h3 class="text-sm font-extrabold text-[#411564] border-b pb-2 flex items-center gap-2"><i class="fa-solid fa-right-left"></i> Movimentação Manual de Estoque</h3>
+            <form onsubmit="registrarMovimentacaoEstoqueManual(event)" class="space-y-3">
+              <div>
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Insumo / Embalagem *</label>
+                <select id="est-mov-insumo" required onchange="atualizarUnidadesMovEstoque()" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600 bg-white">
+                  <option value="">Selecione...</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Tipo de Movimentação *</label>
+                <select id="est-mov-tipo" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600 bg-white">
+                  <option value="Entrada">Entrada de Compra (+)</option>
+                  <option value="Saída Manual">Saída Manual (-)</option>
+                  <option value="Perda / Desperdício">Perda / Desperdício (-)</option>
+                  <option value="Ajuste Inventário">Ajuste de Inventário (Definir Saldo Exato)</option>
+                </select>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Quantidade *</label>
+                  <input type="number" step="0.001" id="est-mov-qtd" required placeholder="Ex: 10" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Unidade</label>
+                  <select id="est-mov-unidade" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600 bg-white"><option value="kg">kg</option></select>
+                </div>
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Motivo / Observação</label>
+                <input type="text" id="est-mov-motivo" placeholder="Ex: Compra distribuidora / Contagem semanal" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+              </div>
+              <button type="submit" id="btn-registrar-mov-est" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-extrabold py-2.5 rounded-xl text-xs shadow transition cursor-pointer">
+                Confirmar Movimentação
+              </button>
+            </form>
+            <p class="text-[11px] text-gray-500 bg-purple-50/70 p-2.5 rounded-xl border border-purple-100">
+              <i class="fa-solid fa-circle-info text-[#411564] mr-1"></i> O consumo de produção é descontado automaticamente uma única vez quando um pedido é marcado como <strong>Concluído</strong>.
+            </p>
+          </div>
+
+          <div class="lg:col-span-7 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+            <div class="p-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+              <h3 class="text-sm font-extrabold text-[#411564]">Posição Atual de Estoque</h3>
+              <select id="est-filtro-situacao" onchange="renderizarTabelaEstoque()" class="border border-gray-300 rounded-xl px-2.5 py-1 text-xs outline-purple-600 bg-white">
+                <option value="Todos">Todos os insumos</option>
+                <option value="Baixo">Abaixo do mínimo</option>
+                <option value="Zerado">Zerados / Negativos</option>
+              </select>
+            </div>
+            <div class="overflow-x-auto flex-1 max-h-[420px]">
+              <table class="w-full text-left text-xs text-gray-600">
+                <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100 sticky top-0">
+                  <tr>
+                    <th class="p-3">Insumo</th><th class="p-3 text-right">Saldo Atual</th><th class="p-3 text-center">Estoque Mín.</th><th class="p-3 text-center">Situação</th>
+                  </tr>
+                </thead>
+                <tbody id="tabela-posicao-estoque" class="divide-y divide-gray-100 font-medium">
+                  <tr><td colspan="4" class="p-6 text-center text-gray-400">A carregar saldos de estoque...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-sm font-extrabold text-[#411564]">Histórico Recente de Movimentações</h3>
+            <button onclick="carregarModuloEstoque()" class="text-xs font-bold text-purple-700 hover:underline cursor-pointer">Atualizar</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-600">
+              <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100">
+                <tr>
+                  <th class="p-3">Data / Hora</th><th class="p-3">Insumo</th><th class="p-3">Tipo</th><th class="p-3 text-right">Qtd.</th><th class="p-3 text-right">Saldo Antes → Depois</th><th class="p-3">Motivo / Pedido</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-movimentacoes-estoque" class="divide-y divide-gray-100 font-medium">
+                <tr><td colspan="6" class="p-6 text-center text-gray-400">A carregar movimentações...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- ABA 8: CONFIGURAÇÕES DA LOJA                              -->
       <!-- ========================================================= -->
       <section id="aba-config" class="max-w-3xl w-full mx-auto p-4 hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-5">
@@ -1079,6 +1186,7 @@
       inicializarConfigDashboard();
       mudarAba('dashboard');
       carregarPedidos();
+      carregarModuloEstoque();
       setInterval(carregarPedidos, 12000);
     }
 
@@ -1115,6 +1223,7 @@
       if (abaAtual === 'precificacao') carregarModuloPrecificacao();
       if (abaAtual === 'financeiro') carregarModuloFinanceiro();
       if (abaAtual === 'caixa') carregarModuloCaixa();
+      if (abaAtual === 'estoque') carregarModuloEstoque();
       if (abaAtual === 'config') carregarConfiguracoesLoja();
     }
 
@@ -1126,7 +1235,7 @@
         sb.classList.add('-translate-x-full'); ov.classList.add('hidden');
       }
 
-      ['dashboard', 'pedidos', 'relatorios', 'stock', 'precificacao', 'financeiro', 'caixa', 'config', 'em-breve'].forEach(function(a) {
+      ['dashboard', 'pedidos', 'relatorios', 'stock', 'precificacao', 'financeiro', 'caixa', 'estoque', 'config', 'em-breve'].forEach(function(a) {
         var el = document.getElementById('aba-' + a);
         if (el) el.classList.add('hidden');
       });
@@ -1146,10 +1255,10 @@
         precificacao: ['Precificação e Ficha Técnica', 'Insumos, fichas técnicas persistentes e rentabilidade'],
         financeiro: ['Controle Financeiro', 'Entradas, despesas operacionais, recorrências e resultado'],
         caixa: ['Fechamento de Caixa', 'Conferência diária de pagamentos, gaveta e histórico auditado'],
+        estoque: ['Estoque Integrado', 'Saldos de insumos, alertas mínimos e baixa automática por venda'],
         config: ['Configurações da Loja', 'WhatsApp, taxa de entrega e modo de recebimento Pix'],
         entregas: ['Entregas e Motoboys', 'Programado para a Etapa 7 do cronograma'],
         clientes: ['Base de Clientes', 'Programado para a Etapa 6 do cronograma'],
-        estoque: ['Controle de Estoque', 'Programado para a Etapa 5 do cronograma'],
         desempenho: ['Desempenho dos Produtos', 'Programado para a Etapa 8 do cronograma'],
         rentabilidade: ['Análise de Rentabilidade', 'Programado para a Etapa 8 do cronograma']
       };
@@ -1158,7 +1267,7 @@
       document.getElementById('titulo-pagina-atual').innerText = info[0];
       document.getElementById('subtitulo-pagina-atual').innerText = info[1];
 
-      var modulosFuturos = ['entregas', 'clientes', 'estoque', 'desempenho', 'rentabilidade'];
+      var modulosFuturos = ['entregas', 'clientes', 'desempenho', 'rentabilidade'];
       if (modulosFuturos.indexOf(aba) !== -1) {
         document.getElementById('aba-em-breve').classList.remove('hidden');
         document.getElementById('titulo-modulo-futuro').innerText = info[0];
@@ -1176,6 +1285,7 @@
       if (aba === 'precificacao') carregarModuloPrecificacao();
       if (aba === 'financeiro') carregarModuloFinanceiro();
       if (aba === 'caixa') carregarModuloCaixa();
+      if (aba === 'estoque') carregarModuloEstoque();
       if (aba === 'config') carregarConfiguracoesLoja();
     }
 
@@ -1665,7 +1775,264 @@
       var p = listaGlobalPedidos.find(function(x) { return x.id === id; });
       if (p) p.status = st;
       renderizarPedidos();
+
+      // Baixa automática de estoque exclusivamente na conclusão do pedido
+      if (st === 'Concluído' && p) {
+        await baixarEstoquePedidoConcluido(p);
+      }
+
       if (abaAtual === 'dashboard') carregarDashboard();
+    }
+
+    // ==========================================
+    // ESTOQUE INTEGRADO & BAIXA POR FICHA TÉCNICA
+    // ==========================================
+    var listaInsumosEstoque = [];
+    var listaMovimentacoesEstoque = [];
+
+    function converterEntreUnidades(qtd, unidadeOrigem, unidadeDestino) {
+      if (unidadeOrigem === unidadeDestino) return Number(qtd);
+      var baseOrigem = converterParaUnidadeBase(Number(qtd), unidadeOrigem);
+      var baseDestino = converterParaUnidadeBase(1, unidadeDestino);
+      if (baseOrigem.grupo !== baseDestino.grupo || baseDestino.qtdBase <= 0) return null;
+      return baseOrigem.qtdBase / baseDestino.qtdBase;
+    }
+
+    async function baixarEstoquePedidoConcluido(pedido) {
+      var sb = initClient();
+      if (!sb || !pedido || !Array.isArray(pedido.itens) || pedido.itens.length === 0) return;
+
+      try {
+        // Trava anti-duplicidade: verifica se o pedido já gerou movimentação automática
+        var resCheck = await sb.from('movimentacoes_estoque')
+          .select('id')
+          .eq('pedido_id', pedido.id)
+          .eq('origem_automatica', true)
+          .limit(1);
+
+        if (resCheck.data && resCheck.data.length > 0) return;
+
+        var [resFichas, resItensFicha, resInsumos] = await Promise.all([
+          sb.from('fichas_tecnicas').select('id, produto_id'),
+          sb.from('ficha_tecnica_itens').select('*'),
+          sb.from('insumos_precificacao').select('*')
+        ]);
+
+        var fichas = resFichas.data || [];
+        var itensFicha = resItensFicha.data || [];
+        var insumos = resInsumos.data || [];
+        var consumoPorInsumo = {};
+
+        pedido.itens.forEach(function(itemPedido) {
+          var qtdVendida = Number(itemPedido.quantidade || 1);
+          var ficha = fichas.find(function(f) { return String(f.produto_id) === String(itemPedido.id); });
+          if (!ficha) return;
+
+          var ingredientes = itensFicha.filter(function(it) { return String(it.ficha_id) === String(ficha.id); });
+          ingredientes.forEach(function(ing) {
+            var ins = insumos.find(function(x) { return String(x.id) === String(ing.insumo_id); });
+            if (!ins) return;
+            var qtdConvertida = converterEntreUnidades(Number(ing.quantidade_usada) * qtdVendida, ing.unidade_usada, ins.unidade);
+            if (qtdConvertida !== null && qtdConvertida > 0) {
+              consumoPorInsumo[ins.id] = (consumoPorInsumo[ins.id] || 0) + qtdConvertida;
+            }
+          });
+        });
+
+        var idsInsumos = Object.keys(consumoPorInsumo);
+        if (idsInsumos.length === 0) return;
+
+        for (var i = 0; i < idsInsumos.length; i++) {
+          var insId = Number(idsInsumos[i]);
+          var insObj = insumos.find(function(x) { return Number(x.id) === insId; });
+          if (!insObj) continue;
+
+          var qtdBaixar = Number(consumoPorInsumo[insId].toFixed(4));
+          var saldoAntes = Number(insObj.estoque_atual || 0);
+          var saldoDepois = Number((saldoAntes - qtdBaixar).toFixed(4));
+
+          var resMov = await sb.from('movimentacoes_estoque').insert([{
+            insumo_id: insId,
+            tipo_movimentacao: 'Consumo Produção',
+            quantidade: qtdBaixar,
+            saldo_anterior: saldoAntes,
+            saldo_posterior: saldoDepois,
+            motivo: 'Venda concluída - Pedido #' + pedido.id,
+            pedido_id: pedido.id,
+            origem_automatica: true
+          }]);
+
+          if (!resMov.error) {
+            await sb.from('insumos_precificacao')
+              .update({ estoque_atual: saldoDepois, updated_at: new Date().toISOString() })
+              .eq('id', insId);
+          }
+        }
+
+        carregarModuloEstoque();
+      } catch (e) {}
+    }
+
+    async function carregarModuloEstoque() {
+      var sb = initClient();
+      if (!sb) return;
+
+      var [resInsumos, resMovs] = await Promise.all([
+        sb.from('insumos_precificacao').select('*').order('nome'),
+        sb.from('movimentacoes_estoque').select('*').order('id', { ascending: false }).limit(40)
+      ]);
+
+      listaInsumosEstoque = resInsumos.data || [];
+      listaMovimentacoesEstoque = resMovs.data || [];
+
+      var abaixoMinimo = 0, zerados = 0;
+      listaInsumosEstoque.forEach(function(ins) {
+        var atual = Number(ins.estoque_atual || 0);
+        var min = Number(ins.estoque_minimo || 0);
+        if (atual <= 0) zerados++;
+        else if (min > 0 && atual <= min) abaixoMinimo++;
+      });
+
+      var totalAlertas = abaixoMinimo + zerados;
+      var badgeMenu = document.getElementById('badge-alerta-estoque');
+      if (badgeMenu) {
+        if (totalAlertas > 0) { badgeMenu.innerText = totalAlertas; badgeMenu.classList.remove('hidden'); }
+        else badgeMenu.classList.add('hidden');
+      }
+
+      if (document.getElementById('est-card-total')) {
+        document.getElementById('est-card-total').innerText = listaInsumosEstoque.length;
+        document.getElementById('est-card-baixo').innerText = abaixoMinimo;
+        document.getElementById('est-card-zerado').innerText = zerados;
+      }
+
+      var select = document.getElementById('est-mov-insumo');
+      if (select) {
+        var valAtual = select.value;
+        select.innerHTML = '<option value="">Selecione...</option>' + listaInsumosEstoque.map(function(ins) {
+          return '<option value="' + ins.id + '">' + ins.nome + ' (Saldo: ' + Number(ins.estoque_atual || 0).toFixed(2).replace('.', ',') + ' ' + ins.unidade + ')</option>';
+        }).join('');
+        if (valAtual) select.value = valAtual;
+      }
+
+      renderizarTabelaEstoque();
+      renderizarHistoricoMovimentacoesEstoque();
+    }
+
+    function atualizarUnidadesMovEstoque() {
+      var id = document.getElementById('est-mov-insumo').value;
+      var selectUn = document.getElementById('est-mov-unidade');
+      var ins = listaInsumosEstoque.find(function(x) { return String(x.id) === String(id); });
+      if (!ins) { selectUn.innerHTML = '<option value="kg">kg</option>'; return; }
+
+      if (ins.unidade === 'kg' || ins.unidade === 'g') {
+        selectUn.innerHTML = '<option value="' + ins.unidade + '">' + ins.unidade + '</option>' + (ins.unidade === 'kg' ? '<option value="g">g</option>' : '<option value="kg">kg</option>');
+      } else if (ins.unidade === 'L' || ins.unidade === 'ml') {
+        selectUn.innerHTML = '<option value="' + ins.unidade + '">' + ins.unidade + '</option>' + (ins.unidade === 'L' ? '<option value="ml">ml</option>' : '<option value="L">L</option>');
+      } else {
+        selectUn.innerHTML = '<option value="un">un</option>';
+      }
+    }
+
+    function renderizarTabelaEstoque() {
+      var tbody = document.getElementById('tabela-posicao-estoque');
+      if (!tbody) return;
+      var filtro = document.getElementById('est-filtro-situacao').value;
+
+      var filtrados = listaInsumosEstoque.filter(function(ins) {
+        var atual = Number(ins.estoque_atual || 0);
+        var min = Number(ins.estoque_minimo || 0);
+        if (filtro === 'Zerado') return atual <= 0;
+        if (filtro === 'Baixo') return (atual > 0 && min > 0 && atual <= min);
+        return true;
+      });
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-gray-400">Nenhum item encontrado neste filtro.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtrados.map(function(ins) {
+        var atual = Number(ins.estoque_atual || 0);
+        var min = Number(ins.estoque_minimo || 0);
+        var badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Normal</span>';
+        if (atual <= 0) badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">Zerado</span>';
+        else if (min > 0 && atual <= min) badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Estoque Baixo</span>';
+
+        return '<tr class="hover:bg-gray-50"><td class="p-3 font-bold text-gray-800">' + ins.nome + '</td><td class="p-3 text-right font-black text-gray-900">' + atual.toFixed(2).replace('.', ',') + ' ' + ins.unidade + '</td><td class="p-3 text-center"><input type="number" step="0.01" value="' + min + '" onchange="atualizarEstoqueMinimoInsumo(' + ins.id + ', this.value)" class="w-20 text-center border border-gray-300 rounded-lg px-2 py-1 text-xs font-bold outline-purple-600"> <span class="text-[10px] text-gray-400">' + ins.unidade + '</span></td><td class="p-3 text-center">' + badge + '</td></tr>';
+      }).join('');
+    }
+
+    async function atualizarEstoqueMinimoInsumo(id, novoMinimo) {
+      var val = parseFloat(novoMinimo) || 0;
+      var sb = initClient();
+      var res = await sb.from('insumos_precificacao').update({ estoque_minimo: val }).eq('id', id);
+      if (res.error) { alert("Erro ao salvar mínimo: " + res.error.message); return; }
+      carregarModuloEstoque();
+    }
+
+    async function registrarMovimentacaoEstoqueManual(e) {
+      e.preventDefault();
+      var btn = document.getElementById('btn-registrar-mov-est');
+      btn.disabled = true; btn.innerText = "Registrando...";
+
+      var insId = Number(document.getElementById('est-mov-insumo').value);
+      var tipo = document.getElementById('est-mov-tipo').value;
+      var qtdInformada = parseFloat(document.getElementById('est-mov-qtd').value) || 0;
+      var unidadeInformada = document.getElementById('est-mov-unidade').value;
+      var motivo = document.getElementById('est-mov-motivo').value.trim();
+
+      var ins = listaInsumosEstoque.find(function(x) { return Number(x.id) === insId; });
+      if (!ins || qtdInformada < 0) { btn.disabled = false; btn.innerText = "Confirmar Movimentação"; return; }
+
+      var qtdNaUnidadeCadastro = converterEntreUnidades(qtdInformada, unidadeInformada, ins.unidade);
+      if (qtdNaUnidadeCadastro === null) { alert("Unidade incompatível."); btn.disabled = false; btn.innerText = "Confirmar Movimentação"; return; }
+
+      var saldoAntes = Number(ins.estoque_atual || 0);
+      var saldoDepois = saldoAntes;
+      if (tipo === 'Entrada') saldoDepois = saldoAntes + qtdNaUnidadeCadastro;
+      else if (tipo === 'Ajuste Inventário') saldoDepois = qtdNaUnidadeCadastro;
+      else saldoDepois = saldoAntes - qtdNaUnidadeCadastro;
+      saldoDepois = Number(saldoDepois.toFixed(4));
+
+      var sb = initClient();
+      var resMov = await sb.from('movimentacoes_estoque').insert([{
+        insumo_id: insId, tipo_movimentacao: tipo, quantidade: Number(qtdNaUnidadeCadastro.toFixed(4)), saldo_anterior: saldoAntes, saldo_posterior: saldoDepois, motivo: motivo, origem_automatica: false
+      }]);
+
+      if (resMov.error) { alert("Erro: " + resMov.error.message); btn.disabled = false; btn.innerText = "Confirmar Movimentação"; return; }
+
+      var resUpd = await sb.from('insumos_precificacao').update({ estoque_atual: saldoDepois, updated_at: new Date().toISOString() }).eq('id', insId);
+      btn.disabled = false; btn.innerText = "Confirmar Movimentação";
+      if (resUpd.error) { alert("Erro ao atualizar saldo: " + resUpd.error.message); return; }
+
+      document.getElementById('est-mov-qtd').value = '';
+      document.getElementById('est-mov-motivo').value = '';
+      carregarModuloEstoque();
+    }
+
+    function renderizarHistoricoMovimentacoesEstoque() {
+      var tbody = document.getElementById('tabela-movimentacoes-estoque');
+      if (!tbody) return;
+      if (listaMovimentacoesEstoque.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Nenhuma movimentação registrada ainda.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = listaMovimentacoesEstoque.map(function(m) {
+        var ins = listaInsumosEstoque.find(function(x) { return Number(x.id) === Number(m.insumo_id); });
+        var nomeInsumo = ins ? ins.nome : ('Insumo #' + m.insumo_id);
+        var un = ins ? ins.unidade : '';
+        var dtFmt = m.created_at ? new Date(m.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
+
+        var corTipo = 'bg-gray-100 text-gray-700';
+        if (m.tipo_movimentacao === 'Entrada') corTipo = 'bg-emerald-100 text-emerald-800';
+        else if (m.tipo_movimentacao === 'Consumo Produção') corTipo = 'bg-purple-100 text-purple-800';
+        else if (m.tipo_movimentacao === 'Perda / Desperdício' || m.tipo_movimentacao === 'Saída Manual') corTipo = 'bg-rose-100 text-rose-800';
+
+        var refPedido = m.pedido_id ? ' <span class="text-[10px] font-bold text-purple-800">[Pedido #' + m.pedido_id + ']</span>' : '';
+        return '<tr class="hover:bg-gray-50"><td class="p-3 whitespace-nowrap">' + dtFmt + '</td><td class="p-3 font-bold text-gray-800">' + nomeInsumo + '</td><td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ' + corTipo + '">' + m.tipo_movimentacao + '</span></td><td class="p-3 text-right font-bold">' + Number(m.quantidade || 0).toFixed(2).replace('.', ',') + ' ' + un + '</td><td class="p-3 text-right text-gray-500">' + Number(m.saldo_anterior || 0).toFixed(2).replace('.', ',') + ' → <strong class="text-gray-900">' + Number(m.saldo_posterior || 0).toFixed(2).replace('.', ',') + ' ' + un + '</strong></td><td class="p-3 text-gray-600">' + (m.motivo || '-') + refPedido + '</td></tr>';
+      }).join('');
     }
 
     // RELATÓRIOS
@@ -2004,13 +2371,14 @@
       var preco = parseFloat(document.getElementById('insumo-preco').value) || 0;
       if (!nome || qtd <= 0 || preco <= 0) { btn.disabled = false; btn.innerText = "+ Cadastrar Insumo"; return; }
       var sb = initClient();
-      var res = await sb.from('insumos_precificacao').insert([{ nome: nome, qtd_embalagem: qtd, unidade: unidade, preco_pago: preco }]);
+      var res = await sb.from('insumos_precificacao').insert([{ nome: nome, qtd_embalagem: qtd, unidade: unidade, preco_pago: preco, estoque_atual: 0, estoque_minimo: 0 }]);
       btn.disabled = false; btn.innerText = "+ Cadastrar Insumo";
       if (res.error) { alert("Erro: " + res.error.message); return; }
       document.getElementById('insumo-nome').value = '';
       document.getElementById('insumo-qtd').value = '';
       document.getElementById('insumo-preco').value = '';
       carregarModuloPrecificacao();
+      carregarModuloEstoque();
     }
 
     async function excluirInsumo(id) {
@@ -2019,6 +2387,7 @@
       var res = await sb.from('insumos_precificacao').delete().eq('id', id);
       if (res.error) { alert("Não foi possível excluir: este insumo está vinculado a uma ficha técnica salva."); return; }
       carregarModuloPrecificacao();
+      carregarModuloEstoque();
     }
 
     async function carregarFichaTecnicaProduto(produtoIdForcado) {
@@ -2436,7 +2805,7 @@
       carregarModuloFinanceiro();
     }
 
-    // FECHAMENTO DE CAIXA (ETAPA 4)
+    // FECHAMENTO DE CAIXA
     var resumoMovimentoCaixaAtual = { data: '', totalVendas: 0, qtdPedidos: 0, pix: 0, dinheiro: 0, cartao: 0, outros: 0, despesasPagas: 0, saldoCalculado: 0 };
     var listaFechamentosSalvos = [];
 
