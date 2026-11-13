@@ -113,13 +113,13 @@
   <div id="modal-checkout" class="fixed inset-0 bg-white sm:bg-black/60 hidden z-50 flex flex-col sm:items-center sm:justify-center sm:p-4 backdrop-blur-sm">
     <div class="bg-white w-full max-w-lg h-full sm:h-auto sm:max-h-[92vh] sm:rounded-3xl flex flex-col overflow-hidden shadow-2xl">
       
-      <!-- Cabeçalho com Seta Voltar e X Fechar -->
+      <!-- Cabeçalho com Seta Voltar -->
       <div class="flex items-center justify-between px-4 py-3.5 border-b border-gray-100 bg-white sticky top-0 z-10">
-        <button type="button" onclick="voltarEtapaCheckout()" class="w-9 h-9 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-[#411564] hover:bg-purple-50 transition cursor-pointer" title="Voltar etapa">
+        <button type="button" onclick="voltarEtapaCheckout()" class="w-9 h-9 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-[#411564] hover:bg-purple-50 transition cursor-pointer">
           <i class="fa-solid fa-arrow-left text-sm"></i>
         </button>
         <h2 id="titulo-etapa-checkout" class="text-base font-extrabold text-gray-900">Sua Sacola</h2>
-        <button type="button" onclick="fecharModalCheckout()" class="w-9 h-9 rounded-full bg-gray-50 border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-red-600 hover:bg-red-50 transition cursor-pointer" title="Fechar">
+       <button type="button" onclick="fecharModalCheckout()" class="w-9 h-9 rounded-full bg-gray-50 border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-red-600 hover:bg-red-50 transition cursor-pointer" title="Fechar">
           <i class="fa-solid fa-xmark text-base"></i>
         </button>
       </div>
@@ -142,15 +142,16 @@
 
         <!-- ETAPA 1: ENTREGA E AGENDAMENTO -->
         <div id="checkout-step-1" class="hidden space-y-5">
+          <!-- Quando deseja receber -->
           <div>
             <p class="text-xs font-bold text-gray-700 mb-2">Quando deseja receber seu pedido?</p>
             <div class="space-y-2.5">
-              <div onclick="selecionarQuando('Agora')" id="card-quando-agora" class="p-3.5 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex items-center justify-between cursor-pointer transition">
+              <div onclick="selecionarQuando('Padrão')" id="card-quando-padrão" class="p-3.5 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex items-center justify-between cursor-pointer transition">
                 <div>
-                  <p class="text-sm font-extrabold text-gray-900">Agora</p>
+                  <p class="text-sm font-extrabold text-gray-900">Padrão</p>
                   <p class="text-xs text-gray-500">Entrega em 40 a 60 minutos</p>
                 </div>
-                <div id="radio-quando-agora" class="w-5 h-5 rounded-full border-2 border-[#411564] flex items-center justify-center">
+                <div id="radio-quando-padrão" class="w-5 h-5 rounded-full border-2 border-[#411564] flex items-center justify-center">
                   <div class="w-2.5 h-2.5 rounded-full bg-[#411564]"></div>
                 </div>
               </div>
@@ -173,6 +174,7 @@
             </div>
           </div>
 
+          <!-- Como deseja receber -->
           <div>
             <p class="text-xs font-bold text-gray-700 mb-2">Como deseja receber seu pedido?</p>
             <div class="grid grid-cols-2 gap-3">
@@ -187,6 +189,7 @@
             </div>
           </div>
 
+          <!-- Endereço de Entrega -->
           <div id="secao-endereco-entrega" class="space-y-3">
             <p class="text-xs font-bold text-gray-700">Selecione o endereço de entrega</p>
             
@@ -195,6 +198,7 @@
               <span id="label-btn-endereco">Adicionar novo endereço</span>
             </button>
 
+            <!-- Cartão do Endereço Salvo -->
             <div id="card-endereco-salvo" class="hidden p-4 rounded-2xl border-2 border-[#411564] bg-white flex items-start justify-between shadow-sm">
               <div class="space-y-1 text-xs">
                 <p class="font-extrabold text-sm text-gray-900" id="end-salvo-apelido">Casa</p>
@@ -202,7 +206,7 @@
                 <p class="text-gray-500" id="end-salvo-bairro">Bairro...</p>
                 <div class="pt-1.5 flex items-center gap-4 text-[11px] font-bold text-[#411564]">
                   <span><i class="fa-regular fa-clock mr-1"></i>40-60 min</span>
-                  <span><i class="fa-solid fa-truck mr-1"></i><span id="badge-taxa-endereco">R$ 1,00</span></span>
+                  <span><i class="fa-solid fa-truck mr-1"></i>R$ 1,00</span>
                 </div>
               </div>
               <div class="flex flex-col items-center justify-between h-full gap-4">
@@ -215,21 +219,22 @@
               </div>
             </div>
 
+            <!-- Formulário Inline de Endereço -->
             <div id="form-inline-endereco" class="hidden bg-gray-50 p-3.5 rounded-2xl border border-purple-200 space-y-2.5">
               <div class="grid grid-cols-3 gap-2">
                 <div class="col-span-2">
                   <label class="block text-[11px] font-bold text-gray-600 mb-1">Rua / Avenida *</label>
-                  <input type="text" id="input-end-rua" placeholder="Ex: Rua Orlando Luis Miola" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                  <input type="text" id="input-end-rua" placeholder="digite o endereço" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
                 </div>
                 <div>
                   <label class="block text-[11px] font-bold text-gray-600 mb-1">Número *</label>
-                  <input type="text" id="input-end-numero" placeholder="Ex: 651" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                  <input type="text" id="input-end-numero" placeholder="digite o numero" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-2">
                 <div>
                   <label class="block text-[11px] font-bold text-gray-600 mb-1">Bairro *</label>
-                  <input type="text" id="input-end-bairro" placeholder="Ex: São Domingos 2" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                  <input type="text" id="input-end-bairro" placeholder="digite o bairro" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
                 </div>
                 <div>
                   <label class="block text-[11px] font-bold text-gray-600 mb-1">Complemento / Ref.</label>
@@ -242,16 +247,17 @@
             </div>
           </div>
 
+          <!-- Dados do Cliente -->
           <div class="space-y-2.5 pt-2 border-t border-gray-100">
             <p class="text-xs font-bold text-gray-700">Seus dados para contato</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
                 <label class="block text-[11px] font-bold text-gray-600 mb-1">Seu Nome *</label>
-                <input type="text" id="cliente-nome" placeholder="Ex: Rafael Manzoni" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
+                <input type="text" id="cliente-nome" placeholder="digite o nome " class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
               </div>
               <div>
                 <label class="block text-[11px] font-bold text-gray-600 mb-1">Seu WhatsApp *</label>
-                <input type="tel" id="cliente-telefone" placeholder="Ex: (16) 99738-3522" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
+                <input type="tel" id="cliente-telefone" placeholder="digite o whatsapp " class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
               </div>
             </div>
           </div>
@@ -259,6 +265,7 @@
 
         <!-- ETAPA 2: FORMA DE PAGAMENTO -->
         <div id="checkout-step-2" class="hidden space-y-5">
+          <!-- Pagar Online -->
           <div>
             <p class="text-xs font-extrabold text-[#411564] flex items-center gap-2 mb-2.5">
               <i class="fa-solid fa-mobile-screen-button"></i> Pagar online
@@ -274,6 +281,7 @@
             </div>
           </div>
 
+          <!-- Pagar na Entrega / Retirada -->
           <div>
             <p class="text-xs font-extrabold text-[#411564] flex items-center gap-2 mb-2.5">
               <i class="fa-solid fa-house"></i> <span id="titulo-pagar-entrega">Pagar na entrega</span>
@@ -289,6 +297,7 @@
                 </div>
               </div>
 
+              <!-- Campo de Troco se escolher Dinheiro -->
               <div id="box-troco-dinheiro" class="hidden bg-purple-50/60 p-3 rounded-2xl border border-purple-200">
                 <label class="block text-xs font-bold text-[#411564] mb-1">Precisa de troco para quanto?</label>
                 <input type="text" id="input-troco-para" placeholder="Ex: Troco para R$ 50,00 (ou deixe vazio)" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
@@ -359,6 +368,7 @@
             </div>
           </div>
 
+          <!-- Bloco de Valores -->
           <div class="border-t border-gray-200 pt-4 space-y-2 text-sm">
             <p class="font-extrabold text-gray-800 text-xs uppercase tracking-wider">Resumo</p>
             <div class="flex justify-between text-gray-600">
@@ -380,6 +390,7 @@
 
       <!-- Rodapé Fixo com Indicador de 4 Pontos e Botão Principal -->
       <div class="p-4 bg-white border-t border-gray-100 space-y-3">
+        <!-- Stepper 4 Bolinhas -->
         <div class="flex items-center justify-center gap-0">
           <div id="dot-0" class="w-2.5 h-2.5 rounded-full bg-[#411564] transition-all"></div>
           <div id="line-1" class="w-6 h-0.5 bg-gray-200 transition-all"></div>
@@ -410,15 +421,16 @@
         ⏳ Geralmente respondemos em menos de 2 minutos.
       </div>
       <button onclick="cancelarEsperaAceite()" style="margin-top: 16px; background: transparent; border: none; color: #888; font-size: 12px; text-decoration: underline; cursor: pointer;">
-        Cancel e voltar ao cardápio
+        Cancelar e voltar ao cardápio
       </button>
     </div>
   </div>
   
-  <!-- Modal Pix com QR Code, Cronômetro e Copia e Cola -->
+  <!-- Modal Pix com QR Code, Cronômetro e Copia e Cola (Estilo App) -->
   <div id="modalPix" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: #ffffff; z-index: 9999; flex-direction: column; overflow-y: auto; font-family: sans-serif;">
     <div style="max-width: 480px; width: 100%; margin: 0 auto; padding: 16px; flex: 1; display: flex; flex-direction: column;">
       
+      <!-- Topo do Pix -->
       <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">
         <button onclick="cancelarModalPix()" style="width: 36px; height: 36px; border-radius: 50%; background: #fff; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #411564;">
           <i class="fa-solid fa-arrow-left"></i>
@@ -427,12 +439,14 @@
         <div style="width: 36px;"></div>
       </div>
 
+      <!-- Carregando -->
       <div id="pixCarregando" style="padding: 60px 0; text-align: center;">
         <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #411564; border-radius: 50%; width: 44px; height: 44px; animation: spin 1s linear infinite; margin: 0 auto 16px auto;"></div>
         <h3 style="margin: 0; color: #411564; font-weight: bold;">Gerando o seu Pix...</h3>
         <p style="color: #666; font-size: 14px; margin-top: 4px;">Aguarde alguns segundos.</p>
       </div>
 
+      <!-- Conteúdo QR Code -->
       <div id="pixConteudo" style="display: none; text-align: center; padding-top: 20px; flex: 1; flex-direction: column; justify-content: space-between;">
         <div>
           <h3 style="margin: 0 0 8px 0; color: #111827; font-size: 19px; font-weight: 800;">Pague o PIX para enviar seu pedido</h3>
@@ -444,6 +458,7 @@
             <img id="pixQrImg" src="" alt="QR Code Pix" style="width: 210px; height: 210px; display: block; margin: 0 auto;">
           </div>
 
+          <!-- Cronômetro -->
           <div style="margin-bottom: 16px;">
             <p style="font-size: 12px; color: #6b7280; margin: 0;">Expira em</p>
             <p id="pixTimerTexto" style="font-size: 22px; font-weight: 900; color: #111827; margin: 2px 0 8px 0;">29 : 59</p>
@@ -452,6 +467,7 @@
             </div>
           </div>
 
+          <!-- Copia e Cola -->
           <div style="text-align: left; margin-top: 16px;">
             <p style="font-size: 13px; font-weight: 700; color: #1f2937; margin: 0 0 2px 0;">
               <i class="fa-solid fa-qrcode mr-1 text-[#411564]"></i> Clique no código abaixo para copiar
@@ -465,16 +481,14 @@
           </div>
         </div>
 
-        <div style="padding-top: 20px; padding-bottom: 8px; space-y: 8px;">
+        <div style="padding-top: 20px; padding-bottom: 8px;">
           <button id="btnCopiarPix" onclick="copiarPixPayload()" style="width: 100%; padding: 15px; background: #411564; color: #fff; font-weight: 800; font-size: 15px; border: none; border-radius: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(65, 21, 100, 0.25);">
             Copiar código
-          </button>
-          <button id="btnJaPagueiPixDireto" onclick="confirmarEnvioComprovantePixDireto()" style="display: none; width: 100%; margin-top: 10px; padding: 14px; background: #16a34a; color: #fff; font-weight: 800; font-size: 14px; border: none; border-radius: 14px; cursor: pointer;">
-            <i class="fa-brands fa-whatsapp mr-1"></i> Já fiz o Pix — Enviar Comprovante
           </button>
         </div>
       </div>
 
+      <!-- Confirmado -->
       <div id="pixConfirmado" style="display: none; padding: 40px 0; text-align: center;">
         <div style="font-size: 54px; color: #16a34a; margin-bottom: 12px;">✅</div>
         <h3 style="color: #16a34a; margin: 0 0 8px 0; font-weight: 800; font-size: 20px;">Pagamento Confirmado!</h3>
@@ -502,24 +516,36 @@
 
     var config = {
       whatsapp: "5516992928529",
-      taxaEntrega: 1.00,
-      modoPix: "mercadopago",
-      chavePix: "",
-      nomeRecebedorPix: "ACAIZEIRO DELIVERY",
-      cidadePix: "IBITINGA"
+      taxaEntrega: 1.00
     };
 
     var categorias = ["Todos"];
     var categoriaAtiva = "Todos";
-    var complementosDisponiveis = [];
+
+    var complementosDisponiveis = [
+      { id: "c1", nome: "Morango", preco: 5.00 },
+      { id: "c2", nome: "Banana", preco: 2.00 },
+      { id: "c3", nome: "Uva", preco: 3.00 },
+      { id: "c4", nome: "Leite Condensado", preco: 3.00 },
+      { id: "c5", nome: "Leite em Pó", preco: 3.00 },
+      { id: "c6", nome: "Ovomaltine", preco: 3.00 },
+      { id: "c7", nome: "Farofa de Paçoca", preco: 3.00 },
+      { id: "c8", nome: "Granola", preco: 3.00 },
+      { id: "c9", nome: "Creme de Avelã", preco: 3.00 },
+      { id: "c10", nome: "Creme de Ninho", preco: 3.00 },
+      { id: "c11", nome: "Creme de Morango", preco: 3.00 },
+      { id: "c12", nome: "Creme de Maracujá", preco: 3.00 }
+    ];
+
     var produtos = [];
     var carrinho = [];
     var produtoEmEdicao = null;
     var textoPedidoWhatsApp = "";
 
+    // Estado do Checkout em Etapas
     var etapaAtualCheckout = 0;
     var estadoCheckout = {
-      quando: "Agora",
+      quando: "Padrão",
       horarioAgendado: "",
       tipoRecebimento: "Entrega",
       enderecoSalvo: null,
@@ -710,7 +736,7 @@
         subtotal += item.precoTotal * item.qtd;
         totalQtd += item.qtd;
       });
-      var taxaAtual = (estadoCheckout.tipoRecebimento === 'Entrega') ? Number(config.taxaEntrega) : 0;
+      var taxaAtual = (estadoCheckout.tipoRecebimento === 'Entrega') ? config.taxaEntrega : 0;
       var total = subtotal > 0 ? (subtotal + taxaAtual) : 0;
       return { subtotal: subtotal, taxa: taxaAtual, total: total, totalQtd: totalQtd };
     }
@@ -750,6 +776,9 @@
       document.getElementById('step0-subtotal').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
     }
 
+    // ==========================================
+    // CONTROLE DE ETAPAS DO CHECKOUT
+    // ==========================================
     function abrirModalCheckout() {
       carregarDadosSalvosCliente();
       renderizarItensSacola();
@@ -770,15 +799,28 @@
       });
       document.getElementById('checkout-step-' + step).classList.remove('hidden');
 
-      var titulos = ["Sua Sacola", "Entrega e agendamento", "Forma de pagamento", "Resumo do pedido"];
+      var titulos = [
+        "Sua Sacola",
+        "Entrega e agendamento",
+        "Forma de pagamento",
+        "Resumo do pedido"
+      ];
       document.getElementById('titulo-etapa-checkout').innerText = titulos[step];
 
       for (var i = 0; i <= 3; i++) {
         var dot = document.getElementById('dot-' + i);
-        if (dot) dot.className = (i <= step) ? "w-2.5 h-2.5 rounded-full bg-[#411564] transition-all" : "w-2.5 h-2.5 rounded-full bg-gray-300 transition-all";
+        if (dot) {
+          dot.className = (i <= step) 
+            ? "w-2.5 h-2.5 rounded-full bg-[#411564] transition-all" 
+            : "w-2.5 h-2.5 rounded-full bg-gray-300 transition-all";
+        }
         if (i > 0) {
           var line = document.getElementById('line-' + i);
-          if (line) line.className = (i <= step) ? "w-6 h-0.5 bg-[#411564] transition-all" : "w-6 h-0.5 bg-gray-200 transition-all";
+          if (line) {
+            line.className = (i <= step) 
+              ? "w-6 h-0.5 bg-[#411564] transition-all" 
+              : "w-6 h-0.5 bg-gray-200 transition-all";
+          }
         }
       }
 
@@ -786,9 +828,11 @@
       btn.disabled = false;
       btn.className = "w-full bg-[#411564] hover:bg-purple-900 text-white font-extrabold py-3.5 rounded-2xl shadow-lg transition active:scale-95 text-sm cursor-pointer";
 
-      if (step === 0) btn.innerText = "Continuar";
-      else if (step === 1) btn.innerText = "Continuar para Pagamento";
-      else if (step === 2) {
+      if (step === 0) {
+        btn.innerText = "Continuar";
+      } else if (step === 1) {
+        btn.innerText = "Continuar para Pagamento";
+      } else if (step === 2) {
         btn.innerText = "Revisar Pedido";
         if (!estadoCheckout.pagamentoValor) {
           btn.disabled = true;
@@ -796,13 +840,17 @@
         }
       } else if (step === 3) {
         preencherResumoFinal();
-        btn.innerText = (estadoCheckout.pagamentoValor === 'Pix') ? "Ir para Pagamento" : "Finalizar Pedido";
+        var isPix = (estadoCheckout.pagamentoValor === 'Pix');
+        btn.innerText = isPix ? "Ir para Pagamento" : "Finalizar Pedido";
       }
     }
 
     function voltarEtapaCheckout() {
-      if (etapaAtualCheckout > 0) irParaEtapaCheckout(etapaAtualCheckout - 1);
-      else fecharModalCheckout();
+      if (etapaAtualCheckout > 0) {
+        irParaEtapaCheckout(etapaAtualCheckout - 1);
+      } else {
+        fecharModalCheckout();
+      }
     }
 
     function avancarEtapaCheckout() {
@@ -813,8 +861,14 @@
         var nome = document.getElementById('cliente-nome').value.trim();
         var tel = document.getElementById('cliente-telefone').value.trim();
 
-        if (!nome || !tel) { alert("Por favor, preencha seu Nome e WhatsApp para continuar."); return; }
-        if (estadoCheckout.quando === 'Agendar' && !estadoCheckout.horarioAgendado) { alert("Selecione o horário desejado."); return; }
+        if (!nome || !tel) {
+          alert("Por favor, preencha seu Nome e WhatsApp para continuar.");
+          return;
+        }
+        if (estadoCheckout.quando === 'Agendar' && !estadoCheckout.horarioAgendado) {
+          alert("Selecione o horário desejado para o agendamento.");
+          return;
+        }
         if (estadoCheckout.tipoRecebimento === 'Entrega' && !estadoCheckout.enderecoSalvo) {
           alert("Por favor, adicione seu endereço de entrega.");
           abrirFormNovoEndereco();
@@ -823,6 +877,7 @@
 
         localStorage.setItem('acaizeiro_cli_nome', nome);
         localStorage.setItem('acaizeiro_cli_tel', tel);
+
         irParaEtapaCheckout(2);
       } else if (etapaAtualCheckout === 2) {
         if (!estadoCheckout.pagamentoValor) return;
@@ -832,18 +887,20 @@
       }
     }
 
+    // Seleções Etapa 1
     function selecionarQuando(opcao) {
       estadoCheckout.quando = opcao;
-      var cardAgora = document.getElementById('card-quando-agora');
-      var radioAgora = document.getElementById('radio-quando-agora');
+      var cardPadrão = document.getElementById('card-quando-padrão');
+      var radioPadrão = document.getElementById('radio-quando-padrão');
       var cardAgendar = document.getElementById('card-quando-agendar');
       var radioAgendar = document.getElementById('radio-quando-agendar');
       var boxInput = document.getElementById('box-input-agendar');
 
-      if (opcao === 'Agora') {
-        cardAgora.className = "p-3.5 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex items-center justify-between cursor-pointer transition";
-        radioAgora.className = "w-5 h-5 rounded-full border-2 border-[#411564] flex items-center justify-center";
-        radioAgora.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-[#411564]"></div>';
+      if (opcao === 'Padrão') {
+        cardPadrão.className = "p-3.5 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex items-center justify-between cursor-pointer transition";
+        radioPadrão.className = "w-5 h-5 rounded-full border-2 border-[#411564] flex items-center justify-center";
+        radioPadrão.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-[#411564]"></div>';
+
         cardAgendar.className = "rounded-2xl border border-gray-200 bg-white overflow-hidden cursor-pointer transition";
         radioAgendar.className = "w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center";
         radioAgendar.innerHTML = '';
@@ -852,9 +909,10 @@
         cardAgendar.className = "rounded-2xl border-2 border-[#411564] bg-purple-50/30 overflow-hidden cursor-pointer transition";
         radioAgendar.className = "w-5 h-5 rounded-full border-2 border-[#411564] flex items-center justify-center";
         radioAgendar.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-[#411564]"></div>';
-        cardAgora.className = "p-3.5 rounded-2xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer transition";
-        radioAgora.className = "w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center";
-        radioAgora.innerHTML = '';
+
+        cardPadrão.className = "p-3.5 rounded-2xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer transition";
+        radioPadrão.className = "w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center";
+        radioPadrão.innerHTML = '';
         boxInput.classList.remove('hidden');
       }
     }
@@ -902,7 +960,10 @@
       var bairro = document.getElementById('input-end-bairro').value.trim();
       var comp = document.getElementById('input-end-comp').value.trim();
 
-      if (!rua || !numero || !bairro) { alert("Preencha Rua, Número e Bairro."); return; }
+      if (!rua || !numero || !bairro) {
+        alert("Preencha Rua, Número e Bairro para continuar.");
+        return;
+      }
 
       estadoCheckout.enderecoSalvo = { rua: rua, numero: numero, bairro: bairro, comp: comp };
       localStorage.setItem('acaizeiro_cli_end', JSON.stringify(estadoCheckout.enderecoSalvo));
@@ -916,10 +977,10 @@
       document.getElementById('card-endereco-salvo').classList.remove('hidden');
       document.getElementById('label-btn-endereco').innerText = "Alterar endereço";
       document.getElementById('end-salvo-rua').innerText = end.rua + ", " + end.numero + (end.comp ? " (" + end.comp + ")" : "");
-      document.getElementById('end-salvo-bairro').innerText = end.bairro;
-      document.getElementById('badge-taxa-endereco').innerText = 'R$ ' + Number(config.taxaEntrega).toFixed(2).replace('.', ',');
+      document.getElementById('end-salvo-bairro').innerText = end.bairro + " - Ibitinga/SP";
     }
 
+    // Seleções Etapa 2
     function selecionarPagamento(valor, label) {
       estadoCheckout.pagamentoValor = valor;
       estadoCheckout.pagamentoLabel = label;
@@ -927,10 +988,19 @@
       document.querySelectorAll('.pay-option').forEach(function(card) {
         card.className = "pay-option p-4 rounded-2xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer transition";
         var r = card.querySelector('.pay-radio');
-        if (r) { r.className = "pay-radio w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center"; r.innerHTML = ''; }
+        if (r) {
+          r.className = "pay-radio w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center";
+          r.innerHTML = '';
+        }
       });
 
-      var mapaIds = { 'Pix': 'pay-card-Pix', 'Dinheiro': 'pay-card-Dinheiro', 'Cartão de Crédito': 'pay-card-CartaoCredito', 'Cartão de Débito': 'pay-card-CartaoDebito' };
+      var mapaIds = {
+        'Pix': 'pay-card-Pix',
+        'Dinheiro': 'pay-card-Dinheiro',
+        'Cartão de Crédito': 'pay-card-CartaoCredito',
+        'Cartão de Débito': 'pay-card-CartaoDebito'
+      };
+
       var escolhido = document.getElementById(mapaIds[valor]);
       if (escolhido) {
         escolhido.className = "pay-option p-4 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex items-center justify-between cursor-pointer transition";
@@ -942,20 +1012,25 @@
       }
 
       var boxTroco = document.getElementById('box-troco-dinheiro');
-      if (valor === 'Dinheiro') boxTroco.classList.remove('hidden');
-      else boxTroco.classList.add('hidden');
+      if (valor === 'Dinheiro') {
+        boxTroco.classList.remove('hidden');
+      } else {
+        boxTroco.classList.add('hidden');
+      }
 
       var btn = document.getElementById('btn-acao-checkout');
       btn.disabled = false;
       btn.className = "w-full bg-[#411564] hover:bg-purple-900 text-white font-extrabold py-3.5 rounded-2xl shadow-lg transition active:scale-95 text-sm cursor-pointer";
     }
 
+    // Etapa 3: Preencher Resumo Final
     function preencherResumoFinal() {
       var totais = calcularTotais();
       var nome = document.getElementById('cliente-nome').value.trim();
       var tel = document.getElementById('cliente-telefone').value.trim();
 
       document.getElementById('resumo-final-tipo').innerText = estadoCheckout.tipoRecebimento;
+
       if (estadoCheckout.tipoRecebimento === 'Entrega' && estadoCheckout.enderecoSalvo) {
         var e = estadoCheckout.enderecoSalvo;
         document.getElementById('resumo-final-endereco').innerText = e.rua + ", " + e.numero + (e.comp ? " - " + e.comp : "") + " • " + e.bairro;
@@ -963,15 +1038,20 @@
         document.getElementById('resumo-final-endereco').innerText = "Retirar no balcão da loja";
       }
 
-      document.getElementById('resumo-final-tempo').innerText = (estadoCheckout.quando === 'Agendar') ? ("Agendado para Hoje às " + estadoCheckout.horarioAgendado) : "40-60 min";
+      document.getElementById('resumo-final-tempo').innerText = (estadoCheckout.quando === 'Agendar') 
+        ? ("Agendado para Hoje às " + estadoCheckout.horarioAgendado) 
+        : "40-60 min";
 
       var pagTexto = estadoCheckout.pagamentoLabel;
       var troco = document.getElementById('input-troco-para').value.trim();
-      if (estadoCheckout.pagamentoValor === 'Dinheiro' && troco) pagTexto += " (" + troco + ")";
+      if (estadoCheckout.pagamentoValor === 'Dinheiro' && troco) {
+        pagTexto += " (" + troco + ")";
+      }
       document.getElementById('resumo-final-pagamento').innerText = pagTexto;
 
       document.getElementById('resumo-final-cliente').innerText = nome;
       document.getElementById('resumo-final-telefone').innerText = tel;
+
       document.getElementById('resumo-final-subtotal').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
       document.getElementById('resumo-final-taxa').innerText = 'R$ ' + totais.taxa.toFixed(2).replace('.', ',');
       document.getElementById('resumo-final-total').innerText = 'R$ ' + totais.total.toFixed(2).replace('.', ',');
@@ -1051,7 +1131,9 @@
               var sub = item.precoTotal * item.qtd;
               texto += '\n• *' + item.qtd + 'x ' + item.nome + '* — R$ ' + sub.toFixed(2).replace('.', ',') + '\n';
               if (item.complementos.length > 0) {
-                item.complementos.forEach(function(c) { texto += '   └ + ' + c.nome + ' (R$ ' + c.preco.toFixed(2).replace('.', ',') + ')\n'; });
+                item.complementos.forEach(function(c) {
+                  texto += '   └ + ' + c.nome + ' (R$ ' + c.preco.toFixed(2).replace('.', ',') + ')\n';
+                });
               }
               if (item.obs) texto += '   └ Obs item: ' + item.obs + '\n';
             });
@@ -1061,11 +1143,14 @@
             texto += '*TOTAL DO PEDIDO:* R$ ' + totais.total.toFixed(2).replace('.', ',') + '\n';
 
             textoPedidoWhatsApp = texto;
+
             iniciarEsperaAceiteLoja(pedidoSalvo, totais.total, nome, pagamento);
             return;
           }
         }
-      } catch (errBanco) {}
+      } catch (errBanco) {
+        console.warn("Aviso ao salvar pedido:", errBanco);
+      }
 
       btn.disabled = false;
       btn.innerText = "Finalizar Pedido";
@@ -1105,21 +1190,26 @@
               modalEspera.style.display = "none";
               carrinho = [];
               atualizarBarra();
+
               alert("Seu pedido #" + pedidoCriado.id + " foi aceito pela cozinha e está em preparo!");
+
               if (textoPedidoWhatsApp) {
-                window.location.href = "https://wa.me/" + config.whatsapp + "?text=" + encodeURIComponent(textoPedidoWhatsApp + "\n\n*Status:* ACEITO PELA COZINHA (Em preparo)");
+                var link = "https://wa.me/" + config.whatsapp + "?text=" + encodeURIComponent(textoPedidoWhatsApp + "\n\n*Status:* ACEITO PELA COZINHA (Em preparo)");
+                window.location.href = link;
               }
             }
 
             if (status === "Recusado") {
               clearInterval(window.intervaloAceite);
               modalEspera.style.display = "none";
-              alert("Desculpe! No momento a cozinha não pôde aceitar o pedido.");
+              alert("Desculpe! No momento a cozinha não pôde aceitar o pedido. Tente novamente mais tarde.");
               carrinho = [];
               atualizarBarra();
             }
           }
-        } catch (e) {}
+        } catch (e) {
+          console.warn("Aguardando aceite...", e);
+        }
       }, 3000);
     }
 
@@ -1128,7 +1218,7 @@
       document.getElementById("modalAguardandoAceite").style.display = "none";
     }
 
-    // Carregamento dinâmico via Supabase (Cardápio, Complementos e Configurações da Loja)
+    // Carregamento dinâmico via Supabase
     setTimeout(function() {
       var s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
@@ -1141,21 +1231,10 @@
 
           Promise.all([
             client.from('CARDAPIO ACAIZEIRO').select('*').order('id'),
-            client.from('COMPLEMENTOS').select('*').eq('ativo', true),
-            client.from('configuracoes_loja').select('*').eq('id', 1).single()
+            client.from('COMPLEMENTOS').select('*').eq('ativo', true)
           ]).then(function(respostas) {
             var resCopos = respostas[0];
             var resComp = respostas[1];
-            var resConfig = respostas[2];
-
-            if (resConfig && resConfig.data) {
-              if (resConfig.data.whatsapp) config.whatsapp = resConfig.data.whatsapp;
-              if (resConfig.data.taxa_entrega !== undefined) config.taxaEntrega = Number(resConfig.data.taxa_entrega);
-              if (resConfig.data.modo_pix) config.modoPix = resConfig.data.modo_pix;
-              if (resConfig.data.chave_pix) config.chavePix = resConfig.data.chave_pix;
-              if (resConfig.data.nome_recebedor_pix) config.nomeRecebedorPix = resConfig.data.nome_recebedor_pix;
-              if (resConfig.data.cidade_pix) config.cidadePix = resConfig.data.cidade_pix;
-            }
 
             if (resCopos.data && resCopos.data.length > 0) {
               produtos = resCopos.data.map(function(item) {
@@ -1176,12 +1255,15 @@
               produtos.forEach(function(p) {
                 var chave = (p.categoria || "").trim().toLowerCase();
                 if (chave && chave !== "todos") {
-                  if (!categoriasMapa[chave]) categoriasMapa[chave] = p.categoria;
+                  if (!categoriasMapa[chave]) {
+                    categoriasMapa[chave] = p.categoria;
+                  }
                   p.categoria = categoriasMapa[chave];
                 }
               });
 
               categorias = ["Todos"].concat(Object.values(categoriasMapa));
+
               renderizarCategorias();
               carregarProdutos();
             }
@@ -1191,64 +1273,24 @@
                 return { id: String(c.id), nome: c.nome, preco: parseFloat(c.preco) || 0 };
               });
             }
+          }).catch(function(e) {
+            console.warn("Aviso Supabase:", e);
           });
-        } catch (err) {}
+        } catch (err) {
+          console.warn("Erro Supabase:", err);
+        }
       };
       document.head.appendChild(s);
     }, 200);
 
     // ==========================================
-    // GERADOR DE PAYLOAD PIX EMV (CHAVE DIRETA)
-    // ==========================================
-    function gerarPayloadPixEstatico(chave, nomeRecebedor, cidade, valor, txid) {
-      function formatField(id, val) {
-        var len = String(val.length).padStart(2, '0');
-        return id + len + val;
-      }
-      function crc16(str) {
-        var crc = 0xFFFF;
-        for (var i = 0; i < str.length; i++) {
-          crc ^= str.charCodeAt(i) << 8;
-          for (var j = 0; j < 8; j++) {
-            if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ 0x1021;
-            else crc = crc << 1;
-          }
-        }
-        return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
-      }
-
-      var nomeLimpo = (nomeRecebedor || "ACAIZEIRO").normalize("NFD").replace(/[\u0300-\u036f]/g, "").substring(0, 25).toUpperCase();
-      var cidadeLimpa = (cidade || "IBITINGA").normalize("NFD").replace(/[\u0300-\u036f]/g, "").substring(0, 15).toUpperCase();
-      var valorStr = Number(valor).toFixed(2);
-      var txidLimpo = (txid || "***").replace(/[^a-zA-Z0-9]/g, "").substring(0, 25) || "***";
-
-      var gui = formatField("00", "br.gov.bcb.pix");
-      var key = formatField("01", chave.trim());
-      var merchantAccount = formatField("26", gui + key);
-
-      var payload = 
-        formatField("00", "01") +
-        merchantAccount +
-        formatField("52", "0000") +
-        formatField("53", "986") +
-        formatField("54", valorStr) +
-        formatField("58", "BR") +
-        formatField("59", nomeLimpo) +
-        formatField("60", cidadeLimpa) +
-        formatField("62", formatField("05", txidLimpo)) +
-        "6304";
-
-      return payload + crc16(payload);
-    }
-
-    // ==========================================
-    // FLUXO PIX (MERCADO PAGO OU CHAVE DIRETA)
+    // PIX COM CRONÔMETRO REGRESSIVO
     // ==========================================
     var intervaloTimerPix = null;
 
     function iniciarCronometroPix() {
       if (intervaloTimerPix) clearInterval(intervaloTimerPix);
-      var segundosRestantes = 30 * 60;
+      var segundosRestantes = 30 * 60; // 30 minutos
       var totalSegundos = segundosRestantes;
 
       intervaloTimerPix = setInterval(function() {
@@ -1262,7 +1304,9 @@
         var min = String(Math.floor(segundosRestantes / 60)).padStart(2, '0');
         var seg = String(segundosRestantes % 60).padStart(2, '0');
         document.getElementById("pixTimerTexto").innerText = min + " : " + seg;
-        document.getElementById("pixTimerBarra").style.width = ((segundosRestantes / totalSegundos) * 100) + "%";
+
+        var pct = (segundosRestantes / totalSegundos) * 100;
+        document.getElementById("pixTimerBarra").style.width = pct + "%";
       }, 1000);
     }
 
@@ -1271,39 +1315,12 @@
       const carregando = document.getElementById("pixCarregando");
       const conteudo = document.getElementById("pixConteudo");
       const confirmado = document.getElementById("pixConfirmado");
-      const btnComprovante = document.getElementById("btnJaPagueiPixDireto");
 
       modal.style.display = "flex";
       carregando.style.display = "block";
       conteudo.style.display = "none";
       confirmado.style.display = "none";
-      if (btnComprovante) btnComprovante.style.display = "none";
 
-      // MODO CHAVE PIX DIRETA (Configurada no Painel Admin)
-      if (config.modoPix === 'chave_direta' && config.chavePix) {
-        var payloadDireto = gerarPayloadPixEstatico(
-          config.chavePix,
-          config.nomeRecebedorPix,
-          config.cidadePix,
-          valorTotal,
-          "PEDIDO" + pedidoCriado.id
-        );
-        var qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(payloadDireto);
-
-        document.getElementById("pixQrImg").src = qrUrl;
-        document.getElementById("pixCodigoCopia").value = payloadDireto;
-        document.getElementById("pixCodigoBox").innerText = payloadDireto;
-
-        carregando.style.display = "none";
-        conteudo.style.display = "flex";
-        if (btnComprovante) btnComprovante.style.display = "block";
-
-        iniciarCronometroPix();
-        escutarConfirmacaoPix(pedidoCriado.id);
-        return;
-      }
-
-      // MODO MERCADO PAGO API AUTOMÁTICA
       try {
         const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
         const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
@@ -1324,7 +1341,10 @@
         });
 
         const data = await response.json();
-        if (!response.ok || !data.success) throw new Error(data.error || "Erro ao gerar Pix.");
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || "Erro ao processar cobrança com o Mercado Pago.");
+        }
 
         document.getElementById("pixQrImg").src = `data:image/png;base64,${data.qrCodeBase64}`;
         document.getElementById("pixCodigoCopia").value = data.qrCode;
@@ -1335,20 +1355,10 @@
 
         iniciarCronometroPix();
         escutarConfirmacaoPix(pedidoCriado.id);
+
       } catch (err) {
         alert("Não foi possível gerar a cobrança Pix: " + err.message);
         modal.style.display = "none";
-      }
-    }
-
-    function confirmarEnvioComprovantePixDireto() {
-      if (window.intervaloPix) clearInterval(window.intervaloPix);
-      if (intervaloTimerPix) clearInterval(intervaloTimerPix);
-      document.getElementById("modalPix").style.display = "none";
-      carrinho = [];
-      atualizarBarra();
-      if (textoPedidoWhatsApp) {
-        window.location.href = "https://wa.me/" + config.whatsapp + "?text=" + encodeURIComponent(textoPedidoWhatsApp + "\n\n*Status:* PIX REALIZADO (Segue comprovante abaixo)");
       }
     }
 
@@ -1361,7 +1371,10 @@
       window.intervaloPix = setInterval(async () => {
         try {
           const res = await fetch(`${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoId}&select=status`, {
-            headers: { "apikey": supabaseAnonKey, "Authorization": `Bearer ${supabaseAnonKey}` }
+            headers: {
+              "apikey": supabaseAnonKey,
+              "Authorization": `Bearer ${supabaseAnonKey}`
+            }
           });
           const dados = await res.json();
 
@@ -1374,10 +1387,13 @@
             atualizarBarra();
 
             if (textoPedidoWhatsApp) {
-              window.location.href = "https://wa.me/" + config.whatsapp + "?text=" + encodeURIComponent(textoPedidoWhatsApp + "\n\n*Status:* PAGO VIA PIX (Aprovado)");
+              var link = "https://wa.me/" + config.whatsapp + "?text=" + encodeURIComponent(textoPedidoWhatsApp + "\n\n*Status:* PAGO VIA PIX (Aprovado)");
+              window.location.href = link;
             }
           }
-        } catch (e) {}
+        } catch (e) {
+          console.warn("Aguardando confirmação...", e);
+        }
       }, 2000);
     }
 
@@ -1389,7 +1405,9 @@
 
     function copiarPixPayload() {
       const codigo = document.getElementById("pixCodigoCopia").value;
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(codigo);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(codigo);
+      }
 
       const btn = document.getElementById("btnCopiarPix");
       const textoOriginal = btn.innerText;
