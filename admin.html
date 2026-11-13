@@ -134,9 +134,8 @@
           <div>
             <p class="px-3 text-[10px] font-extrabold uppercase tracking-wider text-purple-300/70 mb-1.5">Financeiro</p>
             <div class="space-y-1">
-              <button onclick="mudarAba('financeiro')" id="nav-btn-financeiro" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-purple-200/80 hover:bg-purple-800/60 transition cursor-pointer">
-                <span class="flex items-center gap-2.5"><i class="fa-solid fa-wallet w-4 text-center"></i> Financeiro</span>
-                <span class="text-[9px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded">Etapa 3</span>
+              <button onclick="mudarAba('financeiro')" id="nav-btn-financeiro" class="nav-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold text-purple-100 hover:bg-purple-800/60 transition cursor-pointer">
+                <i class="fa-solid fa-wallet w-4 text-center"></i> Financeiro
               </button>
               <button onclick="mudarAba('caixa')" id="nav-btn-caixa" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-purple-200/80 hover:bg-purple-800/60 transition cursor-pointer">
                 <span class="flex items-center gap-2.5"><i class="fa-solid fa-cash-register w-4 text-center"></i> Fechamento de caixa</span>
@@ -501,7 +500,7 @@
       </section>
 
       <!-- ========================================================= -->
-      <!-- ABA 4: PRECIFICAÇÃO & FICHA TÉCNICA (ETAPA 2 COMPLETA)    -->
+      <!-- ABA 4: PRECIFICAÇÃO & FICHA TÉCNICA                       -->
       <!-- ========================================================= -->
       <section id="aba-precificacao" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
         
@@ -520,7 +519,6 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
-          <!-- COLUNA 1: CADASTRO DE INSUMOS E MATERIAIS -->
           <div class="lg:col-span-5 bg-white p-5 rounded-2xl shadow-sm border border-gray-200 space-y-4">
             <h3 class="text-sm font-extrabold text-[#411564] border-b pb-2 flex items-center gap-2">
               <i class="fa-solid fa-boxes-stacked"></i> 1. Insumos & Embalagens
@@ -561,7 +559,6 @@
             </div>
           </div>
 
-          <!-- COLUNA 2: FICHA TÉCNICA VINCULADA AO PRODUTO -->
           <div class="lg:col-span-7 bg-white p-5 rounded-2xl shadow-sm border border-gray-200 space-y-4">
             <div class="flex items-center justify-between border-b pb-2 flex-wrap gap-2">
               <h3 class="text-sm font-extrabold text-[#411564] flex items-center gap-2">
@@ -570,7 +567,6 @@
               <span id="badge-status-ficha" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500">Selecione um produto</span>
             </div>
 
-            <!-- Seleção do Produto do Cardápio -->
             <div class="bg-purple-50/40 p-3 rounded-xl border border-purple-100 space-y-1.5">
               <label class="block text-[11px] font-extrabold text-[#411564] uppercase">Produto do Cardápio *</label>
               <select id="ficha-select-produto" onchange="carregarFichaTecnicaProduto()" class="w-full bg-white border border-purple-200 rounded-xl p-2.5 text-xs font-bold text-gray-800 outline-purple-600">
@@ -578,7 +574,6 @@
               </select>
             </div>
 
-            <!-- Adicionar Insumo / Embalagem na Composição -->
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
               <div class="sm:col-span-5">
                 <label class="block text-[11px] font-bold text-gray-700 mb-1">Insumo / Embalagem</label>
@@ -607,12 +602,10 @@
               </div>
             </div>
 
-            <!-- Lista de Itens da Ficha Técnica -->
             <div class="bg-gray-50 rounded-xl p-3 border border-gray-200 space-y-1.5 min-h-[110px] max-h-56 overflow-y-auto" id="lista-itens-receita">
               <p class="text-xs text-gray-400 text-center py-6">Selecione um produto acima e adicione os ingredientes e embalagens da receita.</p>
             </div>
 
-            <!-- Parâmetros de Formação de Preço -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
               <div>
                 <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Taxas App/Cartão (%)</label>
@@ -632,7 +625,6 @@
               </div>
             </div>
 
-            <!-- Painel Consolidado de Custos e Preço Sugerido -->
             <div class="bg-[#411564] text-white p-4 rounded-2xl shadow-md space-y-3">
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center border-b border-purple-400/30 pb-3">
                 <div>
@@ -675,7 +667,6 @@
           </div>
         </div>
 
-        <!-- TABELA CONSOLIDADA DE ANÁLISE DE RENTABILIDADE DO CARDÁPIO -->
         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
           <div class="p-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
             <div>
@@ -712,7 +703,244 @@
       </section>
 
       <!-- ========================================================= -->
-      <!-- ABA 5: CONFIGURAÇÕES DA LOJA                              -->
+      <!-- ABA 5: CONTROLE FINANCEIRO (ETAPA 3)                      -->
+      <!-- ========================================================= -->
+      <section id="aba-financeiro" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
+        
+        <!-- Filtros de Período Financeiro -->
+        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button onclick="selecionarPeriodoFinanceiro('mes_atual')" data-fin-periodo="mes_atual" class="btn-periodo-fin px-3 py-1.5 rounded-xl text-xs font-bold bg-[#411564] text-white cursor-pointer">Este Mês</button>
+            <button onclick="selecionarPeriodoFinanceiro('mes_anterior')" data-fin-periodo="mes_anterior" class="btn-periodo-fin px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">Mês Anterior</button>
+            <button onclick="selecionarPeriodoFinanceiro('personalizado')" data-fin-periodo="personalizado" class="btn-periodo-fin px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">Personalizado</button>
+          </div>
+          <button onclick="gerarRecorrenciasDoMes()" id="btn-gerar-recorrencias" class="bg-purple-100 hover:bg-purple-200 text-[#411564] font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer">
+            <i class="fa-solid fa-repeat"></i> Gerar Recorrências do Mês
+          </button>
+        </div>
+
+        <!-- Datas Personalizadas Financeiro -->
+        <div id="box-fin-personalizado" class="hidden bg-white p-3.5 rounded-2xl border border-purple-200 shadow-sm flex flex-wrap items-end gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">Data Inicial</label>
+            <input type="date" id="fin-data-inicio" class="border border-gray-300 rounded-xl px-3 py-1.5 text-xs outline-purple-600">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">Data Final</label>
+            <input type="date" id="fin-data-fim" class="border border-gray-300 rounded-xl px-3 py-1.5 text-xs outline-purple-600">
+          </div>
+          <button onclick="carregarModuloFinanceiro()" class="bg-[#411564] hover:bg-purple-900 text-white font-bold px-4 py-1.5 rounded-xl text-xs cursor-pointer">
+            Filtrar
+          </button>
+        </div>
+
+        <!-- 5 Cards de Resumo Financeiro -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-500 uppercase">Entradas (Vendas)</p>
+            <p class="text-xl font-black text-emerald-600 mt-1" id="fin-card-entradas">R$ 0,00</p>
+            <span class="text-[10px] text-gray-400">Pedidos concluídos no período</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-500 uppercase">Total Despesas</p>
+            <p class="text-xl font-black text-gray-900 mt-1" id="fin-card-total-despesas">R$ 0,00</p>
+            <span class="text-[10px] text-gray-400">Fixas + Variáveis lançadas</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-500 uppercase">Despesas Pagas</p>
+            <p class="text-xl font-black text-blue-600 mt-1" id="fin-card-pagas">R$ 0,00</p>
+            <span class="text-[10px] text-gray-400">Saídas efetivamente quitadas</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-500 uppercase">Pendentes / Vencidas</p>
+            <p class="text-xl font-black text-amber-600 mt-1" id="fin-card-pendentes">R$ 0,00</p>
+            <span class="text-[10px] text-rose-600 font-bold" id="fin-card-vencidas-info">0 vencidas</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-500 uppercase">Saldo de Caixa</p>
+            <p class="text-xl font-black text-[#411564] mt-1" id="fin-card-saldo">R$ 0,00</p>
+            <span class="text-[10px] text-gray-400">Entradas (-) Despesas Pagas</span>
+          </div>
+        </div>
+
+        <!-- Demonstrativo de Resultado Operacional (DRE) -->
+        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2 border-b pb-2.5">
+            <div>
+              <h3 class="text-sm font-extrabold text-[#411564]">Demonstrativo de Resultado Operacional (Estimado)</h3>
+              <p class="text-[11px] text-gray-500">Apuração coerente sem dupla contagem entre CMV de fichas técnicas e despesas operacionais.</p>
+            </div>
+            <span id="fin-badge-dre" class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-purple-100 text-[#411564]">Resultado Estimado</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-5 gap-2.5 text-xs">
+            <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
+              <p class="text-[10px] font-bold text-emerald-800 uppercase">(+) Faturamento</p>
+              <p class="text-base font-black text-emerald-700 mt-1" id="dre-faturamento">R$ 0,00</p>
+            </div>
+            <div class="p-3 rounded-xl bg-gray-50 border border-gray-200">
+              <p class="text-[10px] font-bold text-gray-600 uppercase">(-) CMV Fichas</p>
+              <p class="text-base font-black text-gray-800 mt-1" id="dre-cmv">R$ 0,00</p>
+            </div>
+            <div class="p-3 rounded-xl bg-gray-50 border border-gray-200">
+              <p class="text-[10px] font-bold text-gray-600 uppercase">(-) Taxas & Imp.</p>
+              <p class="text-base font-black text-gray-800 mt-1" id="dre-taxas">R$ 0,00</p>
+            </div>
+            <div class="p-3 rounded-xl bg-gray-50 border border-gray-200">
+              <p class="text-[10px] font-bold text-gray-600 uppercase">(-) Despesas Oper.</p>
+              <p class="text-base font-black text-gray-800 mt-1" id="dre-despesas">R$ 0,00</p>
+            </div>
+            <div class="p-3 rounded-xl bg-[#411564] text-white">
+              <p class="text-[10px] font-bold text-purple-200 uppercase">(=) Resultado Oper.</p>
+              <p class="text-base font-black text-amber-300 mt-1" id="dre-resultado">R$ 0,00</p>
+            </div>
+          </div>
+
+          <p id="fin-aviso-integridade" class="text-[11px] text-gray-600 bg-amber-50/80 border border-amber-200 rounded-xl p-2.5">
+            Nota: Para evitar dupla contagem, não lance compras de ingredientes já contabilizados nas fichas técnicas como despesa operacional.
+          </p>
+        </div>
+
+        <!-- Cadastro de Despesas e Recorrências -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- Formulário Nova Despesa -->
+          <div class="lg:col-span-5 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b pb-2">
+              <h3 class="text-sm font-extrabold text-[#411564]">Lançar Despesa</h3>
+              <div class="flex gap-1 bg-gray-100 p-1 rounded-xl text-[11px]">
+                <button type="button" onclick="alternarTipoLancamentoFin('avulsa')" id="btn-tab-fin-avulsa" class="px-2.5 py-1 rounded-lg font-bold bg-white text-[#411564] shadow-sm cursor-pointer">Avulsa</button>
+                <button type="button" onclick="alternarTipoLancamentoFin('recorrente')" id="btn-tab-fin-recorrente" class="px-2.5 py-1 rounded-lg font-bold text-gray-600 cursor-pointer">Recorrente</button>
+              </div>
+            </div>
+
+            <!-- Form Despesa Avulsa -->
+            <form id="form-despesa-avulsa" onsubmit="salvarDespesaAvulsa(event)" class="space-y-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Descrição *</label>
+                <input type="text" id="fin-desc" required placeholder="Ex: Conta de Energia / Sacolas / Manutenção" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Categoria *</label>
+                  <select id="fin-categoria" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600 bg-white">
+                    <option value="Aluguel">Aluguel</option>
+                    <option value="Energia">Energia</option>
+                    <option value="Água">Água</option>
+                    <option value="Internet">Internet</option>
+                    <option value="Funcionários">Funcionários</option>
+                    <option value="Embalagens">Embalagens</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Manutenção">Manutenção</option>
+                    <option value="Compras diversas">Compras diversas</option>
+                    <option value="Outras despesas">Outras despesas</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Tipo *</label>
+                  <select id="fin-tipo" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600 bg-white">
+                    <option value="Variável">Variável</option>
+                    <option value="Fixa">Fixa</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Valor (R$) *</label>
+                  <input type="number" step="0.01" id="fin-valor" required placeholder="150.00" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Vencimento *</label>
+                  <input type="date" id="fin-vencimento" required class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Situação *</label>
+                  <select id="fin-status" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600 bg-white">
+                    <option value="Pendente">Pendente</option>
+                    <option value="Pago">Pago</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" id="btn-salvar-despesa" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-bold py-2.5 rounded-xl text-xs shadow transition cursor-pointer">
+                + Salvar Despesa
+              </button>
+            </form>
+
+            <!-- Form Despesa Recorrente -->
+            <form id="form-despesa-recorrente" onsubmit="salvarDespesaRecorrente(event)" class="hidden space-y-2.5">
+              <p class="text-[11px] text-purple-800 bg-purple-50 p-2.5 rounded-xl border border-purple-100">
+                Cadastre contas fixas mensais (ex: Aluguel, Internet) para gerar automaticamente todos os meses sem duplicar.
+              </p>
+              <div>
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Descrição Fixa *</label>
+                <input type="text" id="rec-desc" required placeholder="Ex: Aluguel Ponto Comercial" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Categoria</label>
+                  <select id="rec-categoria" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600 bg-white">
+                    <option value="Aluguel">Aluguel</option>
+                    <option value="Internet">Internet</option>
+                    <option value="Energia">Energia</option>
+                    <option value="Água">Água</option>
+                    <option value="Funcionários">Funcionários</option>
+                    <option value="Outras despesas">Outras despesas</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Valor (R$) *</label>
+                  <input type="number" step="0.01" id="rec-valor" required placeholder="1200.00" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Dia Venc. *</label>
+                  <input type="number" min="1" max="31" id="rec-dia" required placeholder="10" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+              </div>
+              <button type="submit" class="w-full bg-purple-800 hover:bg-purple-900 text-white font-bold py-2.5 rounded-xl text-xs shadow transition cursor-pointer">
+                + Salvar Modelo Recorrente
+              </button>
+
+              <div class="pt-2 border-t space-y-1.5 max-h-40 overflow-y-auto" id="lista-modelos-recorrentes"></div>
+            </form>
+          </div>
+
+          <!-- Tabela de Despesas do Período -->
+          <div class="lg:col-span-7 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+            <div class="p-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+              <h3 class="text-sm font-extrabold text-[#411564]">Despesas do Período</h3>
+              <select id="fin-filtro-status-lista" onchange="renderizarTabelaDespesas()" class="border border-gray-300 rounded-xl px-2.5 py-1 text-xs outline-purple-600 bg-white">
+                <option value="Todos">Todas as situações</option>
+                <option value="Pendente">Pendentes</option>
+                <option value="Vencido">Vencidas</option>
+                <option value="Pago">Pagas</option>
+              </select>
+            </div>
+            <div class="overflow-x-auto flex-1">
+              <table class="w-full text-left text-xs text-gray-600">
+                <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100">
+                  <tr>
+                    <th class="p-3">Descrição</th>
+                    <th class="p-3">Categoria</th>
+                    <th class="p-3">Vencimento</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3 text-right">Valor</th>
+                    <th class="p-3 text-center">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tabela-despesas-corpo" class="divide-y divide-gray-100 font-medium">
+                  <tr>
+                    <td colspan="6" class="p-6 text-center text-gray-400">A carregar despesas...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- ABA 6: CONFIGURAÇÕES DA LOJA                              -->
       <!-- ========================================================= -->
       <section id="aba-config" class="max-w-3xl w-full mx-auto p-4 hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-5">
@@ -977,6 +1205,7 @@
       if (abaAtual === 'relatorios') carregarRelatorios();
       if (abaAtual === 'stock') carregarStock();
       if (abaAtual === 'precificacao') carregarModuloPrecificacao();
+      if (abaAtual === 'financeiro') carregarModuloFinanceiro();
       if (abaAtual === 'config') carregarConfiguracoesLoja();
     }
 
@@ -990,7 +1219,7 @@
         ov.classList.add('hidden');
       }
 
-      ['dashboard', 'pedidos', 'relatorios', 'stock', 'precificacao', 'config', 'em-breve'].forEach(function(a) {
+      ['dashboard', 'pedidos', 'relatorios', 'stock', 'precificacao', 'financeiro', 'config', 'em-breve'].forEach(function(a) {
         var el = document.getElementById('aba-' + a);
         if (el) el.classList.add('hidden');
       });
@@ -1010,11 +1239,11 @@
         relatorios: ['Relatórios de Vendas', 'Fechamento mensal e exportação em PDF'],
         stock: ['Cardápio e Produtos', 'Gerenciamento de itens, preços, fotos e complementos'],
         precificacao: ['Precificação e Ficha Técnica', 'Insumos, fichas técnicas persistentes e rentabilidade'],
+        financeiro: ['Controle Financeiro', 'Entradas, despesas operacionais, recorrências e resultado'],
         config: ['Configurações da Loja', 'WhatsApp, taxa de entrega e modo de recebimento Pix'],
         entregas: ['Entregas e Motoboys', 'Programado para a Etapa 7 do cronograma'],
         clientes: ['Base de Clientes', 'Programado para a Etapa 6 do cronograma'],
         estoque: ['Controle de Estoque', 'Programado para a Etapa 5 do cronograma'],
-        financeiro: ['Controle Financeiro', 'Programado para a Etapa 3 do cronograma'],
         caixa: ['Fechamento de Caixa', 'Programado para a Etapa 4 do cronograma'],
         desempenho: ['Desempenho dos Produtos', 'Programado para a Etapa 8 do cronograma'],
         rentabilidade: ['Análise de Rentabilidade', 'Programado para a Etapa 8 do cronograma']
@@ -1024,7 +1253,7 @@
       document.getElementById('titulo-pagina-atual').innerText = info[0];
       document.getElementById('subtitulo-pagina-atual').innerText = info[1];
 
-      var modulosFuturos = ['entregas', 'clientes', 'estoque', 'financeiro', 'caixa', 'desempenho', 'rentabilidade'];
+      var modulosFuturos = ['entregas', 'clientes', 'estoque', 'caixa', 'desempenho', 'rentabilidade'];
       if (modulosFuturos.indexOf(aba) !== -1) {
         document.getElementById('aba-em-breve').classList.remove('hidden');
         document.getElementById('titulo-modulo-futuro').innerText = info[0];
@@ -1040,6 +1269,7 @@
       if (aba === 'stock') carregarStock();
       if (aba === 'relatorios') carregarRelatorios();
       if (aba === 'precificacao') carregarModuloPrecificacao();
+      if (aba === 'financeiro') carregarModuloFinanceiro();
       if (aba === 'config') carregarConfiguracoesLoja();
     }
 
@@ -1224,9 +1454,7 @@
 
         document.getElementById('dash-val-aguardando').innerText = aguardandoAgora;
         document.getElementById('dash-val-preparo').innerText = preparoRotaAgora;
-      } catch (e) {
-        console.warn("Erro ao consultar operação em tempo real:", e);
-      }
+      } catch (e) {}
     }
 
     async function carregarDashboard() {
@@ -1245,10 +1473,7 @@
           .lte('created_at', ranges.fim.toISOString())
           .order('created_at', { ascending: true });
 
-        if (res.error) {
-          console.error("Erro ao carregar Dashboard:", res.error);
-          return;
-        }
+        if (res.error) return;
 
         var todos = res.data || [];
         var atuais = [];
@@ -1272,9 +1497,7 @@
         };
 
         renderizarMetricasDashboard();
-      } catch (e) {
-        console.error("Falha Dashboard:", e);
-      }
+      } catch (e) {}
     }
 
     function formatarVariacaoHtml(atual, anterior, textoPeriodo) {
@@ -2182,7 +2405,6 @@
       renderizarTabelaRentabilidade();
     }
 
-    // Conversão precisa entre unidades compatíveis (kg <-> g, L <-> ml, un)
     function converterParaUnidadeBase(qtd, unidade) {
       if (unidade === 'kg') return { qtdBase: qtd * 1000, grupo: 'peso', base: 'g' };
       if (unidade === 'g') return { qtdBase: qtd, grupo: 'peso', base: 'g' };
@@ -2213,10 +2435,6 @@
         sb.from('CARDAPIO ACAIZEIRO').select('*').order('nome'),
         sb.from('fichas_tecnicas').select('*')
       ]);
-
-      if (resInsumos.error) console.error("Erro insumos:", resInsumos.error);
-      if (resProdutos.error) console.error("Erro produtos:", resProdutos.error);
-      if (resFichas.error) console.error("Erro fichas:", resFichas.error);
 
       listaInsumos = resInsumos.data || [];
       listaProdutosCardapioFicha = resProdutos.data || [];
@@ -2505,7 +2723,6 @@
       var prod = listaProdutosCardapioFicha.find(function(p) { return String(p.id) === String(prodId); });
       var precoCardapio = prod ? Number(prod.preco || 0) : 0;
 
-      // Calcula lucro real e % CMV com base no preço atual praticado (ou no sugerido se não houver produto)
       var precoBaseAnalise = precoCardapio > 0 ? precoCardapio : precoSugerido;
       var valorTaxasImpostos = precoBaseAnalise * ((taxaApp + impostos) / 100);
       var lucroReal = precoBaseAnalise - custoTotal - valorTaxasImpostos;
@@ -2598,7 +2815,6 @@
 
         var fichaIdSalva = resUpsert.data.id;
 
-        // Limpa itens anteriores da ficha e insere a composição atualizada
         var resDel = await sb.from('ficha_tecnica_itens').delete().eq('ficha_id', fichaIdSalva);
         if (resDel.error) throw new Error(resDel.error.message);
 
@@ -2615,7 +2831,6 @@
         var resIns = await sb.from('ficha_tecnica_itens').insert(itensInsert);
         if (resIns.error) throw new Error(resIns.error.message);
 
-        // Registra histórico de custos para não distorcer relatórios antigos
         var prod = listaProdutosCardapioFicha.find(function(p) { return String(p.id) === String(prodId); });
         await sb.from('historico_custos_produtos').insert([{
           produto_id: Number(prodId),
@@ -2690,7 +2905,383 @@
     }
 
     // ==========================================
-    // ABA 5: CONFIGURAÇÕES DA LOJA
+    // ABA 5: CONTROLE FINANCEIRO (ETAPA 3)
+    // ==========================================
+    var periodoFinanceiroAtual = 'mes_atual';
+    var listaDespesasPeriodo = [];
+    var listaModelosRecorrentes = [];
+
+    function alternarTipoLancamentoFin(tipo) {
+      var formAvulsa = document.getElementById('form-despesa-avulsa');
+      var formRec = document.getElementById('form-despesa-recorrente');
+      var btnAv = document.getElementById('btn-tab-fin-avulsa');
+      var btnRec = document.getElementById('btn-tab-fin-recorrente');
+
+      if (tipo === 'avulsa') {
+        formAvulsa.classList.remove('hidden');
+        formRec.classList.add('hidden');
+        btnAv.className = "px-2.5 py-1 rounded-lg font-bold bg-white text-[#411564] shadow-sm cursor-pointer";
+        btnRec.className = "px-2.5 py-1 rounded-lg font-bold text-gray-600 cursor-pointer";
+      } else {
+        formRec.classList.remove('hidden');
+        formAvulsa.classList.add('hidden');
+        btnRec.className = "px-2.5 py-1 rounded-lg font-bold bg-white text-[#411564] shadow-sm cursor-pointer";
+        btnAv.className = "px-2.5 py-1 rounded-lg font-bold text-gray-600 cursor-pointer";
+      }
+    }
+
+    function selecionarPeriodoFinanceiro(periodo) {
+      periodoFinanceiroAtual = periodo;
+      document.querySelectorAll('.btn-periodo-fin').forEach(function(b) {
+        b.className = b.getAttribute('data-fin-periodo') === periodo
+          ? "btn-periodo-fin px-3 py-1.5 rounded-xl text-xs font-bold bg-[#411564] text-white cursor-pointer"
+          : "btn-periodo-fin px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer";
+      });
+
+      var box = document.getElementById('box-fin-personalizado');
+      if (periodo === 'personalizado') {
+        box.classList.remove('hidden');
+        var hojeStr = formatarDataInputLocal(new Date());
+        if (!document.getElementById('fin-data-inicio').value) document.getElementById('fin-data-inicio').value = hojeStr.slice(0, 8) + '01';
+        if (!document.getElementById('fin-data-fim').value) document.getElementById('fin-data-fim').value = hojeStr;
+      } else {
+        box.classList.add('hidden');
+        carregarModuloFinanceiro();
+      }
+    }
+
+    function obterIntervaloFinanceiro() {
+      var agora = new Date();
+      var inicio = new Date(agora.getFullYear(), agora.getMonth(), 1, 0, 0, 0, 0);
+      var fim = new Date(agora.getFullYear(), agora.getMonth() + 1, 0, 23, 59, 59, 999);
+
+      if (periodoFinanceiroAtual === 'mes_anterior') {
+        inicio = new Date(agora.getFullYear(), agora.getMonth() - 1, 1, 0, 0, 0, 0);
+        fim = new Date(agora.getFullYear(), agora.getMonth(), 0, 23, 59, 59, 999);
+      } else if (periodoFinanceiroAtual === 'personalizado') {
+        var dIni = document.getElementById('fin-data-inicio').value;
+        var dFim = document.getElementById('fin-data-fim').value;
+        if (!dIni || !dFim) { alert("Preencha as datas inicial e final."); return null; }
+
+        inicio = validarDataCalendarioBrasil(dIni, false);
+        fim = validarDataCalendarioBrasil(dFim, true);
+        if (!inicio || !fim) { alert("Data inválida! Verifique o calendário."); return null; }
+        if (inicio.getTime() > fim.getTime()) { alert("A data inicial não pode ser posterior à final."); return null; }
+      }
+
+      return {
+        inicioDate: formatarDataInputLocal(inicio),
+        fimDate: formatarDataInputLocal(fim),
+        inicioIso: inicio.toISOString(),
+        fimIso: fim.toISOString()
+      };
+    }
+
+    async function carregarModuloFinanceiro() {
+      var sb = initClient();
+      if (!sb) return;
+
+      var vencInput = document.getElementById('fin-vencimento');
+      if (vencInput && !vencInput.value) vencInput.value = formatarDataInputLocal(new Date());
+
+      var range = obterIntervaloFinanceiro();
+      if (!range) return;
+
+      var [resDespesas, resRec, resPedidos, resFichas] = await Promise.all([
+        sb.from('despesas_financeiras')
+          .select('*')
+          .gte('data_vencimento', range.inicioDate)
+          .lte('data_vencimento', range.fimDate)
+          .order('data_vencimento', { ascending: true }),
+        sb.from('despesas_recorrentes').select('*').eq('ativo', true).order('dia_vencimento'),
+        sb.from('pedidos')
+          .select('id, total, status, itens')
+          .eq('status', 'Concluído')
+          .gte('created_at', range.inicioIso)
+          .lte('created_at', range.fimIso),
+        sb.from('fichas_tecnicas').select('*')
+      ]);
+
+      listaDespesasPeriodo = resDespesas.data || [];
+      listaModelosRecorrentes = resRec.data || [];
+      var pedidosConcluidos = resPedidos.data || [];
+      var fichas = resFichas.data || [];
+
+      renderizarModelosRecorrentes();
+      renderizarTabelaDespesas();
+      calcularResumoEDreFinanceiro(pedidosConcluidos, listaDespesasPeriodo, fichas);
+    }
+
+    function calcularResumoEDreFinanceiro(pedidosConcluidos, despesas, fichas) {
+      var totalEntradas = 0;
+      var totalCmv = 0;
+      var totalTaxasImp = 0;
+      var itensSemFicha = 0;
+
+      pedidosConcluidos.forEach(function(p) {
+        totalEntradas += Number(p.total || 0);
+        if (Array.isArray(p.itens)) {
+          p.itens.forEach(function(it) {
+            var qtd = Number(it.quantidade || 1);
+            var receitaItem = Number(it.preco_unitario || 0) * qtd;
+            var ficha = fichas.find(function(f) { return String(f.produto_id) === String(it.id); });
+
+            if (ficha) {
+              var cmvUnit = Number(ficha.custo_insumos || 0) + Number(ficha.custo_embalagens || 0);
+              totalCmv += cmvUnit * qtd;
+              var pctTaxas = (Number(ficha.taxa_app_pct || 0) + Number(ficha.impostos_pct || 0)) / 100;
+              totalTaxasImp += receitaItem * pctTaxas;
+            } else {
+              itensSemFicha++;
+            }
+          });
+        }
+      });
+
+      var hojeStr = formatarDataInputLocal(new Date());
+      var totalDespesas = 0;
+      var totalPagas = 0;
+      var totalPendentes = 0;
+      var qtdVencidas = 0;
+
+      despesas.forEach(function(d) {
+        var val = Number(d.valor || 0);
+        totalDespesas += val;
+        if (d.status === 'Pago') {
+          totalPagas += val;
+        } else {
+          totalPendentes += val;
+          if (d.data_vencimento && d.data_vencimento < hojeStr) {
+            qtdVencidas++;
+          }
+        }
+      });
+
+      var saldoCaixa = totalEntradas - totalPagas;
+      var resultadoOperacional = totalEntradas - totalCmv - totalTaxasImp - totalDespesas;
+
+      document.getElementById('fin-card-entradas').innerText = 'R$ ' + totalEntradas.toFixed(2).replace('.', ',');
+      document.getElementById('fin-card-total-despesas').innerText = 'R$ ' + totalDespesas.toFixed(2).replace('.', ',');
+      document.getElementById('fin-card-pagas').innerText = 'R$ ' + totalPagas.toFixed(2).replace('.', ',');
+      document.getElementById('fin-card-pendentes').innerText = 'R$ ' + totalPendentes.toFixed(2).replace('.', ',');
+      document.getElementById('fin-card-vencidas-info').innerText = qtdVencidas > 0 ? (qtdVencidas + ' conta(s) vencida(s)') : 'Nenhuma conta vencida';
+      document.getElementById('fin-card-saldo').innerText = 'R$ ' + saldoCaixa.toFixed(2).replace('.', ',');
+
+      document.getElementById('dre-faturamento').innerText = 'R$ ' + totalEntradas.toFixed(2).replace('.', ',');
+      document.getElementById('dre-cmv').innerText = 'R$ ' + totalCmv.toFixed(2).replace('.', ',');
+      document.getElementById('dre-taxas').innerText = 'R$ ' + totalTaxasImp.toFixed(2).replace('.', ',');
+      document.getElementById('dre-despesas').innerText = 'R$ ' + totalDespesas.toFixed(2).replace('.', ',');
+      document.getElementById('dre-resultado').innerText = 'R$ ' + resultadoOperacional.toFixed(2).replace('.', ',');
+
+      var aviso = document.getElementById('fin-aviso-integridade');
+      if (itensSemFicha > 0) {
+        aviso.innerHTML = '⚠️ <strong>Resultado Parcial / Estimado:</strong> Existem <strong>' + itensSemFicha + '</strong> item(ns) vendidos neste período sem ficha técnica cadastrada (o CMV deles não entrou no desconto). Além disso, evite lançar insumos de produção como despesa operacional para não descontar em duplicidade.';
+      } else {
+        aviso.innerHTML = '✓ <strong>Integridade DRE:</strong> Todos os itens vendidos possuem ficha técnica. Para evitar dupla contagem, não lance compras de insumos já contabilizados nas fichas técnicas como despesa operacional.';
+      }
+    }
+
+    function renderizarTabelaDespesas() {
+      var tbody = document.getElementById('tabela-despesas-corpo');
+      var filtro = document.getElementById('fin-filtro-status-lista').value;
+      var hojeStr = formatarDataInputLocal(new Date());
+
+      var filtradas = listaDespesasPeriodo.filter(function(d) {
+        var isVencida = (d.status !== 'Pago' && d.data_vencimento && d.data_vencimento < hojeStr);
+        if (filtro === 'Todos') return true;
+        if (filtro === 'Vencido') return isVencida;
+        if (filtro === 'Pendente') return (d.status !== 'Pago' && !isVencida);
+        return d.status === filtro;
+      });
+
+      if (filtradas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Nenhuma despesa encontrada neste filtro.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtradas.map(function(d) {
+        var isVencida = (d.status !== 'Pago' && d.data_vencimento && d.data_vencimento < hojeStr);
+        var vencFmt = d.data_vencimento ? d.data_vencimento.split('-').reverse().join('/') : '-';
+
+        var badgeStatus = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Pendente</span>';
+        if (d.status === 'Pago') {
+          badgeStatus = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Pago</span>';
+        } else if (isVencida) {
+          badgeStatus = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 animate-pulse">Vencido</span>';
+        }
+
+        var tagTipo = d.tipo_despesa === 'Fixa'
+          ? '<span class="text-[9px] text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded ml-1">Fixa</span>'
+          : '<span class="text-[9px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded ml-1">Var.</span>';
+
+        var btnPagar = d.status !== 'Pago'
+          ? '<button onclick="marcarDespesaPaga(' + d.id + ')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold px-2 py-1 rounded-lg text-[10px] cursor-pointer" title="Registrar pagamento hoje">Pagar</button>'
+          : '<span class="text-[10px] text-gray-400">Quitado</span>';
+
+        return '<tr class="hover:bg-gray-50">' +
+          '<td class="p-3 font-bold text-gray-800">' + d.descricao + tagTipo + '</td>' +
+          '<td class="p-3 text-gray-600">' + d.categoria + '</td>' +
+          '<td class="p-3 whitespace-nowrap">' + vencFmt + '</td>' +
+          '<td class="p-3">' + badgeStatus + '</td>' +
+          '<td class="p-3 text-right font-black text-gray-900">R$ ' + Number(d.valor || 0).toFixed(2).replace('.', ',') + '</td>' +
+          '<td class="p-3 text-center flex items-center justify-center gap-1.5">' +
+            btnPagar +
+            '<button onclick="excluirDespesa(' + d.id + ')" class="text-gray-400 hover:text-red-600 p-1 cursor-pointer" title="Excluir"><i class="fa-solid fa-trash"></i></button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    async function salvarDespesaAvulsa(e) {
+      e.preventDefault();
+      var btn = document.getElementById('btn-salvar-despesa');
+      btn.disabled = true;
+      btn.innerText = "Salvando...";
+
+      var desc = document.getElementById('fin-desc').value.trim();
+      var cat = document.getElementById('fin-categoria').value;
+      var tipo = document.getElementById('fin-tipo').value;
+      var valor = parseFloat(document.getElementById('fin-valor').value) || 0;
+      var venc = document.getElementById('fin-vencimento').value;
+      var status = document.getElementById('fin-status').value;
+      var hojeStr = formatarDataInputLocal(new Date());
+
+      var sb = initClient();
+      var res = await sb.from('despesas_financeiras').insert([{
+        descricao: desc,
+        categoria: cat,
+        tipo_despesa: tipo,
+        valor: valor,
+        data_lancamento: hojeStr,
+        data_vencimento: venc,
+        data_pagamento: status === 'Pago' ? hojeStr : null,
+        status: status
+      }]);
+
+      btn.disabled = false;
+      btn.innerText = "+ Salvar Despesa";
+
+      if (res.error) {
+        alert("Erro ao salvar despesa: " + res.error.message);
+        return;
+      }
+
+      document.getElementById('fin-desc').value = '';
+      document.getElementById('fin-valor').value = '';
+      carregarModuloFinanceiro();
+    }
+
+    async function marcarDespesaPaga(id) {
+      var sb = initClient();
+      var hojeStr = formatarDataInputLocal(new Date());
+      var res = await sb.from('despesas_financeiras')
+        .update({ status: 'Pago', data_pagamento: hojeStr })
+        .eq('id', id);
+
+      if (res.error) { alert("Erro ao dar baixa: " + res.error.message); return; }
+      carregarModuloFinanceiro();
+    }
+
+    async function excluirDespesa(id) {
+      if (!confirm("Remover este lançamento de despesa?")) return;
+      var sb = initClient();
+      var res = await sb.from('despesas_financeiras').delete().eq('id', id);
+      if (res.error) { alert("Erro ao excluir: " + res.error.message); return; }
+      carregarModuloFinanceiro();
+    }
+
+    function renderizarModelosRecorrentes() {
+      var box = document.getElementById('lista-modelos-recorrentes');
+      if (listaModelosRecorrentes.length === 0) {
+        box.innerHTML = '<p class="text-[11px] text-gray-400 text-center py-2">Nenhuma despesa recorrente cadastrada.</p>';
+        return;
+      }
+
+      box.innerHTML = listaModelosRecorrentes.map(function(r) {
+        return '<div class="flex items-center justify-between text-[11px] bg-gray-50 p-2 rounded-lg border border-gray-100">' +
+          '<div><strong>' + r.descricao + '</strong> (Dia ' + r.dia_vencimento + ') — R$ ' + Number(r.valor).toFixed(2).replace('.', ',') + '</div>' +
+          '<button type="button" onclick="desativarRecorrente(' + r.id + ')" class="text-red-400 hover:text-red-600 cursor-pointer" title="Desativar"><i class="fa-solid fa-trash"></i></button>' +
+        '</div>';
+      }).join('');
+    }
+
+    async function salvarDespesaRecorrente(e) {
+      e.preventDefault();
+      var desc = document.getElementById('rec-desc').value.trim();
+      var cat = document.getElementById('rec-categoria').value;
+      var valor = parseFloat(document.getElementById('rec-valor').value) || 0;
+      var dia = parseInt(document.getElementById('rec-dia').value, 10) || 1;
+
+      var sb = initClient();
+      var res = await sb.from('despesas_recorrentes').insert([{
+        descricao: desc,
+        categoria: cat,
+        valor: valor,
+        dia_vencimento: dia,
+        tipo_despesa: 'Fixa',
+        ativo: true
+      }]);
+
+      if (res.error) { alert("Erro ao salvar recorrência: " + res.error.message); return; }
+
+      document.getElementById('rec-desc').value = '';
+      document.getElementById('rec-valor').value = '';
+      document.getElementById('rec-dia').value = '';
+      carregarModuloFinanceiro();
+    }
+
+    async function desativarRecorrente(id) {
+      if (!confirm("Desativar esta despesa recorrente para os próximos meses?")) return;
+      var sb = initClient();
+      await sb.from('despesas_recorrentes').update({ ativo: false }).eq('id', id);
+      carregarModuloFinanceiro();
+    }
+
+    async function gerarRecorrenciasDoMes() {
+      if (listaModelosRecorrentes.length === 0) {
+        alert("Cadastre pelo menos um modelo de despesa recorrente antes de gerar.");
+        return;
+      }
+
+      var agora = new Date();
+      var ano = agora.getFullYear();
+      var mes = agora.getMonth() + 1;
+      var competencia = ano + '-' + String(mes).padStart(2, '0');
+      var ultimoDiaMes = new Date(ano, mes, 0).getDate();
+      var hojeStr = formatarDataInputLocal(agora);
+
+      var sb = initClient();
+      var novasParcelas = listaModelosRecorrentes.map(function(m) {
+        var diaReal = Math.min(Number(m.dia_vencimento), ultimoDiaMes);
+        var dataVenc = competencia + '-' + String(diaReal).padStart(2, '0');
+        return {
+          descricao: m.descricao + ' (' + String(mes).padStart(2, '0') + '/' + ano + ')',
+          categoria: m.categoria,
+          valor: Number(m.valor),
+          data_lancamento: hojeStr,
+          data_vencimento: dataVenc,
+          tipo_despesa: 'Fixa',
+          status: 'Pendente',
+          recorrencia_id: m.id,
+          competencia_recorrencia: competencia
+        };
+      });
+
+      // Upsert ignorando duplicatas pela chave única (recorrencia_id, competencia_recorrencia)
+      var res = await sb.from('despesas_financeiras')
+        .upsert(novasParcelas, { onConflict: 'recorrencia_id,competencia_recorrencia', ignoreDuplicates: true });
+
+      if (res.error) {
+        alert("Erro ao gerar recorrências: " + res.error.message);
+        return;
+      }
+
+      alert("✓ Despesas recorrentes de " + String(mes).padStart(2, '0') + "/" + ano + " verificadas e geradas sem duplicação!");
+      carregarModuloFinanceiro();
+    }
+
+    // ==========================================
+    // ABA 6: CONFIGURAÇÕES DA LOJA
     // ==========================================
     async function carregarConfiguracoesLoja() {
       var sb = initClient();
