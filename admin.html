@@ -216,7 +216,6 @@
       <!-- ========================================================= -->
       <section id="aba-dashboard" class="max-w-6xl w-full mx-auto p-4 sm:p-6 space-y-6">
         
-        <!-- Barra de Filtros de Período e Margem Padrão -->
         <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div class="flex flex-wrap items-center gap-1.5">
             <button onclick="selecionarPeriodoDashboard('hoje')" data-periodo="hoje" class="btn-periodo-dash px-3 py-1.5 rounded-xl text-xs font-bold bg-[#411564] text-white cursor-pointer">Hoje</button>
@@ -228,14 +227,12 @@
             <button onclick="selecionarPeriodoDashboard('personalizado')" data-periodo="personalizado" class="btn-periodo-dash px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">Personalizado</button>
           </div>
 
-          <!-- Margem Padrão Configurável -->
           <div class="flex items-center gap-2 bg-purple-50/80 px-3 py-1.5 rounded-xl border border-purple-100">
             <label for="dash-margem-padrao" class="text-[11px] font-bold text-[#411564] whitespace-nowrap">Margem Presumida (%):</label>
             <input type="number" id="dash-margem-padrao" min="1" max="95" step="1" value="35" onchange="alterarMargemPadraoDashboard()" class="w-16 bg-white border border-purple-200 rounded-lg px-2 py-1 text-xs font-black text-center text-[#411564] outline-purple-600">
           </div>
         </div>
 
-        <!-- Filtro de Data Personalizada -->
         <div id="box-periodo-personalizado" class="hidden bg-white p-3.5 rounded-2xl border border-purple-200 shadow-sm flex flex-wrap items-end gap-3">
           <div>
             <label class="block text-[11px] font-bold text-gray-600 mb-1">Data Inicial</label>
@@ -250,9 +247,7 @@
           </button>
         </div>
 
-        <!-- 6 Cards de Indicadores Principais -->
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          <!-- Card 1: Faturamento -->
           <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
               <p class="text-xs font-bold text-gray-500 uppercase" id="lbl-card-faturamento">Faturamento (Hoje)</p>
@@ -262,7 +257,6 @@
             <p class="text-[11px] text-gray-500 mt-1" id="dash-comp-faturamento">Calculando comparação...</p>
           </div>
 
-          <!-- Card 2: Quantidade de Pedidos -->
           <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
               <p class="text-xs font-bold text-gray-500 uppercase" id="lbl-card-pedidos">Pedidos Concluídos</p>
@@ -272,7 +266,6 @@
             <p class="text-[11px] text-gray-500 mt-1" id="dash-comp-pedidos">Calculando comparação...</p>
           </div>
 
-          <!-- Card 3: Ticket Médio -->
           <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
               <p class="text-xs font-bold text-gray-500 uppercase">Ticket Médio</p>
@@ -282,7 +275,6 @@
             <p class="text-[11px] text-gray-500 mt-1" id="dash-comp-ticket">Calculando comparação...</p>
           </div>
 
-          <!-- Card 4: Lucro Estimado (Margem Presumida) -->
           <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
               <p class="text-xs font-bold text-gray-500 uppercase">Lucro estimado (margem presumida)</p>
@@ -292,7 +284,6 @@
             <p class="text-[11px] text-gray-500 mt-1" id="dash-comp-lucro">Estimativa com margem presumida de 35% (não representa lucro líquido real)</p>
           </div>
 
-          <!-- Card 5: Aguardando Atendimento (Sempre Tempo Real) -->
           <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
               <p class="text-xs font-bold text-gray-500 uppercase">Aguardando Atendimento</p>
@@ -302,7 +293,6 @@
             <p class="text-[11px] text-gray-500 mt-1">Situação atual da operação (novos ou aguardando Pix)</p>
           </div>
 
-          <!-- Card 6: Em Preparação / Rota (Sempre Tempo Real) -->
           <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
               <p class="text-xs font-bold text-gray-500 uppercase">Em Preparação / Rota</p>
@@ -313,15 +303,12 @@
           </div>
         </div>
 
-        <!-- Resumo Visual dos Status dos Pedidos no Período -->
         <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
           <h3 class="text-xs font-extrabold text-gray-700 uppercase mb-3">Status dos Pedidos no Período</h3>
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 text-center" id="dash-resumo-status"></div>
         </div>
 
-        <!-- Gráficos Principais: Evolução Faturamento & Volume de Pedidos -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <!-- Gráfico Faturamento -->
           <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-3">
             <div class="flex items-center justify-between flex-wrap gap-2">
               <h3 class="text-sm font-extrabold text-gray-800">Evolução do Faturamento</h3>
@@ -336,7 +323,6 @@
             </div>
           </div>
 
-          <!-- Gráfico Quantidade de Pedidos -->
           <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-3">
             <div class="flex items-center justify-between">
               <h3 class="text-sm font-extrabold text-gray-800">Quantidade de Pedidos</h3>
@@ -348,10 +334,7 @@
           </div>
         </div>
 
-        <!-- Linha Inferior: Top 5 Produtos, Formas de Pagamento e Horários de Pico -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          <!-- Top 5 Produtos Mais Vendidos -->
           <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-3">
             <h3 class="text-sm font-extrabold text-gray-800 flex items-center gap-2">
               <i class="fa-solid fa-trophy text-amber-500"></i> Top 5 Produtos Mais Vendidos
@@ -361,7 +344,6 @@
             </div>
           </div>
 
-          <!-- Formas de Pagamento -->
           <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-3">
             <h3 class="text-sm font-extrabold text-gray-800 flex items-center gap-2">
               <i class="fa-solid fa-credit-card text-[#411564]"></i> Formas de Pagamento
@@ -371,7 +353,6 @@
             </div>
           </div>
 
-          <!-- Horários de Maior Movimento -->
           <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-3">
             <div class="flex items-center justify-between">
               <h3 class="text-sm font-extrabold text-gray-800 flex items-center gap-2">
@@ -383,7 +364,6 @@
               <canvas id="grafico-horarios"></canvas>
             </div>
           </div>
-
         </div>
       </section>
 
@@ -521,17 +501,26 @@
       </section>
 
       <!-- ========================================================= -->
-      <!-- ABA 4: PRECIFICAÇÃO & FICHA TÉCNICA                       -->
+      <!-- ABA 4: PRECIFICAÇÃO & FICHA TÉCNICA (ETAPA 2 COMPLETA)    -->
       <!-- ========================================================= -->
-      <section id="aba-precificacao" class="max-w-5xl w-full mx-auto p-4 hidden space-y-6">
-        <div>
-          <h2 class="text-lg font-extrabold text-[#411564] flex items-center gap-2">
-            <i class="fa-solid fa-calculator"></i> Precificação & Engenharia de Cardápio
-          </h2>
-          <p class="text-xs text-gray-500">Cadastre seus insumos e embalagens e calcule o preço ideal de venda com margem de lucro real.</p>
+      <section id="aba-precificacao" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-extrabold text-[#411564] flex items-center gap-2">
+              <i class="fa-solid fa-calculator"></i> Precificação & Ficha Técnica Persistente
+            </h2>
+            <p class="text-xs text-gray-500">Cadastre insumos com conversão de unidades, vincule receitas aos produtos e analise a rentabilidade real.</p>
+          </div>
+          <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
+            <label for="cfg-alerta-cmv-global" class="text-[11px] font-bold text-gray-600 whitespace-nowrap">Limite Alerta CMV (%):</label>
+            <input type="number" id="cfg-alerta-cmv-global" min="5" max="90" step="1" value="35" onchange="alterarLimiteAlertaCmv()" class="w-16 border border-purple-200 bg-purple-50/50 rounded-lg px-2 py-1 text-xs font-black text-center text-[#411564] outline-purple-600">
+          </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- COLUNA 1: CADASTRO DE INSUMOS E MATERIAIS -->
           <div class="lg:col-span-5 bg-white p-5 rounded-2xl shadow-sm border border-gray-200 space-y-4">
             <h3 class="text-sm font-extrabold text-[#411564] border-b pb-2 flex items-center gap-2">
               <i class="fa-solid fa-boxes-stacked"></i> 1. Insumos & Embalagens
@@ -539,108 +528,187 @@
 
             <form onsubmit="salvarInsumo(event)" class="space-y-2.5 bg-purple-50/50 p-3.5 rounded-xl border border-purple-100">
               <div>
-                <label class="block text-[11px] font-bold text-gray-700 mb-1">Nome do Insumo / Material *</label>
-                <input type="text" id="insumo-nome" required placeholder="Ex: Caixa Açaí 10L / Copo 400ml" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Nome do Insumo / Embalagem *</label>
+                <input type="text" id="insumo-nome" required placeholder="Ex: Polpa Açaí / Copo 500ml / Leite em Pó" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
               </div>
               <div class="grid grid-cols-3 gap-2">
                 <div>
                   <label class="block text-[11px] font-bold text-gray-700 mb-1">Qtd. Pacote *</label>
-                  <input type="number" step="0.01" id="insumo-qtd" required placeholder="Ex: 10000" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                  <input type="number" step="0.001" id="insumo-qtd" required placeholder="Ex: 5" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
                 </div>
                 <div>
                   <label class="block text-[11px] font-bold text-gray-700 mb-1">Unidade *</label>
                   <select id="insumo-unidade" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                    <option value="kg">Quilos (kg)</option>
                     <option value="g">Gramas (g)</option>
+                    <option value="L">Litros (L)</option>
                     <option value="ml">Mililitros (ml)</option>
                     <option value="un">Unidade (un)</option>
                   </select>
                 </div>
                 <div>
                   <label class="block text-[11px] font-bold text-gray-700 mb-1">Valor Pago (R$) *</label>
-                  <input type="number" step="0.01" id="insumo-preco" required placeholder="Ex: 110.00" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                  <input type="number" step="0.01" id="insumo-preco" required placeholder="Ex: 50.00" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
                 </div>
               </div>
-              <button type="submit" id="btn-salvar-insumo" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-bold py-2 rounded-xl text-xs shadow transition cursor-pointer">
-                + Salvar Insumo
+              <button type="submit" id="btn-salvar-insumo" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-bold py-2.5 rounded-xl text-xs shadow transition cursor-pointer">
+                + Cadastrar Insumo
               </button>
             </form>
 
-            <div class="space-y-1.5 max-h-96 overflow-y-auto pr-1" id="lista-insumos-salvos">
+            <div class="space-y-1.5 max-h-[420px] overflow-y-auto pr-1" id="lista-insumos-salvos">
               <p class="text-xs text-gray-400 text-center py-4">A carregar insumos...</p>
             </div>
           </div>
 
+          <!-- COLUNA 2: FICHA TÉCNICA VINCULADA AO PRODUTO -->
           <div class="lg:col-span-7 bg-white p-5 rounded-2xl shadow-sm border border-gray-200 space-y-4">
-            <div class="flex items-center justify-between border-b pb-2">
+            <div class="flex items-center justify-between border-b pb-2 flex-wrap gap-2">
               <h3 class="text-sm font-extrabold text-[#411564] flex items-center gap-2">
-                <i class="fa-solid fa-scale-balanced"></i> 2. Calculadora de Preço de Venda (Ficha Técnica)
+                <i class="fa-solid fa-file-invoice-dollar"></i> 2. Ficha Técnica por Produto
               </h3>
-              <button type="button" onclick="limparReceitaCalculadora()" class="text-[11px] text-gray-400 hover:text-red-600 font-bold cursor-pointer">Limpar</button>
+              <span id="badge-status-ficha" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500">Selecione um produto</span>
             </div>
 
-            <div class="flex gap-2 items-end flex-wrap sm:flex-nowrap">
-              <div class="flex-1 min-w-[160px]">
-                <label class="block text-[11px] font-bold text-gray-700 mb-1">Escolha o Insumo</label>
-                <select id="calc-select-insumo" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600 bg-white">
+            <!-- Seleção do Produto do Cardápio -->
+            <div class="bg-purple-50/40 p-3 rounded-xl border border-purple-100 space-y-1.5">
+              <label class="block text-[11px] font-extrabold text-[#411564] uppercase">Produto do Cardápio *</label>
+              <select id="ficha-select-produto" onchange="carregarFichaTecnicaProduto()" class="w-full bg-white border border-purple-200 rounded-xl p-2.5 text-xs font-bold text-gray-800 outline-purple-600">
+                <option value="">Escolha um produto do cardápio...</option>
+              </select>
+            </div>
+
+            <!-- Adicionar Insumo / Embalagem na Composição -->
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
+              <div class="sm:col-span-5">
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Insumo / Embalagem</label>
+                <select id="calc-select-insumo" onchange="atualizarUnidadesCompativeisReceita()" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600 bg-white">
                   <option value="">Selecione...</option>
                 </select>
               </div>
-              <div class="w-28">
-                <label class="block text-[11px] font-bold text-gray-700 mb-1">Qtd. Usada</label>
-                <input type="number" step="0.01" id="calc-qtd-usada" placeholder="Ex: 300" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+              <div class="sm:col-span-2">
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Qtd.</label>
+                <input type="number" step="0.001" id="calc-qtd-usada" placeholder="300" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
               </div>
-              <button type="button" onclick="adicionarItemReceita()" class="bg-purple-100 hover:bg-purple-200 text-[#411564] font-extrabold px-3.5 py-2 rounded-xl text-xs transition cursor-pointer">
-                Adicionar
-              </button>
+              <div class="sm:col-span-2">
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Unidade</label>
+                <select id="calc-unidade-usada" class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600 bg-white">
+                  <option value="g">g</option>
+                </select>
+              </div>
+              <div class="sm:col-span-3 flex gap-1">
+                <select id="calc-tipo-item" class="border border-gray-300 rounded-xl p-2 text-[11px] outline-purple-600 bg-white" title="Classificação do item">
+                  <option value="insumo">Ingred.</option>
+                  <option value="embalagem">Embal.</option>
+                </select>
+                <button type="button" onclick="adicionarItemReceita()" class="flex-1 bg-purple-100 hover:bg-purple-200 text-[#411564] font-extrabold px-2.5 py-2 rounded-xl text-xs transition cursor-pointer">
+                  + Add
+                </button>
+              </div>
             </div>
 
-            <div class="bg-gray-50 rounded-xl p-3 border border-gray-200 space-y-1.5 min-h-[90px]" id="lista-itens-receita">
-              <p class="text-xs text-gray-400 text-center py-4">Adicione os insumos e embalagens usados neste produto acima.</p>
+            <!-- Lista de Itens da Ficha Técnica -->
+            <div class="bg-gray-50 rounded-xl p-3 border border-gray-200 space-y-1.5 min-h-[110px] max-h-56 overflow-y-auto" id="lista-itens-receita">
+              <p class="text-xs text-gray-400 text-center py-6">Selecione um produto acima e adicione os ingredientes e embalagens da receita.</p>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
+            <!-- Parâmetros de Formação de Preço -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
               <div>
-                <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Taxa App / Cartão (%)</label>
+                <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Taxas App/Cartão (%)</label>
                 <input type="number" step="0.1" id="calc-taxa-app" value="5" oninput="recalcularPrecoVenda()" class="w-full border border-gray-300 rounded-xl p-2 text-xs font-bold outline-purple-600">
               </div>
               <div>
-                <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Impostos / MEI (%)</label>
+                <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Impostos (%)</label>
                 <input type="number" step="0.1" id="calc-impostos" value="4" oninput="recalcularPrecoVenda()" class="w-full border border-gray-300 rounded-xl p-2 text-xs font-bold outline-purple-600">
               </div>
               <div>
-                <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Custo Fixo (%)</label>
-                <input type="number" step="0.1" id="calc-custo-fixo" value="15" oninput="recalcularPrecoVenda()" class="w-full border border-gray-300 rounded-xl p-2 text-xs font-bold outline-purple-600">
+                <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Rateio Fixo (R$/un)</label>
+                <input type="number" step="0.01" id="calc-rateio-fixo" value="0.00" oninput="recalcularPrecoVenda()" class="w-full border border-gray-300 rounded-xl p-2 text-xs font-bold outline-purple-600" title="Custo fixo rateado por unidade vendida em reais">
               </div>
               <div>
-                <label class="block text-[10px] font-bold text-[#411564] uppercase mb-1">Lucro Desejado (%)</label>
+                <label class="block text-[10px] font-bold text-[#411564] uppercase mb-1">Margem Desejada (%)</label>
                 <input type="number" step="0.1" id="calc-margem-lucro" value="30" oninput="recalcularPrecoVenda()" class="w-full border-2 border-purple-300 bg-purple-50/40 rounded-xl p-2 text-xs font-black text-[#411564] outline-purple-600">
               </div>
             </div>
 
+            <!-- Painel Consolidado de Custos e Preço Sugerido -->
             <div class="bg-[#411564] text-white p-4 rounded-2xl shadow-md space-y-3">
-              <div class="grid grid-cols-3 gap-2 text-center border-b border-purple-400/30 pb-3">
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center border-b border-purple-400/30 pb-3">
                 <div>
-                  <p class="text-[10px] text-purple-200 uppercase">Custo Insumos (CMV)</p>
-                  <p class="text-base font-black" id="res-cmv-valor">R$ 0,00</p>
-                  <span class="text-[10px] text-purple-200" id="res-cmv-pct">0% do preço</span>
+                  <p class="text-[10px] text-purple-200 uppercase">Ingredientes</p>
+                  <p class="text-sm font-black" id="res-custo-insumos">R$ 0,00</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-purple-200 uppercase">Embalagens</p>
+                  <p class="text-sm font-black" id="res-custo-embalagens">R$ 0,00</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-purple-200 uppercase">Custo Total (CMV+Fixo)</p>
+                  <p class="text-sm font-black text-purple-100" id="res-cmv-valor">R$ 0,00</p>
                 </div>
                 <div>
                   <p class="text-[10px] text-purple-200 uppercase">Preço Sugerido</p>
-                  <p class="text-xl font-black text-amber-300" id="res-preco-sugerido">R$ 0,00</p>
-                  <span class="text-[10px] text-purple-200" id="res-markup">Markup: 0.00x</span>
-                </div>
-                <div>
-                  <p class="text-[10px] text-purple-200 uppercase">Lucro Líquido Real</p>
-                  <p class="text-base font-black text-emerald-300" id="res-lucro-real">R$ 0,00</p>
-                  <span class="text-[10px] text-emerald-200">Livre por venda</span>
+                  <p class="text-lg font-black text-amber-300" id="res-preco-sugerido">R$ 0,00</p>
                 </div>
               </div>
-              <p id="alerta-cmv" class="text-[11px] text-center text-purple-100">
-                Dica: Em deliverys e açaiterias, o ideal é manter o CMV abaixo de 35% do preço de venda.
+
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div>
+                  <span class="text-purple-200">Preço no Cardápio: </span>
+                  <strong id="res-preco-atual-cardapio">R$ 0,00</strong>
+                  <span class="mx-2 text-purple-400">|</span>
+                  <span class="text-purple-200">Lucro Real Estimado: </span>
+                  <strong id="res-lucro-real" class="text-emerald-300">R$ 0,00</strong>
+                </div>
+                <span id="res-cmv-pct" class="font-bold text-purple-200">CMV: 0,0%</span>
+              </div>
+
+              <p id="alerta-cmv" class="text-[11px] text-purple-100 bg-purple-950/40 p-2 rounded-xl text-center">
+                Monte a composição acima e clique em Salvar Ficha Técnica para gravar no banco de dados.
               </p>
+
+              <button type="button" id="btn-salvar-ficha-tecnica" onclick="salvarFichaTecnicaProduto()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-3 rounded-xl shadow transition active:scale-95 text-xs cursor-pointer">
+                <i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar Ficha Técnica & Registrar Histórico
+              </button>
             </div>
           </div>
         </div>
+
+        <!-- TABELA CONSOLIDADA DE ANÁLISE DE RENTABILIDADE DO CARDÁPIO -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h3 class="text-sm font-extrabold text-[#411564]">3. Análise de Rentabilidade por Produto</h3>
+              <p class="text-[11px] text-gray-500">Comparativo entre preço de venda atual no cardápio, custo de produção e margem líquida real.</p>
+            </div>
+            <button onclick="carregarModuloPrecificacao()" class="bg-purple-50 hover:bg-purple-100 text-[#411564] font-bold px-3 py-1.5 rounded-xl text-xs cursor-pointer">
+              <i class="fa-solid fa-rotate-right mr-1"></i> Atualizar Tabela
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-600">
+              <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100">
+                <tr>
+                  <th class="p-3">Produto</th>
+                  <th class="p-3 text-right">Custo Prod.</th>
+                  <th class="p-3 text-right">Preço Venda</th>
+                  <th class="p-3 text-right">Taxas/Imp.</th>
+                  <th class="p-3 text-right">Lucro Est. (R$)</th>
+                  <th class="p-3 text-center">Margem (%)</th>
+                  <th class="p-3 text-center">CMV (%)</th>
+                  <th class="p-3 text-center">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-rentabilidade-produtos" class="divide-y divide-gray-100 font-medium">
+                <tr>
+                  <td colspan="8" class="p-6 text-center text-gray-400">A carregar análise de rentabilidade...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </section>
 
       <!-- ========================================================= -->
@@ -908,7 +976,7 @@
       if (abaAtual === 'pedidos') carregarPedidos();
       if (abaAtual === 'relatorios') carregarRelatorios();
       if (abaAtual === 'stock') carregarStock();
-      if (abaAtual === 'precificacao') carregarInsumosPrecificacao();
+      if (abaAtual === 'precificacao') carregarModuloPrecificacao();
       if (abaAtual === 'config') carregarConfiguracoesLoja();
     }
 
@@ -941,7 +1009,7 @@
         pedidos: ['Pedidos em Tempo Real', 'Acompanhamento operacional e impressão de comandas'],
         relatorios: ['Relatórios de Vendas', 'Fechamento mensal e exportação em PDF'],
         stock: ['Cardápio e Produtos', 'Gerenciamento de itens, preços, fotos e complementos'],
-        precificacao: ['Precificação e Ficha Técnica', 'Insumos, custos unitários e formação de preço'],
+        precificacao: ['Precificação e Ficha Técnica', 'Insumos, fichas técnicas persistentes e rentabilidade'],
         config: ['Configurações da Loja', 'WhatsApp, taxa de entrega e modo de recebimento Pix'],
         entregas: ['Entregas e Motoboys', 'Programado para a Etapa 7 do cronograma'],
         clientes: ['Base de Clientes', 'Programado para a Etapa 6 do cronograma'],
@@ -971,7 +1039,7 @@
       if (aba === 'pedidos') carregarPedidos();
       if (aba === 'stock') carregarStock();
       if (aba === 'relatorios') carregarRelatorios();
-      if (aba === 'precificacao') carregarInsumosPrecificacao();
+      if (aba === 'precificacao') carregarModuloPrecificacao();
       if (aba === 'config') carregarConfiguracoesLoja();
     }
 
@@ -1353,7 +1421,6 @@
       renderizarGraficosDashboard(concluidos, validosDemanda);
     }
 
-    // Chave interna única com ano completo (evita colisão entre anos diferentes)
     function obterChaveAgrupamentoData(d, tipo) {
       if (tipo === 'dia') {
         return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -1366,7 +1433,6 @@
       }
     }
 
-    // Rótulo legível para exibição no eixo X do gráfico
     function formatarLabelAgrupamentoData(d, tipo, cruzaAnos) {
       var anoCurto = String(d.getFullYear()).slice(-2);
       if (tipo === 'dia') {
@@ -1495,7 +1561,6 @@
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
       });
 
-      // Formas de Pagamento
       var mapaPag = {};
       concluidos.forEach(function(p) {
         var fp = p.forma_pagamento || 'Outros';
@@ -1517,7 +1582,6 @@
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } } }
       });
 
-      // Horários de Maior Movimento (todos os pedidos válidos, excluindo recusados/cancelados)
       var mapaHoras = {};
       var horaPico = '-';
       var maxPedidosHora = 0;
@@ -2090,19 +2154,80 @@
     }
 
     // ==========================================
-    // ABA 4: PRECIFICAÇÃO & FICHA TÉCNICA
+    // ABA 4: PRECIFICAÇÃO & FICHA TÉCNICA (ETAPA 2)
     // ==========================================
     var listaInsumos = [];
+    var listaProdutosCardapioFicha = [];
+    var listaFichasSalvas = [];
     var receitaAtual = [];
+    var fichaAtualId = null;
 
-    async function carregarInsumosPrecificacao() {
+    function obterLimiteAlertaCmv() {
+      var salvo = parseFloat(localStorage.getItem('acaizeiro_limite_alerta_cmv'));
+      var input = document.getElementById('cfg-alerta-cmv-global');
+      if (!isNaN(salvo) && salvo >= 5 && salvo <= 90) {
+        if (input && document.activeElement !== input) input.value = salvo;
+        return salvo;
+      }
+      return input ? (parseFloat(input.value) || 35) : 35;
+    }
+
+    function alterarLimiteAlertaCmv() {
+      var val = parseFloat(document.getElementById('cfg-alerta-cmv-global').value) || 35;
+      if (val < 5) val = 5;
+      if (val > 90) val = 90;
+      document.getElementById('cfg-alerta-cmv-global').value = val;
+      localStorage.setItem('acaizeiro_limite_alerta_cmv', val);
+      recalcularPrecoVenda();
+      renderizarTabelaRentabilidade();
+    }
+
+    // Conversão precisa entre unidades compatíveis (kg <-> g, L <-> ml, un)
+    function converterParaUnidadeBase(qtd, unidade) {
+      if (unidade === 'kg') return { qtdBase: qtd * 1000, grupo: 'peso', base: 'g' };
+      if (unidade === 'g') return { qtdBase: qtd, grupo: 'peso', base: 'g' };
+      if (unidade === 'L') return { qtdBase: qtd * 1000, grupo: 'volume', base: 'ml' };
+      if (unidade === 'ml') return { qtdBase: qtd, grupo: 'volume', base: 'ml' };
+      return { qtdBase: qtd, grupo: 'unidade', base: 'un' };
+    }
+
+    function calcularCustoItemComConversao(insumo, qtdUsada, unidadeUsada) {
+      var convPacote = converterParaUnidadeBase(Number(insumo.qtd_embalagem), insumo.unidade);
+      var convUso = converterParaUnidadeBase(Number(qtdUsada), unidadeUsada);
+
+      if (convPacote.grupo !== convUso.grupo || convPacote.qtdBase <= 0) {
+        return 0;
+      }
+      var custoPorUnidadeBase = Number(insumo.preco_pago) / convPacote.qtdBase;
+      return custoPorUnidadeBase * convUso.qtdBase;
+    }
+
+    async function carregarModuloPrecificacao() {
       var sb = initClient();
       if (!sb) return;
 
-      var res = await sb.from('insumos_precificacao').select('*').order('nome');
-      if (res.error) return;
-      listaInsumos = res.data || [];
+      obterLimiteAlertaCmv();
 
+      var [resInsumos, resProdutos, resFichas] = await Promise.all([
+        sb.from('insumos_precificacao').select('*').order('nome'),
+        sb.from('CARDAPIO ACAIZEIRO').select('*').order('nome'),
+        sb.from('fichas_tecnicas').select('*')
+      ]);
+
+      if (resInsumos.error) console.error("Erro insumos:", resInsumos.error);
+      if (resProdutos.error) console.error("Erro produtos:", resProdutos.error);
+      if (resFichas.error) console.error("Erro fichas:", resFichas.error);
+
+      listaInsumos = resInsumos.data || [];
+      listaProdutosCardapioFicha = resProdutos.data || [];
+      listaFichasSalvas = resFichas.data || [];
+
+      renderizarListaInsumos();
+      popularSelectProdutosFicha();
+      renderizarTabelaRentabilidade();
+    }
+
+    function renderizarListaInsumos() {
       var container = document.getElementById('lista-insumos-salvos');
       var select = document.getElementById('calc-select-insumo');
 
@@ -2113,30 +2238,83 @@
       }
 
       select.innerHTML = '<option value="">Selecione um insumo...</option>' + listaInsumos.map(function(ins) {
-        var custoUnit = Number(ins.preco_pago) / Number(ins.qtd_embalagem);
-        return '<option value="' + ins.id + '">' + ins.nome + ' (R$ ' + custoUnit.toFixed(4).replace('.', ',') + ' / ' + ins.unidade + ')</option>';
+        return '<option value="' + ins.id + '">' + ins.nome + ' (' + ins.qtd_embalagem + ' ' + ins.unidade + ' — R$ ' + Number(ins.preco_pago).toFixed(2).replace('.', ',') + ')</option>';
       }).join('');
 
       container.innerHTML = listaInsumos.map(function(ins) {
-        var custoUnit = Number(ins.preco_pago) / Number(ins.qtd_embalagem);
+        var conv = converterParaUnidadeBase(Number(ins.qtd_embalagem), ins.unidade);
+        var custoBase = conv.qtdBase > 0 ? (Number(ins.preco_pago) / conv.qtdBase) : 0;
+        var detalheUnit = 'R$ ' + custoBase.toFixed(4).replace('.', ',') + '/' + conv.base;
+
+        if (ins.unidade === 'kg') {
+          var custoKg = Number(ins.preco_pago) / Number(ins.qtd_embalagem);
+          detalheUnit = 'R$ ' + custoKg.toFixed(2).replace('.', ',') + '/kg • R$ ' + custoBase.toFixed(4).replace('.', ',') + '/g';
+        } else if (ins.unidade === 'L') {
+          var custoL = Number(ins.preco_pago) / Number(ins.qtd_embalagem);
+          detalheUnit = 'R$ ' + custoL.toFixed(2).replace('.', ',') + '/L • R$ ' + custoBase.toFixed(4).replace('.', ',') + '/ml';
+        }
+
         return '<div class="p-2.5 rounded-xl border border-gray-100 bg-gray-50/70 flex items-center justify-between text-xs">' +
-          '<div>' +
-            '<p class="font-bold text-gray-800">' + ins.nome + '</p>' +
-            '<p class="text-[11px] text-gray-500">Pacote: ' + ins.qtd_embalagem + ins.unidade + ' por R$ ' + Number(ins.preco_pago).toFixed(2).replace('.', ',') + ' <span class="text-purple-800 font-bold">(R$ ' + custoUnit.toFixed(4).replace('.', ',') + '/' + ins.unidade + ')</span></p>' +
+          '<div class="min-w-0 pr-2">' +
+            '<p class="font-bold text-gray-800 truncate">' + ins.nome + '</p>' +
+            '<p class="text-[11px] text-gray-500">Emb: ' + ins.qtd_embalagem + ins.unidade + ' por R$ ' + Number(ins.preco_pago).toFixed(2).replace('.', ',') + '</p>' +
+            '<p class="text-[10px] text-purple-800 font-bold">' + detalheUnit + '</p>' +
           '</div>' +
-          '<button type="button" onclick="excluirInsumo(' + ins.id + ')" class="text-gray-400 hover:text-red-600 p-1.5 cursor-pointer" title="Excluir"><i class="fa-solid fa-trash"></i></button>' +
+          '<button type="button" onclick="excluirInsumo(' + ins.id + ')" class="text-gray-400 hover:text-red-600 p-1.5 cursor-pointer flex-shrink-0" title="Excluir"><i class="fa-solid fa-trash"></i></button>' +
         '</div>';
       }).join('');
     }
 
+    function popularSelectProdutosFicha() {
+      var select = document.getElementById('ficha-select-produto');
+      var valorAtual = select.value;
+
+      var html = '<option value="">Escolha um produto do cardápio...</option>';
+      listaProdutosCardapioFicha.forEach(function(p) {
+        var temFicha = listaFichasSalvas.some(function(f) { return String(f.produto_id) === String(p.id); });
+        var tag = temFicha ? ' ✓ [Ficha Salva]' : '';
+        html += '<option value="' + p.id + '">' + p.nome + ' — Venda: R$ ' + Number(p.preco || 0).toFixed(2).replace('.', ',') + tag + '</option>';
+      });
+
+      select.innerHTML = html;
+      if (valorAtual) select.value = valorAtual;
+    }
+
+    function atualizarUnidadesCompativeisReceita() {
+      var idInsumo = document.getElementById('calc-select-insumo').value;
+      var selectUn = document.getElementById('calc-unidade-usada');
+      var insumo = listaInsumos.find(function(i) { return String(i.id) === String(idInsumo); });
+
+      if (!insumo) {
+        selectUn.innerHTML = '<option value="g">g</option>';
+        return;
+      }
+
+      if (insumo.unidade === 'kg' || insumo.unidade === 'g') {
+        selectUn.innerHTML = '<option value="g">g</option><option value="kg">kg</option>';
+      } else if (insumo.unidade === 'L' || insumo.unidade === 'ml') {
+        selectUn.innerHTML = '<option value="ml">ml</option><option value="L">L</option>';
+      } else {
+        selectUn.innerHTML = '<option value="un">un</option>';
+      }
+    }
+
     async function salvarInsumo(e) {
       e.preventDefault();
+      var btn = document.getElementById('btn-salvar-insumo');
+      btn.disabled = true;
+      btn.innerText = "Salvando...";
+
       var nome = document.getElementById('insumo-nome').value.trim();
       var qtd = parseFloat(document.getElementById('insumo-qtd').value) || 0;
       var unidade = document.getElementById('insumo-unidade').value;
       var preco = parseFloat(document.getElementById('insumo-preco').value) || 0;
 
-      if (!nome || qtd <= 0 || preco <= 0) return;
+      if (!nome || qtd <= 0 || preco <= 0) {
+        btn.disabled = false;
+        btn.innerText = "+ Cadastrar Insumo";
+        return;
+      }
 
       var sb = initClient();
       var res = await sb.from('insumos_precificacao').insert([{
@@ -2146,42 +2324,127 @@
         preco_pago: preco
       }]);
 
-      if (res.error) { alert("Erro ao salvar insumo: " + res.error.message); return; }
+      btn.disabled = false;
+      btn.innerText = "+ Cadastrar Insumo";
+
+      if (res.error) {
+        alert("Erro ao salvar insumo: " + res.error.message);
+        return;
+      }
 
       document.getElementById('insumo-nome').value = '';
       document.getElementById('insumo-qtd').value = '';
       document.getElementById('insumo-preco').value = '';
-      carregarInsumosPrecificacao();
+      carregarModuloPrecificacao();
     }
 
     async function excluirInsumo(id) {
-      if (!confirm("Remover este insumo?")) return;
+      if (!confirm("Remover este insumo? (Se estiver em uso em alguma ficha técnica, remova-o da ficha antes.)")) return;
       var sb = initClient();
       var res = await sb.from('insumos_precificacao').delete().eq('id', id);
-      if (res.error) { alert("Erro ao excluir insumo: " + res.error.message); return; }
-      carregarInsumosPrecificacao();
+      if (res.error) {
+        alert("Não foi possível excluir: este insumo está vinculado a uma ficha técnica salva.");
+        return;
+      }
+      carregarModuloPrecificacao();
+    }
+
+    async function carregarFichaTecnicaProduto(produtoIdForcado) {
+      var select = document.getElementById('ficha-select-produto');
+      if (produtoIdForcado) select.value = String(produtoIdForcado);
+
+      var prodId = select.value;
+      var badge = document.getElementById('badge-status-ficha');
+
+      receitaAtual = [];
+      fichaAtualId = null;
+
+      if (!prodId) {
+        badge.className = "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500";
+        badge.innerText = "Selecione um produto";
+        renderizarReceitaCalculadora();
+        return;
+      }
+
+      var sb = initClient();
+      var resFicha = await sb.from('fichas_tecnicas').select('*').eq('produto_id', prodId).maybeSingle();
+
+      if (resFicha.error) {
+        alert("Erro ao consultar ficha técnica: " + resFicha.error.message);
+        return;
+      }
+
+      if (resFicha.data) {
+        var f = resFicha.data;
+        fichaAtualId = f.id;
+        document.getElementById('calc-taxa-app').value = f.taxa_app_pct !== undefined ? f.taxa_app_pct : 5;
+        document.getElementById('calc-impostos').value = f.impostos_pct !== undefined ? f.impostos_pct : 4;
+        document.getElementById('calc-rateio-fixo').value = f.rateio_custo_fixo_un !== undefined ? f.rateio_custo_fixo_un : 0;
+        document.getElementById('calc-margem-lucro').value = f.margem_lucro_pct !== undefined ? f.margem_lucro_pct : 30;
+
+        var resItens = await sb.from('ficha_tecnica_itens').select('*').eq('ficha_id', f.id);
+        if (!resItens.error && resItens.data) {
+          resItens.data.forEach(function(it) {
+            var ins = listaInsumos.find(function(x) { return String(x.id) === String(it.insumo_id); });
+            if (ins) {
+              var custoItem = calcularCustoItemComConversao(ins, it.quantidade_usada, it.unidade_usada);
+              receitaAtual.push({
+                uid: Date.now() + Math.random(),
+                insumo_id: ins.id,
+                nome: ins.nome,
+                qtd: Number(it.quantidade_usada),
+                unidade: it.unidade_usada,
+                tipo: it.tipo_item || 'insumo',
+                custo: custoItem
+              });
+            }
+          });
+        }
+
+        badge.className = "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800";
+        badge.innerText = "Ficha Técnica Salva";
+      } else {
+        document.getElementById('calc-taxa-app').value = 5;
+        document.getElementById('calc-impostos').value = 4;
+        document.getElementById('calc-rateio-fixo').value = 0;
+        document.getElementById('calc-margem-lucro').value = 30;
+
+        badge.className = "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800";
+        badge.innerText = "Nova Ficha (Não salva)";
+      }
+
+      renderizarReceitaCalculadora();
     }
 
     function adicionarItemReceita() {
+      var prodId = document.getElementById('ficha-select-produto').value;
+      if (!prodId) {
+        alert("Primeiro selecione o Produto do Cardápio acima.");
+        return;
+      }
+
       var idInsumo = document.getElementById('calc-select-insumo').value;
       var qtdUsada = parseFloat(document.getElementById('calc-qtd-usada').value) || 0;
+      var unidadeUsada = document.getElementById('calc-unidade-usada').value;
+      var tipoItem = document.getElementById('calc-tipo-item').value;
 
       if (!idInsumo || qtdUsada <= 0) {
-        alert("Selecione o insumo e informe a quantidade usada na receita.");
+        alert("Selecione o insumo e informe a quantidade utilizada.");
         return;
       }
 
       var insumo = listaInsumos.find(function(i) { return String(i.id) === String(idInsumo); });
       if (!insumo) return;
 
-      var custoUnit = Number(insumo.preco_pago) / Number(insumo.qtd_embalagem);
-      var custoItem = custoUnit * qtdUsada;
+      var custoItem = calcularCustoItemComConversao(insumo, qtdUsada, unidadeUsada);
 
       receitaAtual.push({
         uid: Date.now() + Math.random(),
+        insumo_id: insumo.id,
         nome: insumo.nome,
         qtd: qtdUsada,
-        unidade: insumo.unidade,
+        unidade: unidadeUsada,
+        tipo: tipoItem,
         custo: custoItem
       });
 
@@ -2194,19 +2457,18 @@
       renderizarReceitaCalculadora();
     }
 
-    function limparReceitaCalculadora() {
-      receitaAtual = [];
-      renderizarReceitaCalculadora();
-    }
-
     function renderizarReceitaCalculadora() {
       var container = document.getElementById('lista-itens-receita');
       if (receitaAtual.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">Adicione os insumos e embalagens usados neste produto acima.</p>';
+        container.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">Nenhum ingrediente ou embalagem adicionado nesta ficha técnica ainda.</p>';
       } else {
         container.innerHTML = receitaAtual.map(function(item) {
+          var tagTipo = item.tipo === 'embalagem'
+            ? '<span class="text-[9px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.5 rounded uppercase mr-1.5">Embalagem</span>'
+            : '<span class="text-[9px] bg-purple-100 text-purple-800 font-bold px-1.5 py-0.5 rounded uppercase mr-1.5">Ingrediente</span>';
+
           return '<div class="flex items-center justify-between text-xs bg-white px-3 py-2 rounded-lg border border-gray-100">' +
-            '<span><strong>' + item.qtd + item.unidade + '</strong> de ' + item.nome + '</span>' +
+            '<div>' + tagTipo + '<strong>' + item.qtd + ' ' + item.unidade + '</strong> de ' + item.nome + '</div>' +
             '<div class="flex items-center gap-3">' +
               '<span class="font-bold text-gray-800">R$ ' + item.custo.toFixed(2).replace('.', ',') + '</span>' +
               '<button type="button" onclick="removerItemReceita(' + item.uid + ')" class="text-red-400 hover:text-red-600 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>' +
@@ -2217,38 +2479,214 @@
       recalcularPrecoVenda();
     }
 
-    function recalcularPrecoVenda() {
-      var cmv = 0;
-      receitaAtual.forEach(function(i) { cmv += i.custo; });
+    function calcularMetricasFichaAtual() {
+      var custoInsumos = 0;
+      var custoEmbalagens = 0;
+
+      receitaAtual.forEach(function(item) {
+        if (item.tipo === 'embalagem') custoEmbalagens += item.custo;
+        else custoInsumos += item.custo;
+      });
+
+      var rateioFixo = parseFloat(document.getElementById('calc-rateio-fixo').value) || 0;
+      var custoTotal = custoInsumos + custoEmbalagens + rateioFixo;
 
       var taxaApp = parseFloat(document.getElementById('calc-taxa-app').value) || 0;
       var impostos = parseFloat(document.getElementById('calc-impostos').value) || 0;
-      var custoFixo = parseFloat(document.getElementById('calc-custo-fixo').value) || 0;
-      var margemLucro = parseFloat(document.getElementById('calc-margem-lucro').value) || 0;
+      var margemDesejada = parseFloat(document.getElementById('calc-margem-lucro').value) || 0;
 
-      var somaPercentuais = taxaApp + impostos + custoFixo + margemLucro;
+      var somaPercentuais = taxaApp + impostos + margemDesejada;
       if (somaPercentuais >= 95) somaPercentuais = 95;
 
       var divisor = (100 - somaPercentuais) / 100;
-      var precoSugerido = divisor > 0 ? (cmv / divisor) : 0;
-      var markup = cmv > 0 ? (precoSugerido / cmv) : 0;
-      var lucroReal = precoSugerido * (margemLucro / 100);
-      var pctCmv = precoSugerido > 0 ? ((cmv / precoSugerido) * 100) : 0;
+      var precoSugerido = divisor > 0 ? (custoTotal / divisor) : 0;
 
-      document.getElementById('res-cmv-valor').innerText = 'R$ ' + cmv.toFixed(2).replace('.', ',');
-      document.getElementById('res-cmv-pct').innerText = pctCmv.toFixed(1) + '% do preço';
-      document.getElementById('res-preco-sugerido').innerText = 'R$ ' + precoSugerido.toFixed(2).replace('.', ',');
-      document.getElementById('res-markup').innerText = 'Markup: ' + markup.toFixed(2) + 'x';
-      document.getElementById('res-lucro-real').innerText = 'R$ ' + lucroReal.toFixed(2).replace('.', ',');
+      var prodId = document.getElementById('ficha-select-produto').value;
+      var prod = listaProdutosCardapioFicha.find(function(p) { return String(p.id) === String(prodId); });
+      var precoCardapio = prod ? Number(prod.preco || 0) : 0;
+
+      // Calcula lucro real e % CMV com base no preço atual praticado (ou no sugerido se não houver produto)
+      var precoBaseAnalise = precoCardapio > 0 ? precoCardapio : precoSugerido;
+      var valorTaxasImpostos = precoBaseAnalise * ((taxaApp + impostos) / 100);
+      var lucroReal = precoBaseAnalise - custoTotal - valorTaxasImpostos;
+      var pctCmv = precoBaseAnalise > 0 ? (((custoInsumos + custoEmbalagens) / precoBaseAnalise) * 100) : 0;
+
+      return {
+        custoInsumos: custoInsumos,
+        custoEmbalagens: custoEmbalagens,
+        rateioFixo: rateioFixo,
+        custoTotal: custoTotal,
+        taxaApp: taxaApp,
+        impostos: impostos,
+        margemDesejada: margemDesejada,
+        precoSugerido: precoSugerido,
+        precoCardapio: precoCardapio,
+        lucroReal: lucroReal,
+        pctCmv: pctCmv
+      };
+    }
+
+    function recalcularPrecoVenda() {
+      var m = calcularMetricasFichaAtual();
+      var limiteCmv = obterLimiteAlertaCmv();
+
+      document.getElementById('res-custo-insumos').innerText = 'R$ ' + m.custoInsumos.toFixed(2).replace('.', ',');
+      document.getElementById('res-custo-embalagens').innerText = 'R$ ' + m.custoEmbalagens.toFixed(2).replace('.', ',');
+      document.getElementById('res-cmv-valor').innerText = 'R$ ' + m.custoTotal.toFixed(2).replace('.', ',');
+      document.getElementById('res-preco-sugerido').innerText = 'R$ ' + m.precoSugerido.toFixed(2).replace('.', ',');
+      document.getElementById('res-preco-atual-cardapio').innerText = 'R$ ' + m.precoCardapio.toFixed(2).replace('.', ',');
+      document.getElementById('res-lucro-real').innerText = 'R$ ' + m.lucroReal.toFixed(2).replace('.', ',');
+      document.getElementById('res-cmv-pct').innerText = 'CMV: ' + m.pctCmv.toFixed(1).replace('.', ',') + '%';
 
       var alerta = document.getElementById('alerta-cmv');
-      if (precoSugerido > 0 && pctCmv > 35) {
-        alerta.className = "text-[11px] text-center text-amber-300 font-bold";
-        alerta.innerText = "⚠️ Atenção: Seu CMV está em " + pctCmv.toFixed(1) + "% (acima de 35%). Considere aumentar a margem ou rever o custo dos insumos.";
+      if (m.custoTotal > 0 && m.pctCmv > limiteCmv) {
+        alerta.className = "text-[11px] text-amber-300 font-bold bg-rose-950/60 p-2 rounded-xl text-center border border-amber-400/40";
+        alerta.innerText = "⚠️ Alerta de CMV: O CMV deste produto está em " + m.pctCmv.toFixed(1).replace('.', ',') + "% (acima do limite configurado de " + limiteCmv + "%).";
+      } else if (m.custoTotal > 0 && m.lucroReal < 0) {
+        alerta.className = "text-[11px] text-rose-200 font-bold bg-rose-950/60 p-2 rounded-xl text-center";
+        alerta.innerText = "⚠️ Prejuízo operacional: O preço atual no cardápio não cobre os custos e taxas.";
+      } else if (m.custoTotal > 0) {
+        alerta.className = "text-[11px] text-emerald-200 bg-purple-950/40 p-2 rounded-xl text-center";
+        alerta.innerText = "✓ Rentabilidade saudável: CMV dentro do limite configurado de " + limiteCmv + "%.";
       } else {
-        alerta.className = "text-[11px] text-center text-purple-100";
-        alerta.innerText = "✓ Faixa saudável: O ideal em deliverys é manter o CMV abaixo de 35% do preço de venda.";
+        alerta.className = "text-[11px] text-purple-100 bg-purple-950/40 p-2 rounded-xl text-center";
+        alerta.innerText = "Monte a composição acima e clique em Salvar Ficha Técnica para gravar no banco de dados.";
       }
+    }
+
+    async function salvarFichaTecnicaProduto() {
+      var prodId = document.getElementById('ficha-select-produto').value;
+      if (!prodId) {
+        alert("Selecione um produto do cardápio antes de salvar a ficha técnica.");
+        return;
+      }
+
+      if (receitaAtual.length === 0) {
+        alert("Adicione pelo menos um ingrediente ou embalagem na composição da ficha técnica.");
+        return;
+      }
+
+      var btn = document.getElementById('btn-salvar-ficha-tecnica');
+      btn.disabled = true;
+      btn.innerText = "Salvando ficha técnica...";
+
+      var m = calcularMetricasFichaAtual();
+      var limiteCmv = obterLimiteAlertaCmv();
+      var sb = initClient();
+
+      try {
+        var payloadFicha = {
+          produto_id: Number(prodId),
+          taxa_app_pct: m.taxaApp,
+          impostos_pct: m.impostos,
+          rateio_custo_fixo_un: m.rateioFixo,
+          margem_lucro_pct: m.margemDesejada,
+          limite_alerta_cmv: limiteCmv,
+          custo_insumos: Number(m.custoInsumos.toFixed(4)),
+          custo_embalagens: Number(m.custoEmbalagens.toFixed(4)),
+          custo_total: Number(m.custoTotal.toFixed(4)),
+          preco_sugerido: Number(m.precoSugerido.toFixed(2)),
+          updated_at: new Date().toISOString()
+        };
+
+        var resUpsert = await sb.from('fichas_tecnicas')
+          .upsert(payloadFicha, { onConflict: 'produto_id' })
+          .select()
+          .single();
+
+        if (resUpsert.error) throw new Error(resUpsert.error.message);
+
+        var fichaIdSalva = resUpsert.data.id;
+
+        // Limpa itens anteriores da ficha e insere a composição atualizada
+        var resDel = await sb.from('ficha_tecnica_itens').delete().eq('ficha_id', fichaIdSalva);
+        if (resDel.error) throw new Error(resDel.error.message);
+
+        var itensInsert = receitaAtual.map(function(item) {
+          return {
+            ficha_id: fichaIdSalva,
+            insumo_id: Number(item.insumo_id),
+            quantidade_usada: Number(item.qtd),
+            unidade_usada: item.unidade,
+            tipo_item: item.tipo
+          };
+        });
+
+        var resIns = await sb.from('ficha_tecnica_itens').insert(itensInsert);
+        if (resIns.error) throw new Error(resIns.error.message);
+
+        // Registra histórico de custos para não distorcer relatórios antigos
+        var prod = listaProdutosCardapioFicha.find(function(p) { return String(p.id) === String(prodId); });
+        await sb.from('historico_custos_produtos').insert([{
+          produto_id: Number(prodId),
+          produto_nome: prod ? prod.nome : '',
+          custo_total: Number(m.custoTotal.toFixed(4)),
+          preco_venda_epoca: Number(m.precoCardapio.toFixed(2)),
+          preco_sugerido_epoca: Number(m.precoSugerido.toFixed(2))
+        }]);
+
+        alert("✓ Ficha técnica salva com sucesso e histórico registrado!");
+        await carregarModuloPrecificacao();
+        await carregarFichaTecnicaProduto(prodId);
+      } catch (err) {
+        alert("Erro ao salvar ficha técnica: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar Ficha Técnica & Registrar Histórico';
+      }
+    }
+
+    function renderizarTabelaRentabilidade() {
+      var tbody = document.getElementById('tabela-rentabilidade-produtos');
+      var limiteCmv = obterLimiteAlertaCmv();
+
+      if (listaProdutosCardapioFicha.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-gray-400">Nenhum produto cadastrado no cardápio.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = listaProdutosCardapioFicha.map(function(prod) {
+        var ficha = listaFichasSalvas.find(function(f) { return String(f.produto_id) === String(prod.id); });
+        var precoVenda = Number(prod.preco || 0);
+
+        if (!ficha) {
+          return '<tr class="hover:bg-gray-50">' +
+            '<td class="p-3 font-bold text-gray-800">' + prod.nome + '</td>' +
+            '<td class="p-3 text-right text-gray-400">-</td>' +
+            '<td class="p-3 text-right font-bold text-gray-900">R$ ' + precoVenda.toFixed(2).replace('.', ',') + '</td>' +
+            '<td class="p-3 text-right text-gray-400">-</td>' +
+            '<td class="p-3 text-right text-gray-400">-</td>' +
+            '<td class="p-3 text-center"><span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Sem ficha</span></td>' +
+            '<td class="p-3 text-center text-gray-400">-</td>' +
+            '<td class="p-3 text-center"><button onclick="carregarFichaTecnicaProduto(' + prod.id + ')" class="text-purple-700 hover:underline font-bold text-[11px] cursor-pointer">Montar Ficha</button></td>' +
+          '</tr>';
+        }
+
+        var custoTotal = Number(ficha.custo_total || 0);
+        var cmvDireto = Number(ficha.custo_insumos || 0) + Number(ficha.custo_embalagens || 0);
+        var pctTaxas = (Number(ficha.taxa_app_pct || 0) + Number(ficha.impostos_pct || 0)) / 100;
+        var valorTaxas = precoVenda * pctTaxas;
+        var lucroReal = precoVenda - custoTotal - valorTaxas;
+        var margemRealPct = precoVenda > 0 ? ((lucroReal / precoVenda) * 100) : 0;
+        var cmvPct = precoVenda > 0 ? ((cmvDireto / precoVenda) * 100) : 0;
+
+        var alertaCmv = cmvPct > limiteCmv;
+        var corLucro = lucroReal >= 0 ? 'text-emerald-700' : 'text-rose-600';
+        var badgeCmv = alertaCmv
+          ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">' + cmvPct.toFixed(1).replace('.', ',') + '% ⚠️</span>'
+          : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">' + cmvPct.toFixed(1).replace('.', ',') + '%</span>';
+
+        return '<tr class="hover:bg-gray-50">' +
+          '<td class="p-3 font-bold text-gray-800">' + prod.nome + '</td>' +
+          '<td class="p-3 text-right">R$ ' + custoTotal.toFixed(2).replace('.', ',') + '</td>' +
+          '<td class="p-3 text-right font-bold text-gray-900">R$ ' + precoVenda.toFixed(2).replace('.', ',') + '</td>' +
+          '<td class="p-3 text-right text-gray-500">R$ ' + valorTaxas.toFixed(2).replace('.', ',') + '</td>' +
+          '<td class="p-3 text-right font-black ' + corLucro + '">R$ ' + lucroReal.toFixed(2).replace('.', ',') + '</td>' +
+          '<td class="p-3 text-center font-bold ' + corLucro + '">' + margemRealPct.toFixed(1).replace('.', ',') + '%</td>' +
+          '<td class="p-3 text-center">' + badgeCmv + '</td>' +
+          '<td class="p-3 text-center"><button onclick="carregarFichaTecnicaProduto(' + prod.id + ')" class="text-purple-700 hover:underline font-bold text-[11px] cursor-pointer">Editar Ficha</button></td>' +
+        '</tr>';
+      }).join('');
     }
 
     // ==========================================
