@@ -3,1102 +3,1411 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Açaizeiro - Gestão Comercial</title>
+  <title>Açaizeiro - Delivery</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Biblioteca para gerar PDF diretamente no navegador -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     @import url("https://db.onlinewebfonts.com/c/20e48b2ec8c64b2a1ceb5b28d9bcc9d0?family=Bryndan+Write");
-    .fonte-bryndan { font-family: "Bryndan Write", cursive, sans-serif; letter-spacing: 1px; }
 
-    /* Estilos exclusivos para impressão de comanda térmica (50mm) */
-    @media print {
-      body * {
-        visibility: hidden;
-      }
-      #area-cupom-termico, #area-cupom-termico * {
-        visibility: visible;
-        font-weight: bold !important; /* <-- Força tudo dentro do cupom a sair em negrito */
-      }
-      #area-cupom-termico {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 54mm; /* Área útil ideal para papel de 50mm sem cortar bordas */
-        font-family: 'Courier New', Courier, monospace;
-        font-size: 10px;
-        font-weight: bold !important; /* <-- Garante negrito no bloco principal */
-        line-height: 1.2;
-        color: #000;
-        background: #fff;
-        padding: 1.5mm;
-        box-sizing: border-box;
-      }
-      @page {
-        margin: 0;
-      }
+    .fonte-bryndan {
+      font-family: "Bryndan Write", cursive, sans-serif;
+      letter-spacing: 1px;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-800 antialiased min-h-screen">
+<body class="bg-[#fcfaff] text-gray-800 pb-28 antialiased">
 
-  <!-- Ecrã de Bloqueio por Senha -->
-  <div id="tela-login" class="fixed inset-0 bg-[#411564] z-50 flex items-center justify-center p-4">
-    <div class="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-xs text-center space-y-4">
-      <div class="w-16 h-16 rounded-full bg-black mx-auto flex items-center justify-center overflow-hidden border-2 border-purple-300">
-        <img src="LOGO2.png" alt="Açaizeiro" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.src='PURO.png';">
+  <!-- Topo -->
+  <header class="bg-[#411564] text-white p-4 shadow-md sticky top-0 z-30">
+    <div class="max-w-xl mx-auto flex items-center gap-3">
+      <div class="w-16 h-16 rounded-full bg-black flex items-center justify-center overflow-hidden border-2 border-purple-300 shadow-md flex-shrink-0">
+        <img src="LOGO2.png" alt="Açaizeiro" class="w-full h-full object-contain p-0.5" onerror="this.onerror=null; this.src='LOGOO PNG.png';">
       </div>
       <div>
-        <h2 class="fonte-bryndan text-2xl font-bold text-[#411564]">AÇAIZEIRO</h2>
-        <p class="text-xs text-gray-500 font-medium mt-0.5">Painel do Parceiro / Gerência</p>
+        <h1 class="fonte-bryndan text-2xl font-bold tracking-wider leading-tight text-white drop-shadow-sm">AÇAIZEIRO</h1>
+        <p class="text-xs text-purple-200 flex items-center gap-1.5 font-medium">
+          <span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span> Aberto para Pedidos
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Filtro de Categorias -->
+  <nav class="max-w-xl mx-auto px-4 pt-4 pb-2 sticky top-[80px] bg-[#fcfaff]/95 backdrop-blur-sm z-20">
+    <div class="flex gap-2 overflow-x-auto hide-scrollbar py-1" id="lista-categorias"></div>
+  </nav>
+
+  <!-- Lista de Itens -->
+  <main class="max-w-xl mx-auto p-4 space-y-3" id="lista-produtos"></main>
+
+  <!-- Barra Fixa Inferior -->
+  <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-purple-100 p-3.5 shadow-2xl z-30">
+    <div class="max-w-xl mx-auto flex items-center justify-between gap-3">
+      <div>
+        <p class="text-[11px] text-gray-500 uppercase font-semibold">Total do Pedido</p>
+        <p class="text-xl font-black text-[#411564]" id="total-barra">R$ 0,00</p>
+      </div>
+      <button onclick="abrirModalCheckout()" id="btn-sacola" class="bg-[#411564] hover:bg-purple-900 active:scale-95 text-white font-bold px-5 py-3 rounded-xl flex items-center gap-2.5 shadow-md transition disabled:opacity-40 disabled:pointer-events-none cursor-pointer">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <span>Ver Sacola (<span id="qtd-itens">0</span>)</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- MODAL: Montar Copo -->
+  <div id="modal-produto" class="fixed inset-0 bg-black/60 hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto p-5 space-y-4">
+      <div class="flex justify-between items-start border-b pb-3">
+        <div>
+          <h2 class="text-lg font-black text-[#411564]" id="modal-prod-nome">Nome do Açaí</h2>
+          <p class="text-xs text-gray-500 mt-0.5" id="modal-prod-desc">Descrição</p>
+        </div>
+        <button onclick="fecharModalProduto()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none cursor-pointer">&times;</button>
       </div>
 
-      <div class="space-y-3">
-        <input type="password" id="campo-senha" placeholder="Digite a Senha" class="w-full text-center text-lg font-bold tracking-widest border border-gray-300 rounded-xl p-3 outline-purple-600">
-        <p id="erro-senha" class="text-xs text-red-600 font-semibold hidden">Palavra-passe incorreta!</p>
-        <button type="button" id="btn-entrar" onclick="tentarEntrar()" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-bold py-3 rounded-xl transition active:scale-95 text-sm shadow-md cursor-pointer">
-          Entrar no Painel
+      <!-- Sanfona de Complementos -->
+      <div class="border border-purple-100 rounded-2xl overflow-hidden bg-white shadow-sm">
+        <button type="button" onclick="alternarListaComplementos()" class="w-full flex items-center justify-between p-3.5 bg-purple-50/60 hover:bg-purple-100/60 transition text-left cursor-pointer">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-plus text-[#411564] text-xs"></i>
+            <span class="text-xs font-black text-[#411564] tracking-wide uppercase">ESCOLHA SEUS COMPLEMENTOS</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="badge-complementos-qtd" class="text-[11px] bg-purple-200/80 text-[#411564] font-bold px-2 py-0.5 rounded-full hidden">0 selecionados</span>
+            <i id="icone-seta-comp" class="fa-solid fa-chevron-down text-[#411564] text-xs transition-transform duration-200"></i>
+          </div>
+        </button>
+
+        <div id="container-sanfona-complementos" class="hidden p-3.5 border-t border-purple-100 space-y-2 bg-[#fcfaff]">
+          <p class="text-[11px] text-gray-500 mb-2">Selecione frutas, caldas e coberturas especiais para o seu açaí:</p>
+          <div class="space-y-2" id="lista-adicionais-modal"></div>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Alguma observação para este item?</label>
+        <input type="text" id="modal-prod-obs" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600" placeholder="Ex: Caprichar no leite em pó, sem granola...">
+      </div>
+
+      <div class="pt-2 border-t flex items-center justify-between gap-4">
+        <div>
+          <p class="text-[11px] text-gray-500">Valor do Item</p>
+          <p class="text-lg font-black text-[#411564]" id="modal-prod-total">R$ 0,00</p>
+        </div>
+        <button onclick="confirmarAdicionarItem()" class="flex-1 bg-[#411564] hover:bg-purple-900 text-white font-bold py-3 px-4 rounded-xl shadow-md active:scale-95 transition text-sm cursor-pointer">
+          Adicionar ao Pedido
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Conteúdo Principal do Admin -->
-  <div id="painel-conteudo" class="hidden">
-    <!-- Topo / Cabeçalho -->
-    <header class="bg-[#411564] text-white p-4 shadow-md sticky top-0 z-30">
-      <div class="max-w-5xl mx-auto flex items-center justify-between flex-wrap gap-3">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-black flex items-center justify-center overflow-hidden border border-purple-300">
-            <img src="LOGO2.png" alt="Açaizeiro" class="w-full h-full object-contain p-0.5" onerror="this.onerror=null; this.src='PURO.png';">
+  <!-- MODAL CHECKOUT MULTI-ETAPAS (Estilo App) -->
+  <div id="modal-checkout" class="fixed inset-0 bg-white sm:bg-black/60 hidden z-50 flex flex-col sm:items-center sm:justify-center sm:p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-lg h-full sm:h-auto sm:max-h-[92vh] sm:rounded-3xl flex flex-col overflow-hidden shadow-2xl">
+      
+      <!-- Cabeçalho com Seta Voltar e X Fechar -->
+      <div class="flex items-center justify-between px-4 py-3.5 border-b border-gray-100 bg-white sticky top-0 z-10">
+        <button type="button" onclick="voltarEtapaCheckout()" class="w-9 h-9 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-[#411564] hover:bg-purple-50 transition cursor-pointer" title="Voltar etapa">
+          <i class="fa-solid fa-arrow-left text-sm"></i>
+        </button>
+        <h2 id="titulo-etapa-checkout" class="text-base font-extrabold text-gray-900">Sua Sacola</h2>
+        <button type="button" onclick="fecharModalCheckout()" class="w-9 h-9 rounded-full bg-gray-50 border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-red-600 hover:bg-red-50 transition cursor-pointer" title="Fechar">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <!-- Corpo Rolável das Etapas -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+
+        <!-- ETAPA 0: REVISÃO DA SACOLA -->
+        <div id="checkout-step-0" class="space-y-4">
+          <div id="itens-carrinho" class="divide-y divide-gray-100 text-sm"></div>
+
+          <div class="bg-purple-50/70 p-4 rounded-2xl space-y-2 text-sm border border-purple-100">
+            <div class="flex justify-between text-gray-600">
+              <span>Subtotal dos itens</span>
+              <span id="step0-subtotal" class="font-bold text-gray-800">R$ 0,00</span>
+            </div>
+            <p class="text-[11px] text-gray-500">A taxa de entrega será calculada na próxima etapa.</p>
           </div>
+        </div>
+
+        <!-- ETAPA 1: ENTREGA E AGENDAMENTO -->
+        <div id="checkout-step-1" class="hidden space-y-5">
           <div>
-            <h1 class="fonte-bryndan text-xl font-bold tracking-wide">AÇAIZEIRO - GESTÃO</h1>
-            <p class="text-[11px] text-purple-200">Painel Operacional & Cardápio</p>
+            <p class="text-xs font-bold text-gray-700 mb-2">Quando deseja receber seu pedido?</p>
+            <div class="space-y-2.5">
+              <div onclick="selecionarQuando('Agora')" id="card-quando-agora" class="p-3.5 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex items-center justify-between cursor-pointer transition">
+                <div>
+                  <p class="text-sm font-extrabold text-gray-900">Agora</p>
+                  <p class="text-xs text-gray-500">Entrega em 40 a 60 minutos</p>
+                </div>
+                <div id="radio-quando-agora" class="w-5 h-5 rounded-full border-2 border-[#411564] flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded-full bg-[#411564]"></div>
+                </div>
+              </div>
+
+              <div onclick="selecionarQuando('Agendar')" id="card-quando-agendar" class="rounded-2xl border border-gray-200 bg-white overflow-hidden cursor-pointer transition">
+                <div class="p-3.5 flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-extrabold text-gray-900">Agendar</p>
+                    <p id="texto-horario-agendado" class="text-xs text-gray-500">Escolher horário para hoje</p>
+                  </div>
+                  <div id="radio-quando-agendar" class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                    <div class="w-2.5 h-2.5 rounded-full bg-transparent"></div>
+                  </div>
+                </div>
+                <div id="box-input-agendar" class="hidden bg-gray-100 p-3 border-t border-gray-200" onclick="event.stopPropagation()">
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Escolha o horário desejado:</label>
+                  <input type="time" id="input-horario-agendamento" onchange="atualizarTextoAgendamento()" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs font-bold outline-purple-600">
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-        <!-- Alternador de Abas, Som e Logout -->
-        <div class="flex gap-2 items-center flex-wrap">
-          <button onclick="alternarSom()" id="btn-som" class="bg-purple-950/60 hover:bg-purple-900 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="Ativar/Desativar som de alerta">
-            <i id="icone-som" class="fa-solid fa-volume-high"></i>
-          </button>
-          <button onclick="mudarAba('pedidos')" id="tab-btn-pedidos" class="bg-purple-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">Pedidos (Hoje)</button>
-          <button onclick="mudarAba('relatorios')" id="tab-btn-relatorios" class="bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">Relatórios</button>
-          <button onclick="mudarAba('stock')" id="tab-btn-stock" class="bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">Cardápio & Estoque</button>
-          <button onclick="carregarPedidos()" class="bg-purple-800 hover:bg-purple-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer" title="Atualizar dados"><i class="fa-solid fa-rotate-right"></i></button>
-          <button onclick="sairPainel()" class="bg-red-800 hover:bg-red-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer" title="Sair do painel"><i class="fa-solid fa-right-from-bracket"></i></button>
-        </div>
-      </div>
-    </header>
 
-    <!-- ABA 1: PEDIDOS DO DIA -->
-    <section id="aba-pedidos" class="max-w-5xl mx-auto p-4">
-      <div class="flex gap-2 overflow-x-auto pb-3">
-        <button onclick="filtrarStatus('Todos')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white cursor-pointer" data-status="Todos">Todos (Hoje)</button>
-        <button onclick="filtrarStatus('Aguardando Aceite da Loja')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Aguardando Aceite da Loja">Novos (Aguardando Aceite)</button>
-        <button onclick="filtrarStatus('Aguardando Pagamento Pix')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Aguardando Pagamento Pix">Aguardando Pix</button>
-        <button onclick="filtrarStatus('Em preparo')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Em preparo">Em Preparação</button>
-        <button onclick="filtrarStatus('Saiu para entrega')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Saiu para entrega">A Caminho</button>
-        <button onclick="filtrarStatus('Concluído')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Concluído">Concluídos</button>
-        <button onclick="filtrarStatus('Recusado')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Recusado">Recusados</button>
-      </div>
-      <div id="lista-pedidos-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="col-span-full text-center py-12 text-gray-400 text-sm">A carregar pedidos de hoje...</div>
-      </div>
-    </section>
-
-    <!-- ABA 2: RELATÓRIOS DO MÊS -->
-    <section id="aba-relatorios" class="max-w-5xl mx-auto p-4 hidden space-y-6">
-      <div class="flex items-center justify-between flex-wrap gap-2">
-        <div>
-          <h2 class="text-lg font-extrabold text-[#411564] flex items-center gap-2">
-            <i class="fa-solid fa-chart-line"></i> Relatório de Vendas do Mês
-          </h2>
-          <p class="text-xs text-gray-500">Histórico completo de pedidos faturados e fechamento mensal.</p>
-        </div>
-        <div class="flex items-center gap-2 flex-wrap">
-          <button onclick="baixarRelatorioPDF()" id="btn-baixar-pdf" class="bg-red-700 hover:bg-red-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer">
-            <i class="fa-solid fa-file-pdf"></i> Baixar Relatório (PDF)
-          </button>
-          <button onclick="solicitarLimpezaMes()" class="bg-gray-100 hover:bg-red-50 text-red-600 border border-red-200 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer" title="Apagar registros fechados do mês com senha">
-            <i class="fa-solid fa-trash-can"></i> Limpar Mês
-          </button>
-          <button onclick="carregarRelatorios()" class="bg-purple-100 hover:bg-purple-200 text-[#411564] font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer">
-            <i class="fa-solid fa-arrows-rotate"></i> Atualizar
-          </button>
-        </div>
-      </div>
-
-      <!-- Área que será impressa no PDF -->
-      <div id="area-impressao-pdf" class="space-y-6 bg-transparent">
-        
-        <!-- Cabeçalho do PDF (Exibido apenas no arquivo exportado) -->
-        <div class="hidden print:block p-4 border-b border-gray-300 text-center" id="cabecalho-pdf">
-          <h1 class="text-2xl font-black text-[#411564]">AÇAIZEIRO DELIVERY</h1>
-          <p class="text-xs text-gray-500 font-medium">Relatório Oficial de Fechamento de Vendas</p>
-          <p class="text-[11px] text-gray-400 mt-1" id="pdf-data-emissao"></p>
-        </div>
-
-        <!-- Métricas Resumidas -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
-            <p class="text-xs text-gray-500 font-semibold uppercase">Faturamento Concluído</p>
-            <p class="text-2xl font-black text-emerald-600 mt-1" id="relatorio-total-faturado">R$ 0,00</p>
-            <span class="text-[11px] text-gray-400">Total do mês vigente</span>
-          </div>
-          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
-            <p class="text-xs text-gray-500 font-semibold uppercase">Pedidos Concluídos</p>
-            <p class="text-2xl font-black text-[#411564] mt-1" id="relatorio-qtd-pedidos">0</p>
-            <span class="text-[11px] text-gray-400">Entregues com sucesso</span>
-          </div>
-          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
-            <p class="text-xs text-gray-500 font-semibold uppercase">Ticket Médio</p>
-            <p class="text-2xl font-black text-blue-600 mt-1" id="relatorio-ticket-medio">R$ 0,00</p>
-            <span class="text-[11px] text-gray-400">Média por pedido</span>
-          </div>
-        </div>
-
-        <!-- Tabela Detalhada -->
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-gray-100 font-bold text-sm text-gray-800">
-            Listagem Geral de Pedidos do Mês
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-gray-600">
-              <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100">
-                <tr>
-                  <th class="p-3">#ID</th>
-                  <th class="p-3">Data / Hora</th>
-                  <th class="p-3">Cliente</th>
-                  <th class="p-3">Pagamento</th>
-                  <th class="p-3">Status</th>
-                  <th class="p-3 text-right">Valor</th>
-                </tr>
-              </thead>
-              <tbody id="tabela-relatorios-corpo" class="divide-y divide-gray-100 font-medium">
-                <tr>
-                  <td colspan="6" class="p-6 text-center text-gray-400">A carregar dados do relatório...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ABA 3: CARDÁPIO & ESTOQUE -->
-    <section id="aba-stock" class="max-w-5xl mx-auto p-4 hidden space-y-6">
-      <!-- Copos / Produtos -->
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
-        <div class="flex items-center justify-between pb-4 border-b border-gray-100 flex-wrap gap-2">
           <div>
-            <h2 class="text-base font-extrabold text-[#411564] flex items-center gap-2">
-              <i class="fa-solid fa-mug-hot"></i> Copos & Produtos do Cardápio
-            </h2>
-            <p class="text-xs text-gray-500">Adicione novos itens, ajuste preços ou pause itens esgotados.</p>
+            <p class="text-xs font-bold text-gray-700 mb-2">Como deseja receber seu pedido?</p>
+            <div class="grid grid-cols-2 gap-3">
+              <button type="button" onclick="selecionarTipoRecebimento('Entrega')" id="btn-tipo-entrega" class="p-3.5 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex flex-col items-center justify-center gap-1.5 text-[#411564] transition cursor-pointer">
+                <i class="fa-solid fa-truck text-lg"></i>
+                <span class="text-xs font-extrabold">Entrega</span>
+              </button>
+              <button type="button" onclick="selecionarTipoRecebimento('Retirada')" id="btn-tipo-retirada" class="p-3.5 rounded-2xl border border-gray-200 bg-white flex flex-col items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 transition cursor-pointer">
+                <i class="fa-solid fa-bag-shopping text-lg"></i>
+                <span class="text-xs font-extrabold">Retirada</span>
+              </button>
+            </div>
           </div>
-          <button onclick="abrirModalProduto()" class="bg-[#411564] hover:bg-purple-900 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-sm transition active:scale-95 cursor-pointer">
-            <i class="fa-solid fa-plus"></i> Novo Produto
-          </button>
+
+          <div id="secao-endereco-entrega" class="space-y-3">
+            <p class="text-xs font-bold text-gray-700">Selecione o endereço de entrega</p>
+            
+            <button type="button" onclick="abrirFormNovoEndereco()" class="w-full py-3 px-4 rounded-2xl border-2 border-[#411564] text-[#411564] font-extrabold text-xs flex items-center justify-center gap-2 hover:bg-purple-50 transition cursor-pointer">
+              <i class="fa-solid fa-location-dot"></i>
+              <span id="label-btn-endereco">Adicionar novo endereço</span>
+            </button>
+
+            <div id="card-endereco-salvo" class="hidden p-4 rounded-2xl border-2 border-[#411564] bg-white flex items-start justify-between shadow-sm">
+              <div class="space-y-1 text-xs">
+                <p class="font-extrabold text-sm text-gray-900" id="end-salvo-apelido">Casa</p>
+                <p class="text-gray-700 font-medium" id="end-salvo-rua">Rua...</p>
+                <p class="text-gray-500" id="end-salvo-bairro">Bairro...</p>
+                <div class="pt-1.5 flex items-center gap-4 text-[11px] font-bold text-[#411564]">
+                  <span><i class="fa-regular fa-clock mr-1"></i>40-60 min</span>
+                  <span><i class="fa-solid fa-truck mr-1"></i><span id="badge-taxa-endereco">R$ 1,00</span></span>
+                </div>
+              </div>
+              <div class="flex flex-col items-center justify-between h-full gap-4">
+                <div class="w-5 h-5 rounded-full border-2 border-[#411564] flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded-full bg-[#411564]"></div>
+                </div>
+                <button type="button" onclick="abrirFormNovoEndereco()" class="text-gray-400 hover:text-[#411564] p-1 cursor-pointer" title="Editar endereço">
+                  <i class="fa-solid fa-pen text-sm"></i>
+                </button>
+              </div>
+            </div>
+
+            <div id="form-inline-endereco" class="hidden bg-gray-50 p-3.5 rounded-2xl border border-purple-200 space-y-2.5">
+              <div class="grid grid-cols-3 gap-2">
+                <div class="col-span-2">
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Rua / Avenida *</label>
+                  <input type="text" id="input-end-rua" placeholder="Ex: Rua Orlando Luis Miola" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Número *</label>
+                  <input type="text" id="input-end-numero" placeholder="Ex: 651" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Bairro *</label>
+                  <input type="text" id="input-end-bairro" placeholder="Ex: São Domingos 2" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Complemento / Ref.</label>
+                  <input type="text" id="input-end-comp" placeholder="Ex: Casa, Fundos..." class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+              </div>
+              <button type="button" onclick="salvarEnderecoLocal()" class="w-full bg-[#411564] text-white font-bold py-2 rounded-xl text-xs shadow cursor-pointer">
+                Confirmar Endereço
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-2.5 pt-2 border-t border-gray-100">
+            <p class="text-xs font-bold text-gray-700">Seus dados para contato</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-gray-600 mb-1">Seu Nome *</label>
+                <input type="text" id="cliente-nome" placeholder="Ex: Rafael Manzoni" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-gray-600 mb-1">Seu WhatsApp *</label>
+                <input type="tel" id="cliente-telefone" placeholder="Ex: (16) 99738-3522" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
+              </div>
+            </div>
+          </div>
         </div>
-        <div id="lista-copos-stock" class="divide-y divide-gray-100 mt-2">
-          <p class="text-xs text-gray-400 py-4 text-center">A carregar produtos...</p>
+
+        <!-- ETAPA 2: FORMA DE PAGAMENTO -->
+        <div id="checkout-step-2" class="hidden space-y-5">
+          <div>
+            <p class="text-xs font-extrabold text-[#411564] flex items-center gap-2 mb-2.5">
+              <i class="fa-solid fa-mobile-screen-button"></i> Pagar online
+            </p>
+            <div onclick="selecionarPagamento('Pix', 'PIX (Online)')" id="pay-card-Pix" class="pay-option p-4 rounded-2xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer transition">
+              <div class="flex items-center gap-3">
+                <i class="fa-brands fa-pix text-[#411564] text-lg"></i>
+                <span class="text-sm font-bold text-gray-800">PIX</span>
+              </div>
+              <div class="pay-radio w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                <div class="w-2.5 h-2.5 rounded-full bg-transparent"></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs font-extrabold text-[#411564] flex items-center gap-2 mb-2.5">
+              <i class="fa-solid fa-house"></i> <span id="titulo-pagar-entrega">Pagar na entrega</span>
+            </p>
+            <div class="space-y-2.5">
+              <div onclick="selecionarPagamento('Dinheiro', 'Dinheiro')" id="pay-card-Dinheiro" class="pay-option p-4 rounded-2xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer transition">
+                <div class="flex items-center gap-3">
+                  <i class="fa-solid fa-money-bill-wave text-gray-600 text-base"></i>
+                  <span class="text-sm font-bold text-gray-800">Dinheiro</span>
+                </div>
+                <div class="pay-radio w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded-full bg-transparent"></div>
+                </div>
+              </div>
+
+              <div id="box-troco-dinheiro" class="hidden bg-purple-50/60 p-3 rounded-2xl border border-purple-200">
+                <label class="block text-xs font-bold text-[#411564] mb-1">Precisa de troco para quanto?</label>
+                <input type="text" id="input-troco-para" placeholder="Ex: Troco para R$ 50,00 (ou deixe vazio)" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+              </div>
+
+              <div onclick="selecionarPagamento('Cartão de Crédito', 'Cartão de Crédito (Entrega)')" id="pay-card-CartaoCredito" class="pay-option p-4 rounded-2xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer transition">
+                <div class="flex items-center gap-3">
+                  <i class="fa-regular fa-credit-card text-gray-600 text-base"></i>
+                  <span class="text-sm font-bold text-gray-800">Cartão de Crédito</span>
+                </div>
+                <div class="pay-radio w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded-full bg-transparent"></div>
+                </div>
+              </div>
+
+              <div onclick="selecionarPagamento('Cartão de Débito', 'Cartão de Débito (Entrega)')" id="pay-card-CartaoDebito" class="pay-option p-4 rounded-2xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer transition">
+                <div class="flex items-center gap-3">
+                  <i class="fa-regular fa-credit-card text-gray-600 text-base"></i>
+                  <span class="text-sm font-bold text-gray-800">Cartão de Débito</span>
+                </div>
+                <div class="pay-radio w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded-full bg-transparent"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Observações Gerais (Opcional)</label>
+            <input type="text" id="cliente-obs" placeholder="Ex: Interfone quebrado, ligar ao chegar..." class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
+          </div>
         </div>
+
+        <!-- ETAPA 3: RESUMO DO PEDIDO -->
+        <div id="checkout-step-3" class="hidden space-y-4">
+          <div class="space-y-4 text-sm">
+            <div class="flex items-start gap-3">
+              <i class="fa-solid fa-truck text-gray-400 mt-1"></i>
+              <div>
+                <p class="text-xs text-gray-500 font-medium" id="resumo-final-tipo">Entrega</p>
+                <p class="font-extrabold text-gray-900 text-sm leading-snug" id="resumo-final-endereco">Endereço...</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <i class="fa-regular fa-clock text-gray-400 mt-1"></i>
+              <div>
+                <p class="text-xs text-gray-500 font-medium">Tempo de entrega</p>
+                <p class="font-extrabold text-gray-900 text-sm" id="resumo-final-tempo">40-60 min</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <i class="fa-solid fa-wallet text-gray-400 mt-1"></i>
+              <div>
+                <p class="text-xs text-gray-500 font-medium">Pagamento</p>
+                <p class="font-extrabold text-gray-900 text-sm" id="resumo-final-pagamento">PIX (Online)</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <i class="fa-regular fa-user text-gray-400 mt-1"></i>
+              <div>
+                <p class="text-xs text-gray-500 font-medium">Suas informações</p>
+                <p class="font-extrabold text-gray-900 text-sm" id="resumo-final-cliente">Nome</p>
+                <p class="text-xs text-gray-600 font-semibold" id="resumo-final-telefone">(16) 99999-9999</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="border-t border-gray-200 pt-4 space-y-2 text-sm">
+            <p class="font-extrabold text-gray-800 text-xs uppercase tracking-wider">Resumo</p>
+            <div class="flex justify-between text-gray-600">
+              <span>Subtotal</span>
+              <span id="resumo-final-subtotal" class="font-semibold">R$ 0,00</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+              <span>Taxa de entrega</span>
+              <span id="resumo-final-taxa" class="font-semibold">R$ 1,00</span>
+            </div>
+            <div class="flex justify-between text-base font-black text-gray-900 pt-1">
+              <span>Total</span>
+              <span id="resumo-final-total" class="text-[#411564]">R$ 0,00</span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Complementos -->
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
-        <div class="flex items-center justify-between pb-4 border-b border-gray-100 flex-wrap gap-2">
-          <div>
-            <h2 class="text-base font-extrabold text-[#411564] flex items-center gap-2">
-              <i class="fa-solid fa-bowl-food"></i> Frutas & Complementos
-            </h2>
-            <p class="text-xs text-gray-500">Adicionais que o cliente pode escolher ao montar o copo.</p>
-          </div>
-          <button onclick="abrirModalComplemento()" class="bg-purple-800 hover:bg-purple-900 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-sm transition active:scale-95 cursor-pointer">
-            <i class="fa-solid fa-plus"></i> Novo Complemento
-          </button>
+      <!-- Rodapé Fixo com Indicador de 4 Pontos e Botão Principal -->
+      <div class="p-4 bg-white border-t border-gray-100 space-y-3">
+        <div class="flex items-center justify-center gap-0">
+          <div id="dot-0" class="w-2.5 h-2.5 rounded-full bg-[#411564] transition-all"></div>
+          <div id="line-1" class="w-6 h-0.5 bg-gray-200 transition-all"></div>
+          <div id="dot-1" class="w-2.5 h-2.5 rounded-full bg-gray-300 transition-all"></div>
+          <div id="line-2" class="w-6 h-0.5 bg-gray-200 transition-all"></div>
+          <div id="dot-2" class="w-2.5 h-2.5 rounded-full bg-gray-300 transition-all"></div>
+          <div id="line-3" class="w-6 h-0.5 bg-gray-200 transition-all"></div>
+          <div id="dot-3" class="w-2.5 h-2.5 rounded-full bg-gray-300 transition-all"></div>
         </div>
-        <div id="lista-complementos-stock" class="divide-y divide-gray-100 mt-2">
-          <p class="text-xs text-gray-400 py-4 text-center">A carregar complementos...</p>
-        </div>
-      </div>
-    </section>
-  </div>
 
-  <!-- MODAL: Criar / Editar Produto -->
-  <div id="modal-form-produto" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="bg-white w-full max-w-md rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 id="titulo-modal-produto" class="font-extrabold text-[#411564] text-base">Novo Produto</h3>
-        <button onclick="fecharModalProduto()" class="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none cursor-pointer">&times;</button>
+        <button type="button" id="btn-acao-checkout" onclick="avancarEtapaCheckout()" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-extrabold py-3.5 rounded-2xl shadow-lg transition active:scale-95 text-sm cursor-pointer">
+          Continuar
+        </button>
       </div>
-      <form id="form-cad-produto" onsubmit="salvarProduto(event)" class="space-y-3">
-        <input type="hidden" id="prod-edit-id">
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Nome do Item *</label>
-          <input type="text" id="prod-nome" required placeholder="Ex: Copo Açaí Trufado 400ml" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Categoria *</label>
-            <select id="prod-categoria-select" onchange="verificarNovaCategoria()" required class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600 bg-white">
-              <option value="">Selecione...</option>
-            </select>
-            <input type="text" id="prod-categoria-nova" placeholder="Nome da nova categoria..." class="hidden w-full border border-purple-400 bg-purple-50/40 rounded-xl p-2.5 text-xs outline-purple-600 mt-1.5">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Preço (R$) *</label>
-            <input type="number" step="0.01" id="prod-preco" required placeholder="Ex: 24.50" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Descrição</label>
-          <textarea id="prod-desc" rows="2" placeholder="Ex: Servido com creme de avelã e morangos frescos..." class="w-full border border-gray-300 rounded-xl p-2 text-xs outline-purple-600"></textarea>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Fotografia do Produto</label>
-          <input type="file" id="prod-arquivo-foto" accept="image/*" class="w-full text-xs text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer">
-          <input type="text" id="prod-foto-url" placeholder="Ou insira a URL da imagem..." class="w-full border border-gray-200 rounded-xl p-2 text-[11px] outline-purple-600 mt-1.5 text-gray-500">
-        </div>
-        <div class="pt-2 flex gap-2">
-          <button type="button" onclick="fecharModalProduto()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl text-xs transition cursor-pointer">Cancelar</button>
-          <button type="submit" id="btn-salvar-produto" class="flex-1 bg-[#411564] hover:bg-purple-900 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md cursor-pointer">Guardar Item</button>
-        </div>
-      </form>
     </div>
   </div>
 
-  <!-- MODAL: Criar / Editar Complemento -->
-  <div id="modal-form-complemento" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 id="titulo-modal-complemento" class="font-extrabold text-[#411564] text-base">Novo Complemento</h3>
-        <button onclick="fecharModalComplemento()" class="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none cursor-pointer">&times;</button>
+  <!-- MODAL: Aguardando Aceite da Loja -->
+  <div id="modalAguardandoAceite" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: #ffffff; color: #1e1e1e; max-width: 400px; width: 100%; border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); font-family: sans-serif;">
+      <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #411564; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 16px auto;"></div>
+      <span id="pedidoNumeroBadge" style="background: #ede7f6; color: #411564; font-size: 13px; font-weight: 800; padding: 4px 12px; border-radius: 12px; display: inline-block; margin-bottom: 8px;">PEDIDO #...</span>
+      <h3 style="color: #411564; font-size: 19px; font-weight: 800; margin-bottom: 8px;">Aguardando a Loja Aceitar...</h3>
+      <p style="font-size: 13px; color: #555; line-height: 1.5; margin-bottom: 16px;">
+        Estamos confirmando a disponibilidade do seu pedido na nossa cozinha. Fique nesta tela!
+      </p>
+      <div style="background: #fcf4e8; border: 1px solid #f7dfbe; border-radius: 10px; padding: 10px; font-size: 12px; color: #9c6500;">
+        ⏳ Geralmente respondemos em menos de 2 minutos.
       </div>
-      <form id="form-cad-comp" onsubmit="salvarComplemento(event)" class="space-y-3">
-        <input type="hidden" id="comp-edit-id">
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Nome do Adicional *</label>
-          <input type="text" id="comp-nome" required placeholder="Ex: Nutella Pura" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Preço Adicional (R$) *</label>
-          <input type="number" step="0.01" id="comp-preco" required placeholder="Ex: 4.00" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
-        </div>
-        <div class="pt-2 flex gap-2">
-          <button type="button" onclick="fecharModalComplemento()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl text-xs transition cursor-pointer">Cancelar</button>
-          <button type="submit" id="btn-salvar-comp" class="flex-1 bg-[#411564] hover:bg-purple-900 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md cursor-pointer">Guardar</button>
-        </div>
-      </form>
+      <button onclick="cancelarEsperaAceite()" style="margin-top: 16px; background: transparent; border: none; color: #888; font-size: 12px; text-decoration: underline; cursor: pointer;">
+        Cancel e voltar ao cardápio
+      </button>
     </div>
   </div>
+  
+  <!-- Modal Pix com QR Code, Cronômetro e Copia e Cola -->
+  <div id="modalPix" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: #ffffff; z-index: 9999; flex-direction: column; overflow-y: auto; font-family: sans-serif;">
+    <div style="max-width: 480px; width: 100%; margin: 0 auto; padding: 16px; flex: 1; display: flex; flex-direction: column;">
+      
+      <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">
+        <button onclick="cancelarModalPix()" style="width: 36px; height: 36px; border-radius: 50%; background: #fff; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #411564;">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <span style="font-weight: 800; font-size: 16px; color: #111;">Pagamento PIX</span>
+        <div style="width: 36px;"></div>
+      </div>
 
-  <!-- Molde invisível do Cupom Térmico -->
-  <div id="area-cupom-termico" class="hidden print:block"></div>
+      <div id="pixCarregando" style="padding: 60px 0; text-align: center;">
+        <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #411564; border-radius: 50%; width: 44px; height: 44px; animation: spin 1s linear infinite; margin: 0 auto 16px auto;"></div>
+        <h3 style="margin: 0; color: #411564; font-weight: bold;">Gerando o seu Pix...</h3>
+        <p style="color: #666; font-size: 14px; margin-top: 4px;">Aguarde alguns segundos.</p>
+      </div>
+
+      <div id="pixConteudo" style="display: none; text-align: center; padding-top: 20px; flex: 1; flex-direction: column; justify-content: space-between;">
+        <div>
+          <h3 style="margin: 0 0 8px 0; color: #111827; font-size: 19px; font-weight: 800;">Pague o PIX para enviar seu pedido</h3>
+          <span style="background: #fef08a; color: #854d0e; font-size: 12px; font-weight: 700; padding: 4px 14px; border-radius: 20px; display: inline-block; margin-bottom: 16px;">
+            Aguardando pagamento
+          </span>
+
+          <div style="background: #fff; padding: 12px; border-radius: 16px; display: inline-block; border: 1px solid #e5e7eb; margin-bottom: 16px;">
+            <img id="pixQrImg" src="" alt="QR Code Pix" style="width: 210px; height: 210px; display: block; margin: 0 auto;">
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <p style="font-size: 12px; color: #6b7280; margin: 0;">Expira em</p>
+            <p id="pixTimerTexto" style="font-size: 22px; font-weight: 900; color: #111827; margin: 2px 0 8px 0;">29 : 59</p>
+            <div style="width: 220px; height: 4px; background: #e5e7eb; border-radius: 4px; margin: 0 auto; overflow: hidden;">
+              <div id="pixTimerBarra" style="width: 100%; height: 100%; background: #411564; transition: width 1s linear;"></div>
+            </div>
+          </div>
+
+          <div style="text-align: left; margin-top: 16px;">
+            <p style="font-size: 13px; font-weight: 700; color: #1f2937; margin: 0 0 2px 0;">
+              <i class="fa-solid fa-qrcode mr-1 text-[#411564]"></i> Clique no código abaixo para copiar
+            </p>
+            <p style="font-size: 11px; color: #6b7280; margin: 0 0 8px 0;">Pague antes do tempo acabar, ou o pedido é cancelado</p>
+            
+            <div onclick="copiarPixPayload()" style="background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; font-family: monospace; font-size: 11px; color: #374151; word-break: break-all; cursor: pointer; max-height: 85px; overflow-y: auto;" id="pixCodigoBox">
+              Carregando código...
+            </div>
+            <input type="hidden" id="pixCodigoCopia">
+          </div>
+        </div>
+
+        <div style="padding-top: 20px; padding-bottom: 8px; space-y: 8px;">
+          <button id="btnCopiarPix" onclick="copiarPixPayload()" style="width: 100%; padding: 15px; background: #411564; color: #fff; font-weight: 800; font-size: 15px; border: none; border-radius: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(65, 21, 100, 0.25);">
+            Copiar código
+          </button>
+          <button id="btnJaPagueiPixDireto" onclick="confirmarEnvioComprovantePixDireto()" style="display: none; width: 100%; margin-top: 10px; padding: 14px; background: #16a34a; color: #fff; font-weight: 800; font-size: 14px; border: none; border-radius: 14px; cursor: pointer;">
+            <i class="fa-brands fa-whatsapp mr-1"></i> Já fiz o Pix — Enviar Comprovante
+          </button>
+        </div>
+      </div>
+
+      <div id="pixConfirmado" style="display: none; padding: 40px 0; text-align: center;">
+        <div style="font-size: 54px; color: #16a34a; margin-bottom: 12px;">✅</div>
+        <h3 style="color: #16a34a; margin: 0 0 8px 0; font-weight: 800; font-size: 20px;">Pagamento Confirmado!</h3>
+        <p style="color: #555; font-size: 14px; margin: 0 0 24px 0;">O seu pedido já seguiu para a cozinha e está em preparo.</p>
+        <button onclick="concluirFluxoPix()" style="width: 100%; padding: 14px; background: #16a34a; color: #fff; font-weight: bold; border: none; border-radius: 12px; cursor: pointer;">
+          Acompanhar Pedido
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <script>
-    var SENHA_MESTRA = "3944";
-    var somAtivo = true;
-    var intervaloCampainha = null;
-
-    // Carrega o arquivo de som (campainha.mp3 na raiz do projeto)
-    var somAlertaPedido = new Audio('campainha.mp3');
-
-    function emitirBipeDelivery() {
-      if (!somAtivo) return;
-      try {
-        somAlertaPedido.currentTime = 0;
-        somAlertaPedido.play().catch(function(erro) {
-          console.warn("Áudio aguardando clique inicial na tela:", erro);
-        });
-      } catch (e) {
-        console.warn("Falha ao tocar som:", e);
-      }
-    }
-
-    function iniciarAlarmeSonoro() {
-      if (intervaloCampainha) return;
-      emitirBipeDelivery();
-      intervaloCampainha = setInterval(function() {
-        emitirBipeDelivery();
-      }, 3500);
-    }
-
-    function pararAlarmeSonoro() {
-      if (intervaloCampainha) {
-        clearInterval(intervaloCampainha);
-        intervaloCampainha = null;
-      }
-    }
-
-    function alternarSom() {
-      somAtivo = !somAtivo;
-      var icone = document.getElementById('icone-som');
-      if (icone) {
-        icone.className = somAtivo ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
-      }
-      if (!somAtivo) {
-        pararAlarmeSonoro();
+    function alternarListaComplementos() {
+      var painel = document.getElementById('container-sanfona-complementos');
+      var seta = document.getElementById('icone-seta-comp');
+      if (painel.classList.contains('hidden')) {
+        painel.classList.remove('hidden');
+        seta.style.transform = 'rotate(180deg)';
       } else {
-        emitirBipeDelivery();
+        painel.classList.add('hidden');
+        seta.style.transform = 'rotate(0deg)';
       }
     }
 
-    function tentarEntrar() {
-      var campo = document.getElementById('campo-senha');
-      var erro = document.getElementById('erro-senha');
-      if (!campo) return;
+    var config = {
+      whatsapp: "5516992928529",
+      taxaEntrega: 1.00,
+      modoPix: "mercadopago",
+      chavePix: "",
+      nomeRecebedorPix: "ACAIZEIRO DELIVERY",
+      cidadePix: "IBITINGA"
+    };
 
-      var valorDigitado = campo.value.trim();
+    var categorias = ["Todos"];
+    var categoriaAtiva = "Todos";
+    var complementosDisponiveis = [];
+    var produtos = [];
+    var carrinho = [];
+    var produtoEmEdicao = null;
+    var textoPedidoWhatsApp = "";
 
-      if (valorDigitado === SENHA_MESTRA) {
-        sessionStorage.setItem('admin_acaizeiro_auth', 'true');
-        liberarAcesso();
-      } else {
-        erro.classList.remove('hidden');
-        campo.value = "";
-      }
-    }
+    var etapaAtualCheckout = 0;
+    var estadoCheckout = {
+      quando: "Agora",
+      horarioAgendado: "",
+      tipoRecebimento: "Entrega",
+      enderecoSalvo: null,
+      pagamentoValor: "",
+      pagamentoLabel: ""
+    };
 
-    function liberarAcesso() {
-      var tela = document.getElementById('tela-login');
-      var painel = document.getElementById('painel-conteudo');
-
-      if (tela) tela.classList.add('hidden');
-      if (painel) painel.classList.remove('hidden');
-
-      carregarPedidos();
-      setInterval(carregarPedidos, 10000);
-    }
-
-    function verificarAutenticacao() {
-      if (sessionStorage.getItem('admin_acaizeiro_auth') === 'true') {
-        liberarAcesso();
-      }
-    }
-
-    function sairPainel() {
-      sessionStorage.removeItem('admin_acaizeiro_auth');
-      location.reload();
-    }
-
-    // SUPABASE
-    var SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
-    var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
-    var client = null;
-
-    var listaGlobalPedidos = [];
-    var listaGlobalProdutos = [];
-    var listaGlobalComplementos = [];
-    var statusSelecionado = 'Todos';
-
-    function initClient() {
-      if (!client && window.supabase && window.supabase.createClient) {
-        client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      }
-      return client;
-    }
-
-    // Controle de Abas
-    function mudarAba(aba) {
-      ['pedidos', 'relatorios', 'stock'].forEach(function(a) {
-        var el = document.getElementById('aba-' + a);
-        var btn = document.getElementById('tab-btn-' + a);
-        if (el) el.classList.add('hidden');
-        if (btn) btn.className = "bg-purple-950/60 hover:bg-purple-900 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer";
-      });
-
-      var ativa = document.getElementById('aba-' + aba);
-      var btnAtivo = document.getElementById('tab-btn-' + aba);
-      if (ativa) ativa.classList.remove('hidden');
-      if (btnAtivo) btnAtivo.className = "bg-purple-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer";
-
-      if (aba === 'stock') carregarStock();
-      if (aba === 'relatorios') carregarRelatorios();
-    }
-
-    // ==========================================
-    // FUNÇÃO DE IMPRESSÃO DE COMANDA TÉRMICA (50mm)
-    // ==========================================
-    function imprimirPedido(id) {
-      var p = listaGlobalPedidos.find(function(x) { return x.id === id; });
-      if (!p) return;
-
-      var dataHora = p.created_at ? new Date(p.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleString('pt-BR');
-      
-      var itensTexto = '';
-      if (Array.isArray(p.itens)) {
-        itensTexto = p.itens.map(function(i) {
-          var linha = '<div style="margin-bottom: 4px; border-bottom: 1px dashed #999; padding-bottom: 3px;">' +
-            '<strong style="font-size: 10px;">' + i.quantidade + 'x ' + i.nome + '</strong>';
-          if (i.complementos && i.complementos.length > 0) {
-            linha += '<div style="padding-left: 4px; font-size: 9px;">+ ' + i.complementos.join('<br>+ ') + '</div>';
-          }
-          if (i.observacao) {
-            linha += '<div style="padding-left: 4px; font-size: 9px; font-style: italic;">Obs: ' + i.observacao + '</div>';
-          }
-          linha += '</div>';
-          return linha;
-        }).join('');
-      }
-
-      var obsGeral = p.observacoes ? '<div style="margin-top: 4px; font-weight: bold; font-size: 9px;">OBS: ' + p.observacoes + '</div>' : '';
-
-      var htmlCupom = 
-        '<div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 4px; margin-bottom: 4px;">' +
-          '<strong style="font-size: 12px;">AÇAIZEIRO DELIVERY</strong><br>' +
-          '<span style="font-size: 9px;">' + dataHora + '</span><br>' +
-          '<strong style="font-size: 11px;">PEDIDO #' + p.id + '</strong>' +
-        '</div>' +
-        '<div style="margin-bottom: 6px; font-size: 10px;">' +
-          '<strong>Cliente:</strong> ' + (p.cliente_nome || 'Não informado') + '<br>' +
-          '<strong>End:</strong> ' + (p.cliente_endereco || 'Retirada') +
-        '</div>' +
-        '<div style="border-top: 1px dashed #000; padding-top: 4px; margin-bottom: 6px;">' +
-          itensTexto +
-          obsGeral +
-        '</div>' +
-        '<div style="border-top: 1px dashed #000; padding-top: 4px; font-size: 10px;">' +
-          '<strong>Pagto:</strong> ' + (p.forma_pagamento || '-') + '<br>' +
-          '<strong style="font-size: 12px;">TOTAL: R$ ' + Number(p.total || 0).toFixed(2).replace('.', ',') + '</strong>' +
-        '</div>' +
-        '<div style="text-align: center; margin-top: 8px; font-size: 9px;">' +
-          
-        '</div>';
-
-      var area = document.getElementById('area-cupom-termico');
-      area.innerHTML = htmlCupom;
-      area.classList.remove('hidden');
-
-      window.print();
-
-      setTimeout(function() {
-        area.classList.add('hidden');
-      }, 500);
-    }
-
-    // ==========================================
-    // ABA 1: PEDIDOS DO DIA
-    // ==========================================
-    async function carregarPedidos() {
-      var sb = initClient();
-      if (!sb) {
-        setTimeout(carregarPedidos, 500);
-        return;
-      }
-
+    function carregarDadosSalvosCliente() {
       try {
-        var agora = new Date();
-        var ano = agora.getFullYear();
-        var mes = String(agora.getMonth() + 1).padStart(2, '0');
-        var dia = String(agora.getDate()).padStart(2, '0');
-        var inicioHojeIso = ano + '-' + mes + '-' + dia + 'T00:00:00';
+        var nomeSalvo = localStorage.getItem('acaizeiro_cli_nome');
+        var telSalvo = localStorage.getItem('acaizeiro_cli_tel');
+        var endJson = localStorage.getItem('acaizeiro_cli_end');
 
-        var res = await sb.from('pedidos')
-          .select('*')
-          .gte('created_at', inicioHojeIso)
-          .order('id', { ascending: false });
+        if (nomeSalvo) document.getElementById('cliente-nome').value = nomeSalvo;
+        if (telSalvo) document.getElementById('cliente-telefone').value = telSalvo;
 
-        if (res.error) {
-          console.error("Erro ao carregar pedidos:", res.error);
-          return;
+        if (endJson) {
+          estadoCheckout.enderecoSalvo = JSON.parse(endJson);
+          exibirCartaoEnderecoSalvo();
         }
-
-        listaGlobalPedidos = res.data || [];
-        renderizarPedidos();
-      } catch (err) {
-        console.error("Erro inesperado:", err);
-      }
+      } catch (e) {}
     }
 
-    function filtrarStatus(s) {
-      statusSelecionado = s;
-      document.querySelectorAll('.btn-filtro').forEach(function(b) {
-        b.className = b.getAttribute('data-status') === s 
-          ? "btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white cursor-pointer"
-          : "btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer";
+    function renderizarCategorias() {
+      var container = document.getElementById('lista-categorias');
+      if (!container) return;
+      container.innerHTML = categorias.map(function(cat) {
+        var ativo = categoriaAtiva.trim().toLowerCase() === cat.trim().toLowerCase();
+        var classeCor = ativo ? 'bg-[#411564] text-white shadow-sm' : 'bg-white text-gray-600 border border-purple-100 hover:bg-purple-50';
+        return '<button onclick="selecionarCategoria(\'' + cat.replace(/'/g, "\\'") + '\')" class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer ' + classeCor + '">' + cat + '</button>';
+      }).join('');
+    }
+
+    function selecionarCategoria(cat) {
+      categoriaAtiva = cat;
+      renderizarCategorias();
+      carregarProdutos();
+    }
+
+    function carregarProdutos() {
+      var container = document.getElementById('lista-produtos');
+      if (!container) return;
+
+      var filtrados = produtos.filter(function(p) {
+        if (p.ativo === false) return false;
+        if (categoriaAtiva.trim().toLowerCase() === "todos") return true;
+        return (p.categoria || "").trim().toLowerCase() === categoriaAtiva.trim().toLowerCase();
       });
-      renderizarPedidos();
-    }
-
-    function renderizarPedidos() {
-      var container = document.getElementById('lista-pedidos-admin');
-      var filtrados = statusSelecionado === 'Todos' 
-        ? listaGlobalPedidos 
-        : listaGlobalPedidos.filter(function(p) { return p.status === statusSelecionado; });
 
       if (filtrados.length === 0) {
-        container.innerHTML = '<div class="col-span-full bg-white p-8 rounded-xl shadow-sm text-center text-gray-400 text-sm">Nenhum pedido recebido hoje até o momento.</div>';
-        pararAlarmeSonoro();
+        container.innerHTML = '<p class="text-center py-8 text-gray-400 text-sm">Nenhum produto disponível no momento.</p>';
         return;
       }
 
-      var temPendente = false;
+      container.innerHTML = filtrados.map(function(prod) {
+        var imgHtml = prod.imagem 
+          ? '<img src="' + encodeURI(prod.imagem) + '" alt="' + prod.nome + '" class="w-full h-full object-cover" onerror="this.onerror=null; this.src=\'PURO.png\';">'
+          : '<div class="w-full h-full flex items-center justify-center font-black text-purple-300 text-xs text-center p-1">EXTRA</div>';
 
-      container.innerHTML = filtrados.map(function(p) {
-        var hora = p.created_at ? new Date(p.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
-        var itensHtml = '';
-        if (Array.isArray(p.itens)) {
-          itensHtml = p.itens.map(function(i) {
-            var compl = (i.complementos && i.complementos.length > 0) ? '<p class="text-[11px] text-purple-700 pl-2">+ ' + i.complementos.join(', ') + '</p>' : '';
-            var obs = i.observacao ? '<p class="text-[11px] text-gray-500 italic pl-2">Obs: ' + i.observacao + '</p>' : '';
-            return '<div class="text-xs py-1 border-b border-gray-50">' +
-              '<span class="font-bold text-gray-900">' + i.quantidade + 'x ' + i.nome + '</span>' +
-              compl + obs +
-            '</div>';
-          }).join('');
-        }
-
-        var isAguardandoAceite = (p.status === 'Aguardando Aceite da Loja' || p.status === 'Recebido');
-        if (isAguardandoAceite) temPendente = true;
-
-        var badge = "bg-amber-100 text-amber-800 border-amber-200";
-        if (isAguardandoAceite) badge = "bg-amber-100 text-amber-800 border-amber-300 animate-pulse font-black";
-        if (p.status === "Aguardando Pagamento Pix") badge = "bg-blue-100 text-blue-800 border-blue-200";
-        if (p.status === "Em preparo") badge = "bg-purple-100 text-purple-800 border-purple-200 font-bold";
-        if (p.status === "Saiu para entrega") badge = "bg-indigo-100 text-indigo-800 border-indigo-200";
-        if (p.status === "Concluído") badge = "bg-green-100 text-green-800 border-green-200";
-        if (p.status === "Recusado") badge = "bg-rose-100 text-rose-800 border-rose-200";
-
-        var obsGeral = p.observacoes ? '<p class="text-xs text-red-600 bg-red-50 p-2 rounded-lg font-medium mb-2">Obs: ' + p.observacoes + '</p>' : '';
-
-        var botoesHtml = '';
-        if (isAguardandoAceite) {
-          botoesHtml = 
-            '<div class="grid grid-cols-2 gap-2">' +
-              '<button onclick="aceitarPedido(' + p.id + ', \'' + (p.forma_pagamento || '') + '\')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-2 rounded-lg shadow transition active:scale-95 flex items-center justify-center gap-1 cursor-pointer">' +
-                '<i class="fa-solid fa-check"></i> Aceitar Pedido' +
-              '</button>' +
-              '<button onclick="recusarPedido(' + p.id + ')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs py-2 rounded-lg border border-rose-200 transition active:scale-95 cursor-pointer">' +
-                '<i class="fa-solid fa-xmark"></i> Recusar' +
-              '</button>' +
-            '</div>';
-        } else if (p.status === "Aguardando Pagamento Pix") {
-          botoesHtml = 
-            '<div class="text-center py-1 text-xs text-blue-700 font-semibold bg-blue-50 rounded-lg border border-blue-100">' +
-              'Aguardando o cliente pagar o Pix no site...' +
-            '</div>';
-        } else {
-          botoesHtml = 
-            '<div class="grid grid-cols-3 gap-1.5">' +
-              '<button onclick="mudarStatus(' + p.id + ', \'Em preparo\')" class="bg-purple-50 hover:bg-purple-100 text-purple-700 text-[11px] font-bold py-1.5 rounded-lg border border-purple-200 transition active:scale-95 cursor-pointer">Preparo</button>' +
-              '<button onclick="mudarStatus(' + p.id + ', \'Saiu para entrega\')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold py-1.5 rounded-lg border border-indigo-200 transition active:scale-95 cursor-pointer">A Caminho</button>' +
-              '<button onclick="mudarStatus(' + p.id + ', \'Concluído\')" class="bg-green-50 hover:bg-green-100 text-green-700 text-[11px] font-bold py-1.5 rounded-lg border border-green-200 transition active:scale-95 cursor-pointer">Concluído</button>' +
-            '</div>';
-        }
-
-        return '<div class="bg-white rounded-2xl p-4 shadow-sm border ' + (isAguardandoAceite ? 'border-amber-400 ring-2 ring-amber-300' : 'border-gray-200') + ' flex flex-col justify-between">' +
-          '<div>' +
-            '<div class="flex justify-between items-start mb-2">' +
-              '<div>' +
-                '<span class="text-xs font-black bg-purple-100 text-purple-900 px-2 py-0.5 rounded-md">#' + p.id + '</span>' +
-                '<span class="text-[11px] text-gray-400 ml-1.5">' + hora + '</span>' +
-                '<h3 class="font-extrabold text-gray-900 text-base leading-tight mt-1">' + (p.cliente_nome || 'Cliente') + '</h3>' +
-              '</div>' +
-              '<div class="flex items-center gap-1.5">' +
-                '<button onclick="imprimirPedido(' + p.id + ')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer" title="Imprimir Comanda"><i class="fa-solid fa-print"></i></button>' +
-                '<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border ' + badge + '">' + p.status + '</span>' +
-              '</div>' +
+        return '<div class="bg-white p-3.5 rounded-2xl shadow-sm border border-purple-100 flex gap-3.5 items-center cursor-pointer hover:border-purple-300 transition" onclick="iniciarAdicaoProduto(' + (typeof prod.id === "string" ? "'" + prod.id + "'" : prod.id) + ')">' +
+          '<div class="w-20 h-20 rounded-xl overflow-hidden bg-purple-50 flex-shrink-0 border border-purple-100">' + imgHtml + '</div>' +
+          '<div class="flex-1 min-w-0">' +
+            '<h3 class="font-bold text-gray-900 text-sm leading-snug">' + prod.nome + '</h3>' +
+            '<p class="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">' + prod.desc + '</p>' +
+            '<div class="flex items-center justify-between mt-2">' +
+              '<span class="font-black text-[#5c1380] text-sm">R$ ' + Number(prod.preco || 0).toFixed(2).replace('.', ',') + '</span>' +
+              '<button onclick="event.stopPropagation(); iniciarAdicaoProduto(' + (typeof prod.id === "string" ? "'" + prod.id + "'" : prod.id) + ')" class="bg-purple-50 hover:bg-purple-100 text-[#411564] font-bold px-3 py-1.5 rounded-lg border border-purple-200 text-xs active:scale-95 transition">+ Adicionar</button>' +
             '</div>' +
-            '<p class="text-xs text-gray-600 mb-2 flex items-start gap-1">' +
-              '<i class="fa-solid fa-location-dot mt-0.5 text-gray-400"></i>' +
-              '<span>' + (p.cliente_endereco || 'Não informado') + '</span>' +
-            '</p>' +
-            '<div class="bg-gray-50 p-2.5 rounded-xl my-2 max-h-36 overflow-y-auto">' + itensHtml + '</div>' +
-            obsGeral +
           '</div>' +
-          '<div class="pt-3 border-t mt-2">' +
-            '<div class="flex justify-between items-center mb-3">' +
-              '<span class="text-xs text-gray-500">Pagamento: <strong>' + (p.forma_pagamento || '-') + '</strong></span>' +
-              '<span class="text-base font-black text-[#411564]">R$ ' + Number(p.total || 0).toFixed(2).replace('.', ',') + '</span>' +
-            '</div>' +
-            botoesHtml +
+        '</div>';
+      }).join('');
+    }
+
+    function iniciarAdicaoProduto(id) {
+      var prod = produtos.find(function(p) { return String(p.id) === String(id); });
+      if (!prod) return;
+
+      produtoEmEdicao = Object.assign({}, prod, { complementosEscolhidos: [] });
+
+      if (!prod.permiteComplementos) {
+        carrinho.push({
+          cartId: Date.now() + Math.random(),
+          produtoId: prod.id,
+          nome: prod.nome,
+          precoBase: prod.preco,
+          complementos: [],
+          obs: "",
+          precoTotal: prod.preco,
+          qtd: 1
+        });
+        atualizarBarra();
+        return;
+      }
+
+      document.getElementById('modal-prod-nome').innerText = prod.nome;
+      document.getElementById('modal-prod-desc').innerText = prod.desc;
+      document.getElementById('modal-prod-obs').value = "";
+      
+      document.getElementById('container-sanfona-complementos').classList.add('hidden');
+      document.getElementById('icone-seta-comp').style.transform = 'rotate(0deg)';
+      var badge = document.getElementById('badge-complementos-qtd');
+      if (badge) { badge.classList.add('hidden'); badge.innerText = '0 selecionados'; }
+
+      var container = document.getElementById('lista-adicionais-modal');
+      container.innerHTML = complementosDisponiveis.map(function(comp) {
+        return '<label class="flex items-center justify-between p-2.5 rounded-xl border border-gray-200 hover:border-purple-300 bg-gray-50/50 cursor-pointer text-sm">' +
+          '<div class="flex items-center gap-2.5">' +
+            '<input type="checkbox" value="' + comp.id + '" onchange="toggleComplementoModal(\'' + comp.id + '\')" class="w-4 h-4 text-purple-700 rounded focus:ring-purple-500">' +
+            '<span class="font-medium text-gray-800">' + comp.nome + '</span>' +
+          '</div>' +
+          '<span class="font-bold text-xs text-purple-900">+ R$ ' + Number(comp.preco || 0).toFixed(2).replace('.', ',') + '</span>' +
+        '</label>';
+      }).join('');
+
+      atualizarTotalModal();
+      document.getElementById('modal-produto').classList.remove('hidden');
+    }
+
+    function toggleComplementoModal(compId) {
+      var index = produtoEmEdicao.complementosEscolhidos.findIndex(function(c) { return String(c.id) === String(compId); });
+      if (index >= 0) {
+        produtoEmEdicao.complementosEscolhidos.splice(index, 1);
+      } else {
+        var comp = complementosDisponiveis.find(function(c) { return String(c.id) === String(compId); });
+        if (comp) produtoEmEdicao.complementosEscolhidos.push(comp);
+      }
+      atualizarTotalModal();
+    }
+
+    function atualizarTotalModal() {
+      var total = produtoEmEdicao.preco;
+      produtoEmEdicao.complementosEscolhidos.forEach(function(c) { total += c.preco; });
+      document.getElementById('modal-prod-total').innerText = 'R$ ' + total.toFixed(2).replace('.', ',');
+
+      var badge = document.getElementById('badge-complementos-qtd');
+      if (badge) {
+        var qtd = produtoEmEdicao.complementosEscolhidos.length;
+        if (qtd > 0) {
+          badge.classList.remove('hidden');
+          badge.innerText = qtd + (qtd === 1 ? ' selecionado' : ' selecionados');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+    }
+
+    function fecharModalProduto() {
+      document.getElementById('modal-produto').classList.add('hidden');
+      produtoEmEdicao = null;
+    }
+
+    function confirmarAdicionarItem() {
+      if (!produtoEmEdicao) return;
+      var totalItem = produtoEmEdicao.preco;
+      produtoEmEdicao.complementosEscolhidos.forEach(function(c) { totalItem += c.preco; });
+
+      carrinho.push({
+        cartId: Date.now() + Math.random(),
+        produtoId: produtoEmEdicao.id,
+        nome: produtoEmEdicao.nome,
+        precoBase: produtoEmEdicao.preco,
+        complementos: produtoEmEdicao.complementosEscolhidos.slice(),
+        obs: document.getElementById('modal-prod-obs').value.trim(),
+        precoTotal: totalItem,
+        qtd: 1
+      });
+
+      fecharModalProduto();
+      atualizarBarra();
+    }
+
+    function alterarQtd(cartId, delta) {
+      var item = carrinho.find(function(i) { return i.cartId === cartId; });
+      if (!item) return;
+      item.qtd += delta;
+      if (item.qtd <= 0) {
+        carrinho = carrinho.filter(function(i) { return i.cartId !== cartId; });
+      }
+      atualizarBarra();
+      renderizarItensSacola();
+      if (carrinho.length === 0) fecharModalCheckout();
+    }
+
+    function calcularTotais() {
+      var subtotal = 0;
+      var totalQtd = 0;
+      carrinho.forEach(function(item) {
+        subtotal += item.precoTotal * item.qtd;
+        totalQtd += item.qtd;
+      });
+      var taxaAtual = (estadoCheckout.tipoRecebimento === 'Entrega') ? Number(config.taxaEntrega) : 0;
+      var total = subtotal > 0 ? (subtotal + taxaAtual) : 0;
+      return { subtotal: subtotal, taxa: taxaAtual, total: total, totalQtd: totalQtd };
+    }
+
+    function atualizarBarra() {
+      var totais = calcularTotais();
+      document.getElementById('total-barra').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
+      document.getElementById('qtd-itens').innerText = totais.totalQtd;
+      document.getElementById('btn-sacola').disabled = totais.totalQtd === 0;
+    }
+
+    function renderizarItensSacola() {
+      var totais = calcularTotais();
+      var container = document.getElementById('itens-carrinho');
+      
+      var itensHtml = carrinho.map(function(item) {
+        var complTexto = item.complementos.length > 0 
+          ? '<p class="text-[11px] text-purple-700 font-medium mt-0.5">+ ' + item.complementos.map(function(c) { return c.nome; }).join(', ') + '</p>' 
+          : '';
+        var obsTexto = item.obs ? '<p class="text-[11px] text-gray-500 italic">Obs: ' + item.obs + '</p>' : '';
+
+        return '<div class="flex justify-between items-center py-3">' +
+          '<div class="pr-2 flex-1">' +
+            '<p class="font-bold text-gray-800 text-sm leading-tight">' + item.nome + '</p>' +
+            complTexto + obsTexto +
+            '<p class="text-xs font-bold text-[#411564] mt-1">R$ ' + (item.precoTotal * item.qtd).toFixed(2).replace('.', ',') + '</p>' +
+          '</div>' +
+          '<div class="flex items-center gap-2.5 bg-gray-100 rounded-xl px-2 py-1">' +
+            '<button type="button" onclick="alterarQtd(' + item.cartId + ', -1)" class="w-6 h-6 rounded-lg bg-white shadow-sm font-bold text-[#411564] text-sm flex items-center justify-center cursor-pointer">-</button>' +
+            '<span class="font-extrabold text-sm w-4 text-center">' + item.qtd + '</span>' +
+            '<button type="button" onclick="alterarQtd(' + item.cartId + ', 1)" class="w-6 h-6 rounded-lg bg-white shadow-sm font-bold text-[#411564] text-sm flex items-center justify-center cursor-pointer">+</button>' +
           '</div>' +
         '</div>';
       }).join('');
 
-      if (temPendente) {
-        iniciarAlarmeSonoro();
-      } else {
-        pararAlarmeSonoro();
-      }
+      container.innerHTML = itensHtml || '<p class="text-center py-6 text-gray-400 text-sm">Sua sacola está vazia</p>';
+      document.getElementById('step0-subtotal').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
     }
 
-    async function aceitarPedido(id, formaPagamento) {
-      var isPix = formaPagamento && formaPagamento.toLowerCase().indexOf('pix') !== -1;
-      var novoStatus = isPix ? 'Aguardando Pagamento Pix' : 'Em preparo';
-
-      var sb = initClient();
-      var res = await sb.from('pedidos').update({ status: novoStatus }).eq('id', id);
-      if (res.error) {
-        alert("Erro ao aceitar pedido: " + res.error.message);
-        return;
-      }
-      var p = listaGlobalPedidos.find(function(x) { return x.id === id; });
-      if (p) p.status = novoStatus;
-      renderizarPedidos();
-
-      // Imprime a comanda automaticamente ao aceitar o pedido
-      imprimirPedido(id);
+    function abrirModalCheckout() {
+      carregarDadosSalvosCliente();
+      renderizarItensSacola();
+      irParaEtapaCheckout(0);
+      document.getElementById('modal-checkout').classList.remove('hidden');
     }
 
-    async function recusarPedido(id) {
-      if (!confirm("Tem certeza que deseja recusar este pedido? O cliente será avisado no site.")) return;
-
-      var sb = initClient();
-      var res = await sb.from('pedidos').update({ status: 'Recusado' }).eq('id', id);
-      if (res.error) {
-        alert("Erro ao recusar: " + res.error.message);
-        return;
-      }
-      var p = listaGlobalPedidos.find(function(x) { return x.id === id; });
-      if (p) p.status = 'Recusado';
-      renderizarPedidos();
+    function fecharModalCheckout() {
+      document.getElementById('modal-checkout').classList.add('hidden');
     }
 
-    async function mudarStatus(id, st) {
-      var sb = initClient();
-      await sb.from('pedidos').update({ status: st }).eq('id', id);
-      var p = listaGlobalPedidos.find(function(x) { return x.id === id; });
-      if (p) p.status = st;
-      renderizarPedidos();
-    }
+    function irParaEtapaCheckout(step) {
+      etapaAtualCheckout = step;
 
-    // ==========================================
-    // ABA 2: RELATÓRIOS DO MÊS & EXPORTAÇÃO PDF
-    // ==========================================
-    async function carregarRelatorios() {
-      var sb = initClient();
-      if (!sb) return;
-
-      var tabela = document.getElementById('tabela-relatorios-corpo');
-      tabela.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">A processar faturamento do mês...</td></tr>';
-
-      try {
-        var agora = new Date();
-        var ano = agora.getFullYear();
-        var mes = String(agora.getMonth() + 1).padStart(2, '0');
-        var inicioMesIso = ano + '-' + mes + '-01T00:00:00';
-
-        var res = await sb.from('pedidos')
-          .select('*')
-          .gte('created_at', inicioMesIso)
-          .order('id', { ascending: false });
-
-        if (res.error) {
-          tabela.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-red-500">Erro: ' + res.error.message + '</td></tr>';
-          return;
-        }
-
-        var todosDoMes = res.data || [];
-        var concluidos = todosDoMes.filter(function(p) { return p.status === 'Concluído'; });
-
-        var totalFaturado = 0;
-        concluidos.forEach(function(p) { totalFaturado += Number(p.total || 0); });
-
-        var qtdConcluidos = concluidos.length;
-        var ticketMedio = qtdConcluidos > 0 ? (totalFaturado / qtdConcluidos) : 0;
-
-        document.getElementById('relatorio-total-faturado').innerText = 'R$ ' + totalFaturado.toFixed(2).replace('.', ',');
-        document.getElementById('relatorio-qtd-pedidos').innerText = qtdConcluidos;
-        document.getElementById('relatorio-ticket-medio').innerText = 'R$ ' + ticketMedio.toFixed(2).replace('.', ',');
-
-        if (todosDoMes.length === 0) {
-          tabela.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Nenhum pedido registrado neste mês até o momento.</td></tr>';
-          return;
-        }
-
-        tabela.innerHTML = todosDoMes.map(function(p) {
-          var dataFormatada = p.created_at ? new Date(p.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
-          var corStatus = 'text-gray-600 bg-gray-100';
-          if (p.status === 'Concluído') corStatus = 'text-green-700 bg-green-50 border border-green-200';
-          if (p.status === 'Recusado') corStatus = 'text-rose-700 bg-rose-50 border border-rose-200';
-          if (p.status === 'Em preparo' || p.status === 'Saiu para entrega') corStatus = 'text-purple-700 bg-purple-50 border border-purple-200';
-
-          return '<tr class="hover:bg-gray-50/80 transition">' +
-            '<td class="p-3 font-bold text-purple-900">#' + p.id + '</td>' +
-            '<td class="p-3 whitespace-nowrap">' + dataFormatada + '</td>' +
-            '<td class="p-3 font-semibold text-gray-800">' + (p.cliente_nome || 'Cliente') + '</td>' +
-            '<td class="p-3">' + (p.forma_pagamento || '-') + '</td>' +
-            '<td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ' + corStatus + '">' + p.status + '</span></td>' +
-            '<td class="p-3 text-right font-black text-gray-900">R$ ' + Number(p.total || 0).toFixed(2).replace('.', ',') + '</td>' +
-          '</tr>';
-        }).join('');
-
-      } catch (e) {
-        console.error("Erro no relatório:", e);
-      }
-    }
-
-    // Geração do PDF
-    function baixarRelatorioPDF() {
-      var elemento = document.getElementById('area-impressao-pdf');
-      var cabecalho = document.getElementById('cabecalho-pdf');
-      var btn = document.getElementById('btn-baixar-pdf');
-
-      var dataAtual = new Date().toLocaleString('pt-BR');
-      document.getElementById('pdf-data-emissao').innerText = 'Emissão em: ' + dataAtual;
-      cabecalho.classList.remove('hidden');
-
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Gerando PDF...';
-
-      var opcoes = {
-        margin: [10, 10, 10, 10],
-        filename: 'Relatorio_Vendas_Acaizeiro_' + new Date().toISOString().slice(0,7) + '.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-
-      html2pdf().set(opcoes).from(elemento).save().then(function() {
-        cabecalho.classList.add('hidden');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Baixar Relatório (PDF)';
-      }).catch(function(err) {
-        console.error("Erro ao gerar PDF:", err);
-        cabecalho.classList.add('hidden');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Baixar Relatório (PDF)';
-        alert("Ocorreu um erro ao gerar o arquivo PDF.");
+      [0, 1, 2, 3].forEach(function(idx) {
+        var el = document.getElementById('checkout-step-' + idx);
+        if (el) el.classList.add('hidden');
       });
-    }
+      document.getElementById('checkout-step-' + step).classList.remove('hidden');
 
-    // Exclusão do Mês com Senha Mestra
-    async function solicitarLimpezaMes() {
-      var confirmacao = confirm("⚠️ ATENÇÃO!\n\nVocê está prestes a apagar todos os registros de vendas deste mês.\nEssa ação não pode ser desfeita. Recomendamos baixar o PDF antes de continuar.\n\nDeseja prosseguir?");
-      if (!confirmacao) return;
+      var titulos = ["Sua Sacola", "Entrega e agendamento", "Forma de pagamento", "Resumo do pedido"];
+      document.getElementById('titulo-etapa-checkout').innerText = titulos[step];
 
-      var senhaDigitada = prompt("Para confirmar a exclusão, digite a Senha Mestra do Painel:");
-      if (!senhaDigitada) return;
-
-      if (senhaDigitada.trim() !== SENHA_MESTRA) {
-        alert("❌ Senha incorreta! Os registros foram mantidos intactos.");
-        return;
+      for (var i = 0; i <= 3; i++) {
+        var dot = document.getElementById('dot-' + i);
+        if (dot) dot.className = (i <= step) ? "w-2.5 h-2.5 rounded-full bg-[#411564] transition-all" : "w-2.5 h-2.5 rounded-full bg-gray-300 transition-all";
+        if (i > 0) {
+          var line = document.getElementById('line-' + i);
+          if (line) line.className = (i <= step) ? "w-6 h-0.5 bg-[#411564] transition-all" : "w-6 h-0.5 bg-gray-200 transition-all";
+        }
       }
 
-      var sb = initClient();
-      if (!sb) return;
+      var btn = document.getElementById('btn-acao-checkout');
+      btn.disabled = false;
+      btn.className = "w-full bg-[#411564] hover:bg-purple-900 text-white font-extrabold py-3.5 rounded-2xl shadow-lg transition active:scale-95 text-sm cursor-pointer";
+
+      if (step === 0) btn.innerText = "Continuar";
+      else if (step === 1) btn.innerText = "Continuar para Pagamento";
+      else if (step === 2) {
+        btn.innerText = "Revisar Pedido";
+        if (!estadoCheckout.pagamentoValor) {
+          btn.disabled = true;
+          btn.className = "w-full bg-gray-200 text-gray-400 font-extrabold py-3.5 rounded-2xl text-sm cursor-not-allowed";
+        }
+      } else if (step === 3) {
+        preencherResumoFinal();
+        btn.innerText = (estadoCheckout.pagamentoValor === 'Pix') ? "Ir para Pagamento" : "Finalizar Pedido";
+      }
+    }
+
+    function voltarEtapaCheckout() {
+      if (etapaAtualCheckout > 0) irParaEtapaCheckout(etapaAtualCheckout - 1);
+      else fecharModalCheckout();
+    }
+
+    function avancarEtapaCheckout() {
+      if (etapaAtualCheckout === 0) {
+        if (carrinho.length === 0) return;
+        irParaEtapaCheckout(1);
+      } else if (etapaAtualCheckout === 1) {
+        var nome = document.getElementById('cliente-nome').value.trim();
+        var tel = document.getElementById('cliente-telefone').value.trim();
+
+        if (!nome || !tel) { alert("Por favor, preencha seu Nome e WhatsApp para continuar."); return; }
+        if (estadoCheckout.quando === 'Agendar' && !estadoCheckout.horarioAgendado) { alert("Selecione o horário desejado."); return; }
+        if (estadoCheckout.tipoRecebimento === 'Entrega' && !estadoCheckout.enderecoSalvo) {
+          alert("Por favor, adicione seu endereço de entrega.");
+          abrirFormNovoEndereco();
+          return;
+        }
+
+        localStorage.setItem('acaizeiro_cli_nome', nome);
+        localStorage.setItem('acaizeiro_cli_tel', tel);
+        irParaEtapaCheckout(2);
+      } else if (etapaAtualCheckout === 2) {
+        if (!estadoCheckout.pagamentoValor) return;
+        irParaEtapaCheckout(3);
+      } else if (etapaAtualCheckout === 3) {
+        enviarPedidoFinal();
+      }
+    }
+
+    function selecionarQuando(opcao) {
+      estadoCheckout.quando = opcao;
+      var cardAgora = document.getElementById('card-quando-agora');
+      var radioAgora = document.getElementById('radio-quando-agora');
+      var cardAgendar = document.getElementById('card-quando-agendar');
+      var radioAgendar = document.getElementById('radio-quando-agendar');
+      var boxInput = document.getElementById('box-input-agendar');
+
+      if (opcao === 'Agora') {
+        cardAgora.className = "p-3.5 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex items-center justify-between cursor-pointer transition";
+        radioAgora.className = "w-5 h-5 rounded-full border-2 border-[#411564] flex items-center justify-center";
+        radioAgora.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-[#411564]"></div>';
+        cardAgendar.className = "rounded-2xl border border-gray-200 bg-white overflow-hidden cursor-pointer transition";
+        radioAgendar.className = "w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center";
+        radioAgendar.innerHTML = '';
+        boxInput.classList.add('hidden');
+      } else {
+        cardAgendar.className = "rounded-2xl border-2 border-[#411564] bg-purple-50/30 overflow-hidden cursor-pointer transition";
+        radioAgendar.className = "w-5 h-5 rounded-full border-2 border-[#411564] flex items-center justify-center";
+        radioAgendar.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-[#411564]"></div>';
+        cardAgora.className = "p-3.5 rounded-2xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer transition";
+        radioAgora.className = "w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center";
+        radioAgora.innerHTML = '';
+        boxInput.classList.remove('hidden');
+      }
+    }
+
+    function atualizarTextoAgendamento() {
+      var val = document.getElementById('input-horario-agendamento').value;
+      estadoCheckout.horarioAgendado = val;
+      document.getElementById('texto-horario-agendado').innerText = val ? ("Para Hoje às " + val) : "Escolher horário para hoje";
+    }
+
+    function selecionarTipoRecebimento(tipo) {
+      estadoCheckout.tipoRecebimento = tipo;
+      var btnEnt = document.getElementById('btn-tipo-entrega');
+      var btnRet = document.getElementById('btn-tipo-retirada');
+      var secEnd = document.getElementById('secao-endereco-entrega');
+      var titPag = document.getElementById('titulo-pagar-entrega');
+
+      if (tipo === 'Entrega') {
+        btnEnt.className = "p-3.5 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex flex-col items-center justify-center gap-1.5 text-[#411564] transition cursor-pointer";
+        btnRet.className = "p-3.5 rounded-2xl border border-gray-200 bg-white flex flex-col items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 transition cursor-pointer";
+        secEnd.classList.remove('hidden');
+        if (titPag) titPag.innerText = "Pagar na entrega";
+      } else {
+        btnRet.className = "p-3.5 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex flex-col items-center justify-center gap-1.5 text-[#411564] transition cursor-pointer";
+        btnEnt.className = "p-3.5 rounded-2xl border border-gray-200 bg-white flex flex-col items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 transition cursor-pointer";
+        secEnd.classList.add('hidden');
+        if (titPag) titPag.innerText = "Pagar na retirada";
+      }
+    }
+
+    function abrirFormNovoEndereco() {
+      var form = document.getElementById('form-inline-endereco');
+      form.classList.remove('hidden');
+      if (estadoCheckout.enderecoSalvo) {
+        document.getElementById('input-end-rua').value = estadoCheckout.enderecoSalvo.rua || '';
+        document.getElementById('input-end-numero').value = estadoCheckout.enderecoSalvo.numero || '';
+        document.getElementById('input-end-bairro').value = estadoCheckout.enderecoSalvo.bairro || '';
+        document.getElementById('input-end-comp').value = estadoCheckout.enderecoSalvo.comp || '';
+      }
+    }
+
+    function salvarEnderecoLocal() {
+      var rua = document.getElementById('input-end-rua').value.trim();
+      var numero = document.getElementById('input-end-numero').value.trim();
+      var bairro = document.getElementById('input-end-bairro').value.trim();
+      var comp = document.getElementById('input-end-comp').value.trim();
+
+      if (!rua || !numero || !bairro) { alert("Preencha Rua, Número e Bairro."); return; }
+
+      estadoCheckout.enderecoSalvo = { rua: rua, numero: numero, bairro: bairro, comp: comp };
+      localStorage.setItem('acaizeiro_cli_end', JSON.stringify(estadoCheckout.enderecoSalvo));
+      document.getElementById('form-inline-endereco').classList.add('hidden');
+      exibirCartaoEnderecoSalvo();
+    }
+
+    function exibirCartaoEnderecoSalvo() {
+      var end = estadoCheckout.enderecoSalvo;
+      if (!end) return;
+      document.getElementById('card-endereco-salvo').classList.remove('hidden');
+      document.getElementById('label-btn-endereco').innerText = "Alterar endereço";
+      document.getElementById('end-salvo-rua').innerText = end.rua + ", " + end.numero + (end.comp ? " (" + end.comp + ")" : "");
+      document.getElementById('end-salvo-bairro').innerText = end.bairro;
+      document.getElementById('badge-taxa-endereco').innerText = 'R$ ' + Number(config.taxaEntrega).toFixed(2).replace('.', ',');
+    }
+
+    function selecionarPagamento(valor, label) {
+      estadoCheckout.pagamentoValor = valor;
+      estadoCheckout.pagamentoLabel = label;
+
+      document.querySelectorAll('.pay-option').forEach(function(card) {
+        card.className = "pay-option p-4 rounded-2xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer transition";
+        var r = card.querySelector('.pay-radio');
+        if (r) { r.className = "pay-radio w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center"; r.innerHTML = ''; }
+      });
+
+      var mapaIds = { 'Pix': 'pay-card-Pix', 'Dinheiro': 'pay-card-Dinheiro', 'Cartão de Crédito': 'pay-card-CartaoCredito', 'Cartão de Débito': 'pay-card-CartaoDebito' };
+      var escolhido = document.getElementById(mapaIds[valor]);
+      if (escolhido) {
+        escolhido.className = "pay-option p-4 rounded-2xl border-2 border-[#411564] bg-purple-50/30 flex items-center justify-between cursor-pointer transition";
+        var rAtivo = escolhido.querySelector('.pay-radio');
+        if (rAtivo) {
+          rAtivo.className = "pay-radio w-5 h-5 rounded-full border-2 border-[#411564] flex items-center justify-center";
+          rAtivo.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-[#411564]"></div>';
+        }
+      }
+
+      var boxTroco = document.getElementById('box-troco-dinheiro');
+      if (valor === 'Dinheiro') boxTroco.classList.remove('hidden');
+      else boxTroco.classList.add('hidden');
+
+      var btn = document.getElementById('btn-acao-checkout');
+      btn.disabled = false;
+      btn.className = "w-full bg-[#411564] hover:bg-purple-900 text-white font-extrabold py-3.5 rounded-2xl shadow-lg transition active:scale-95 text-sm cursor-pointer";
+    }
+
+    function preencherResumoFinal() {
+      var totais = calcularTotais();
+      var nome = document.getElementById('cliente-nome').value.trim();
+      var tel = document.getElementById('cliente-telefone').value.trim();
+
+      document.getElementById('resumo-final-tipo').innerText = estadoCheckout.tipoRecebimento;
+      if (estadoCheckout.tipoRecebimento === 'Entrega' && estadoCheckout.enderecoSalvo) {
+        var e = estadoCheckout.enderecoSalvo;
+        document.getElementById('resumo-final-endereco').innerText = e.rua + ", " + e.numero + (e.comp ? " - " + e.comp : "") + " • " + e.bairro;
+      } else {
+        document.getElementById('resumo-final-endereco').innerText = "Retirar no balcão da loja";
+      }
+
+      document.getElementById('resumo-final-tempo').innerText = (estadoCheckout.quando === 'Agendar') ? ("Agendado para Hoje às " + estadoCheckout.horarioAgendado) : "40-60 min";
+
+      var pagTexto = estadoCheckout.pagamentoLabel;
+      var troco = document.getElementById('input-troco-para').value.trim();
+      if (estadoCheckout.pagamentoValor === 'Dinheiro' && troco) pagTexto += " (" + troco + ")";
+      document.getElementById('resumo-final-pagamento').innerText = pagTexto;
+
+      document.getElementById('resumo-final-cliente').innerText = nome;
+      document.getElementById('resumo-final-telefone').innerText = tel;
+      document.getElementById('resumo-final-subtotal').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
+      document.getElementById('resumo-final-taxa').innerText = 'R$ ' + totais.taxa.toFixed(2).replace('.', ',');
+      document.getElementById('resumo-final-total').innerText = 'R$ ' + totais.total.toFixed(2).replace('.', ',');
+    }
+
+    // ==========================================
+    // ENVIO FINAL PARA SUPABASE
+    // ==========================================
+    async function enviarPedidoFinal() {
+      var btn = document.getElementById('btn-acao-checkout');
+      btn.disabled = true;
+      btn.innerText = "Enviando pedido...";
+
+      var nome = document.getElementById('cliente-nome').value.trim();
+      var tel = document.getElementById('cliente-telefone').value.trim();
+      var obsInput = document.getElementById('cliente-obs').value.trim();
+      var troco = document.getElementById('input-troco-para').value.trim();
+      var pagamento = estadoCheckout.pagamentoValor;
+      var totais = calcularTotais();
+
+      var enderecoFormatado = "Retirada na Loja";
+      if (estadoCheckout.tipoRecebimento === 'Entrega' && estadoCheckout.enderecoSalvo) {
+        var e = estadoCheckout.enderecoSalvo;
+        enderecoFormatado = e.rua + ", " + e.numero + (e.comp ? " (" + e.comp + ")" : "") + " - " + e.bairro;
+      }
+
+      var obsLista = [];
+      if (tel) obsLista.push("Tel: " + tel);
+      if (estadoCheckout.quando === 'Agendar') obsLista.push("AGENDADO: " + estadoCheckout.horarioAgendado);
+      if (pagamento === 'Dinheiro' && troco) obsLista.push("Troco: " + troco);
+      if (obsInput) obsLista.push(obsInput);
+      var obsFinal = obsLista.join(" | ");
+
+      var itensParaSalvar = carrinho.map(function(item) {
+        return {
+          id: item.produtoId,
+          nome: item.nome,
+          quantidade: item.qtd,
+          preco_unitario: item.precoTotal,
+          complementos: item.complementos.map(function(c) { return c.nome; }),
+          observacao: item.obs || ""
+        };
+      });
 
       try {
-        var agora = new Date();
-        var ano = agora.getFullYear();
-        var mes = String(agora.getMonth() + 1).padStart(2, '0');
-        var inicioMesIso = ano + '-' + mes + '-01T00:00:00Z';
+        if (window.supabase && window.supabase.createClient) {
+          var client = window.supabase.createClient(
+            "https://sfxvbnxswuvkpssnryjk.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE"
+          );
 
-        var busca = await sb.from('pedidos').select('id').gte('created_at', inicioMesIso);
-        
-        if (busca.error) {
-          alert("Erro ao consultar pedidos para limpeza: " + busca.error.message);
-          return;
-        }
+          var resPedido = await client.from('pedidos').insert([{
+            cliente_nome: nome,
+            cliente_endereco: enderecoFormatado,
+            forma_pagamento: pagamento,
+            observacoes: obsFinal,
+            itens: itensParaSalvar,
+            subtotal: totais.subtotal,
+            taxa_entrega: totais.taxa,
+            total: totais.total,
+            status: 'Aguardando Aceite da Loja'
+          }]).select().single();
 
-        var ids = (busca.data || []).map(function(item) { return item.id; });
+          if (resPedido.data) {
+            var pedidoSalvo = resPedido.data;
+            fecharModalCheckout();
 
-        if (ids.length === 0) {
-          alert("Não há pedidos registrados neste mês para apagar.");
-          return;
-        }
+            var texto = '*PEDIDO #' + pedidoSalvo.id + ' - AÇAIZEIRO*\n\n';
+            texto += '*CLIENTE:* ' + nome + ' (' + tel + ')\n';
+            texto += '*TIPO:* ' + estadoCheckout.tipoRecebimento + (estadoCheckout.quando === 'Agendar' ? ' (Agendado: ' + estadoCheckout.horarioAgendado + ')' : '') + '\n';
+            texto += '*ENDEREÇO:* ' + enderecoFormatado + '\n';
+            texto += '*PAGAMENTO:* ' + pagamento + '\n';
+            if (obsFinal) texto += '*Obs:* ' + obsFinal + '\n';
+            texto += '\n*ITENS DO PEDIDO:*\n';
 
-        var res = await sb.from('pedidos').delete().in('id', ids);
+            carrinho.forEach(function(item) {
+              var sub = item.precoTotal * item.qtd;
+              texto += '\n• *' + item.qtd + 'x ' + item.nome + '* — R$ ' + sub.toFixed(2).replace('.', ',') + '\n';
+              if (item.complementos.length > 0) {
+                item.complementos.forEach(function(c) { texto += '   └ + ' + c.nome + ' (R$ ' + c.preco.toFixed(2).replace('.', ',') + ')\n'; });
+              }
+              if (item.obs) texto += '   └ Obs item: ' + item.obs + '\n';
+            });
 
-        if (res.error) {
-          alert("Erro ao excluir registros no Supabase: " + res.error.message + "\n(Verifique as políticas RLS de DELETE na tabela pedidos)");
-        } else {
-          alert("✓ Histórico de vendas do mês limpo com sucesso!");
-          carregarRelatorios();
-          carregarPedidos();
-        }
-      } catch (err) {
-        alert("Falha na operação: " + err.message);
-      }
-    }
+            texto += '\n*SUBTOTAL:* R$ ' + totais.subtotal.toFixed(2).replace('.', ',') + '\n';
+            texto += '*TAXA DE ENTREGA:* R$ ' + totais.taxa.toFixed(2).replace('.', ',') + '\n';
+            texto += '*TOTAL DO PEDIDO:* R$ ' + totais.total.toFixed(2).replace('.', ',') + '\n';
 
-    // ==========================================
-    // ABA 3: CARDÁPIO & ESTOQUE
-    // ==========================================
-    async function carregarStock() {
-      var sb = initClient();
-      var rCopos = await sb.from('CARDAPIO ACAIZEIRO').select('*').order('id');
-      var rComp = await sb.from('COMPLEMENTOS').select('*').order('nome');
-
-      listaGlobalProdutos = rCopos.data || [];
-      listaGlobalComplementos = rComp.data || [];
-
-      var cCopos = document.getElementById('lista-copos-stock');
-      if (listaGlobalProdutos.length > 0) {
-        cCopos.innerHTML = listaGlobalProdutos.map(function(copo) {
-          var disponivel = copo.ativo !== false;
-          var btnClasse = disponivel ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300';
-          var imgFoto = copo.imagem_url ? '<img src="' + copo.imagem_url + '" class="w-10 h-10 object-cover rounded-lg flex-shrink-0 bg-purple-50" onerror="this.src=\'PURO.png\'">' : '<div class="w-10 h-10 bg-purple-100 text-[#411564] font-bold text-xs flex items-center justify-center rounded-lg flex-shrink-0">IMG</div>';
-
-          return '<div class="py-3 flex items-center justify-between gap-3">' +
-            '<div class="flex items-center gap-3 min-w-0 flex-1">' +
-              imgFoto +
-              '<div class="min-w-0">' +
-                '<p class="text-sm font-bold text-gray-800 truncate">' + copo.nome + '</p>' +
-                '<p class="text-xs text-gray-400">' + (copo.categoria || '') + ' — <span class="text-purple-900 font-extrabold">R$ ' + Number(copo.preco).toFixed(2).replace('.', ',') + '</span></p>' +
-              '</div>' +
-            '</div>' +
-            '<div class="flex items-center gap-2">' +
-              '<button onclick="toggleItem(\'CARDAPIO ACAIZEIRO\', ' + copo.id + ', ' + disponivel + ')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 cursor-pointer ' + btnClasse + '">' +
-                (disponivel ? 'Disponível' : 'Esgotado') +
-              '</button>' +
-              '<button onclick="editarProduto(' + copo.id + ')" class="p-1.5 text-gray-500 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition" title="Editar item"><i class="fa-solid fa-pen-to-square"></i></button>' +
-              '<button onclick="excluirItem(\'CARDAPIO ACAIZEIRO\', ' + copo.id + ')" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Excluir"><i class="fa-solid fa-trash"></i></button>' +
-            '</div>' +
-          '</div>';
-        }).join('');
-      } else {
-        cCopos.innerHTML = '<p class="text-xs text-gray-400 py-4 text-center">Nenhum produto cadastrado no momento.</p>';
-      }
-
-      var cComp = document.getElementById('lista-complementos-stock');
-      if (listaGlobalComplementos.length > 0) {
-        cComp.innerHTML = listaGlobalComplementos.map(function(comp) {
-          var disponivel = comp.ativo !== false;
-          var btnClasse = disponivel ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300';
-          return '<div class="py-2.5 flex items-center justify-between">' +
-            '<div>' +
-              '<p class="text-sm font-bold text-gray-800">' + comp.nome + '</p>' +
-              '<p class="text-xs text-gray-400">+ R$ ' + Number(comp.preco).toFixed(2).replace('.', ',') + '</p>' +
-            '</div>' +
-            '<div class="flex items-center gap-2">' +
-              '<button onclick="toggleItem(\'COMPLEMENTOS\', \'' + comp.id + '\', ' + disponivel + ')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 cursor-pointer ' + btnClasse + '">' +
-                (disponivel ? 'Disponível' : 'Esgotado') +
-              '</button>' +
-              '<button onclick="editarComplemento(\'' + comp.id + '\')" class="p-1.5 text-gray-500 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>' +
-              '<button onclick="excluirItem(\'COMPLEMENTOS\', \'' + comp.id + '\')" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Excluir"><i class="fa-solid fa-trash"></i></button>' +
-            '</div>' +
-          '</div>';
-        }).join('');
-      } else {
-        cComp.innerHTML = '<p class="text-xs text-gray-400 py-4 text-center">Nenhum complemento cadastrado.</p>';
-      }
-    }
-
-    async function toggleItem(tabela, id, ativoAtual) {
-      var sb = initClient();
-      await sb.from(tabela).update({ ativo: !ativoAtual }).eq('id', id);
-      carregarStock();
-    }
-
-    async function excluirItem(tabela, id) {
-      if (!confirm("Tem certeza que deseja apagar este item do cardápio?")) return;
-      var sb = initClient();
-      var res = await sb.from(tabela).delete().eq('id', id);
-      if (res.error) {
-        alert("Erro ao excluir: " + res.error.message);
-      } else {
-        carregarStock();
-      }
-    }
-
-    // ==========================================
-    // MODAIS E SELETOR DE CATEGORIAS
-    // ==========================================
-    function popularSelectCategorias(categoriaSelecionada) {
-      var select = document.getElementById('prod-categoria-select');
-      var inputNova = document.getElementById('prod-categoria-nova');
-      if (!select) return;
-
-      var mapaCats = {};
-      listaGlobalProdutos.forEach(function(p) {
-        if (p.categoria && p.categoria.trim() !== "") {
-          var chave = p.categoria.trim().toLowerCase();
-          if (!mapaCats[chave]) {
-            mapaCats[chave] = p.categoria.trim();
+            textoPedidoWhatsApp = texto;
+            iniciarEsperaAceiteLoja(pedidoSalvo, totais.total, nome, pagamento);
+            return;
           }
         }
-      });
+      } catch (errBanco) {}
 
-      var listaCats = Object.values(mapaCats).sort();
-
-      var htmlOptions = '<option value="">Selecione...</option>';
-      listaCats.forEach(function(cat) {
-        var selected = (categoriaSelecionada && categoriaSelecionada.trim().toLowerCase() === cat.toLowerCase()) ? 'selected' : '';
-        htmlOptions += '<option value="' + cat + '" ' + selected + '>' + cat + '</option>';
-      });
-      htmlOptions += '<option value="__NOVA__" class="font-bold text-purple-800">+ Criar nova categoria...</option>';
-
-      select.innerHTML = htmlOptions;
-
-      inputNova.value = "";
-      inputNova.classList.add('hidden');
-      inputNova.required = false;
+      btn.disabled = false;
+      btn.innerText = "Finalizar Pedido";
+      alert("Não foi possível conectar ao servidor para enviar o pedido. Tente novamente.");
     }
 
-    function verificarNovaCategoria() {
-      var select = document.getElementById('prod-categoria-select');
-      var inputNova = document.getElementById('prod-categoria-nova');
-      if (select.value === '__NOVA__') {
-        inputNova.classList.remove('hidden');
-        inputNova.required = true;
-        inputNova.focus();
-      } else {
-        inputNova.classList.add('hidden');
-        inputNova.required = false;
-        inputNova.value = "";
-      }
-    }
+    function iniciarEsperaAceiteLoja(pedidoCriado, valorTotal, nomeCliente, formaPagamento) {
+      const modalEspera = document.getElementById("modalAguardandoAceite");
+      const badgeNumero = document.getElementById("pedidoNumeroBadge");
+      if (badgeNumero) badgeNumero.innerText = "PEDIDO #" + pedidoCriado.id;
+      modalEspera.style.display = "flex";
 
-    function abrirModalProduto() {
-      document.getElementById('prod-edit-id').value = "";
-      document.getElementById('form-cad-produto').reset();
-      popularSelectCategorias("");
-      document.getElementById('titulo-modal-produto').innerText = "Novo Produto";
-      document.getElementById('modal-form-produto').classList.remove('hidden');
-    }
+      if (window.intervaloAceite) clearInterval(window.intervaloAceite);
 
-    function fecharModalProduto() {
-      document.getElementById('modal-form-produto').classList.add('hidden');
-    }
+      window.intervaloAceite = setInterval(async () => {
+        try {
+          const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+          const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
 
-    function editarProduto(id) {
-      var prod = listaGlobalProdutos.find(function(p) { return p.id === id; });
-      if (!prod) return;
-      document.getElementById('prod-edit-id').value = prod.id;
-      document.getElementById('prod-nome').value = prod.nome || '';
-      popularSelectCategorias(prod.categoria || '');
-      document.getElementById('prod-preco').value = prod.preco || '';
-      document.getElementById('prod-desc').value = prod.descricao || '';
-      document.getElementById('prod-foto-url').value = prod.imagem_url || '';
-      document.getElementById('titulo-modal-produto').innerText = "Editar Produto #" + prod.id;
-      document.getElementById('modal-form-produto').classList.remove('hidden');
-    }
+          const res = await fetch(`${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoCriado.id}&select=status`, {
+            headers: { "apikey": supabaseAnonKey, "Authorization": `Bearer ${supabaseAnonKey}` }
+          });
+          const dados = await res.json();
 
-    async function salvarProduto(e) {
-      e.preventDefault();
-      var btn = document.getElementById('btn-salvar-produto');
-      btn.innerText = "A guardar...";
-      btn.disabled = true;
+          if (dados && dados.length > 0) {
+            const status = dados[0].status;
+            var isPix = (formaPagamento && formaPagamento.toLowerCase().indexOf('pix') !== -1);
 
-      var id = document.getElementById('prod-edit-id').value;
-      var nome = document.getElementById('prod-nome').value.trim();
-      
-      var selectCat = document.getElementById('prod-categoria-select').value;
-      var novaCat = document.getElementById('prod-categoria-nova').value.trim();
-      var categoria = (selectCat === '__NOVA__') ? novaCat : selectCat.trim();
+            if (isPix && status === "Aguardando Pagamento Pix") {
+              clearInterval(window.intervaloAceite);
+              modalEspera.style.display = "none";
+              processarPagamentoPix(pedidoCriado, valorTotal, nomeCliente, '');
+            }
 
-      if (!categoria) {
-        alert("Por favor, selecione ou digite o nome da categoria.");
-        btn.innerText = "Guardar Item";
-        btn.disabled = false;
-        return;
-      }
+            if (!isPix && (status === "Em preparo" || status === "Aceito")) {
+              clearInterval(window.intervaloAceite);
+              modalEspera.style.display = "none";
+              carrinho = [];
+              atualizarBarra();
+              alert("Seu pedido #" + pedidoCriado.id + " foi aceito pela cozinha e está em preparo!");
+              if (textoPedidoWhatsApp) {
+                window.location.href = "https://wa.me/" + config.whatsapp + "?text=" + encodeURIComponent(textoPedidoWhatsApp + "\n\n*Status:* ACEITO PELA COZINHA (Em preparo)");
+              }
+            }
 
-      var preco = parseFloat(document.getElementById('prod-preco').value) || 0;
-      var desc = document.getElementById('prod-desc').value.trim();
-      var urlFoto = document.getElementById('prod-foto-url').value.trim();
-      var arquivoFoto = document.getElementById('prod-arquivo-foto').files[0];
-
-      var sb = initClient();
-
-      try {
-        if (arquivoFoto) {
-          var nomeArquivo = Date.now() + '_' + arquivoFoto.name.replace(/[^a-zA-Z0-9.]/g, '_');
-          var uploadRes = await sb.storage.from('fotos-produtos').upload(nomeArquivo, arquivoFoto);
-          if (uploadRes.error) {
-            console.warn("Aviso upload fotos:", uploadRes.error);
-          } else {
-            var publicUrlData = sb.storage.from('fotos-produtos').getPublicUrl(nomeArquivo);
-            if (publicUrlData && publicUrlData.data) {
-              urlFoto = publicUrlData.data.publicUrl;
+            if (status === "Recusado") {
+              clearInterval(window.intervaloAceite);
+              modalEspera.style.display = "none";
+              alert("Desculpe! No momento a cozinha não pôde aceitar o pedido.");
+              carrinho = [];
+              atualizarBarra();
             }
           }
-        }
+        } catch (e) {}
+      }, 3000);
+    }
 
-        var dados = {
-          nome: nome,
-          categoria: categoria,
-          preco: preco,
-          descricao: desc,
-          imagem_url: urlFoto || "PURO.png",
-          ativo: true
-        };
+    function cancelarEsperaAceite() {
+      if (window.intervaloAceite) clearInterval(window.intervaloAceite);
+      document.getElementById("modalAguardandoAceite").style.display = "none";
+    }
 
-        if (id) {
-          await sb.from('CARDAPIO ACAIZEIRO').update(dados).eq('id', id);
-        } else {
-          await sb.from('CARDAPIO ACAIZEIRO').insert([dados]);
-        }
+    // Carregamento dinâmico via Supabase (Cardápio, Complementos e Configurações da Loja)
+    setTimeout(function() {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      s.onload = function() {
+        try {
+          var client = window.supabase.createClient(
+            "https://sfxvbnxswuvkpssnryjk.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE"
+          );
 
-        fecharModalProduto();
-        carregarStock();
-      } catch (err) {
-        alert("Erro ao guardar produto: " + err.message);
-      } finally {
-        btn.innerText = "Guardar Item";
-        btn.disabled = false;
+          Promise.all([
+            client.from('CARDAPIO ACAIZEIRO').select('*').order('id'),
+            client.from('COMPLEMENTOS').select('*').eq('ativo', true),
+            client.from('configuracoes_loja').select('*').eq('id', 1).single()
+          ]).then(function(respostas) {
+            var resCopos = respostas[0];
+            var resComp = respostas[1];
+            var resConfig = respostas[2];
+
+            if (resConfig && resConfig.data) {
+              if (resConfig.data.whatsapp) config.whatsapp = resConfig.data.whatsapp;
+              if (resConfig.data.taxa_entrega !== undefined) config.taxaEntrega = Number(resConfig.data.taxa_entrega);
+              if (resConfig.data.modo_pix) config.modoPix = resConfig.data.modo_pix;
+              if (resConfig.data.chave_pix) config.chavePix = resConfig.data.chave_pix;
+              if (resConfig.data.nome_recebedor_pix) config.nomeRecebedorPix = resConfig.data.nome_recebedor_pix;
+              if (resConfig.data.cidade_pix) config.cidadePix = resConfig.data.cidade_pix;
+            }
+
+            if (resCopos.data && resCopos.data.length > 0) {
+              produtos = resCopos.data.map(function(item) {
+                var catLimpa = (item.categoria || "Geral").trim();
+                return {
+                  id: item.id,
+                  categoria: catLimpa,
+                  nome: item.nome,
+                  desc: item.descricao || "",
+                  preco: parseFloat(item.preco) || 0,
+                  imagem: item.imagem_url || "PURO.png",
+                  permiteComplementos: catLimpa.toLowerCase() !== "complementos",
+                  ativo: item.ativo !== false
+                };
+              });
+
+              var categoriasMapa = {};
+              produtos.forEach(function(p) {
+                var chave = (p.categoria || "").trim().toLowerCase();
+                if (chave && chave !== "todos") {
+                  if (!categoriasMapa[chave]) categoriasMapa[chave] = p.categoria;
+                  p.categoria = categoriasMapa[chave];
+                }
+              });
+
+              categorias = ["Todos"].concat(Object.values(categoriasMapa));
+              renderizarCategorias();
+              carregarProdutos();
+            }
+
+            if (resComp.data && resComp.data.length > 0) {
+              complementosDisponiveis = resComp.data.map(function(c) {
+                return { id: String(c.id), nome: c.nome, preco: parseFloat(c.preco) || 0 };
+              });
+            }
+          });
+        } catch (err) {}
+      };
+      document.head.appendChild(s);
+    }, 200);
+
+    // ==========================================
+    // GERADOR DE PAYLOAD PIX EMV (CHAVE DIRETA)
+    // ==========================================
+    function gerarPayloadPixEstatico(chave, nomeRecebedor, cidade, valor, txid) {
+      function formatField(id, val) {
+        var len = String(val.length).padStart(2, '0');
+        return id + len + val;
       }
-    }
-
-    function abrirModalComplemento() {
-      document.getElementById('comp-edit-id').value = "";
-      document.getElementById('form-cad-comp').reset();
-      document.getElementById('titulo-modal-complemento').innerText = "Novo Complemento";
-      document.getElementById('modal-form-complemento').classList.remove('hidden');
-    }
-
-    function fecharModalComplemento() {
-      document.getElementById('modal-form-complemento').classList.add('hidden');
-    }
-
-    function editarComplemento(id) {
-      var comp = listaGlobalComplementos.find(function(c) { return String(c.id) === String(id); });
-      if (!comp) return;
-      document.getElementById('comp-edit-id').value = comp.id;
-      document.getElementById('comp-nome').value = comp.nome || '';
-      document.getElementById('comp-preco').value = comp.preco || '';
-      document.getElementById('titulo-modal-complemento').innerText = "Editar Complemento";
-      document.getElementById('modal-form-complemento').classList.remove('hidden');
-    }
-
-    async function salvarComplemento(e) {
-      e.preventDefault();
-      var btn = document.getElementById('btn-salvar-comp');
-      btn.innerText = "A guardar...";
-      btn.disabled = true;
-
-      var id = document.getElementById('comp-edit-id').value;
-      var nome = document.getElementById('comp-nome').value.trim();
-      var preco = parseFloat(document.getElementById('comp-preco').value) || 0;
-
-      var sb = initClient();
-
-      try {
-        var dados = { nome: nome, preco: preco, ativo: true };
-        if (id) {
-          await sb.from('COMPLEMENTOS').update(dados).eq('id', id);
-        } else {
-          await sb.from('COMPLEMENTOS').insert([dados]);
-        }
-        fecharModalComplemento();
-        carregarStock();
-      } catch (err) {
-        alert("Erro ao guardar complemento: " + err.message);
-      } finally {
-        btn.innerText = "Guardar";
-        btn.disabled = false;
-      }
-    }
-
-    window.addEventListener('DOMContentLoaded', function() {
-      var campo = document.getElementById('campo-senha');
-      if (campo) {
-        campo.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            tentarEntrar();
+      function crc16(str) {
+        var crc = 0xFFFF;
+        for (var i = 0; i < str.length; i++) {
+          crc ^= str.charCodeAt(i) << 8;
+          for (var j = 0; j < 8; j++) {
+            if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ 0x1021;
+            else crc = crc << 1;
           }
-        });
+        }
+        return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
       }
-      verificarAutenticacao();
-    });
+
+      var nomeLimpo = (nomeRecebedor || "ACAIZEIRO").normalize("NFD").replace(/[\u0300-\u036f]/g, "").substring(0, 25).toUpperCase();
+      var cidadeLimpa = (cidade || "IBITINGA").normalize("NFD").replace(/[\u0300-\u036f]/g, "").substring(0, 15).toUpperCase();
+      var valorStr = Number(valor).toFixed(2);
+      var txidLimpo = (txid || "***").replace(/[^a-zA-Z0-9]/g, "").substring(0, 25) || "***";
+
+      var gui = formatField("00", "br.gov.bcb.pix");
+      var key = formatField("01", chave.trim());
+      var merchantAccount = formatField("26", gui + key);
+
+      var payload = 
+        formatField("00", "01") +
+        merchantAccount +
+        formatField("52", "0000") +
+        formatField("53", "986") +
+        formatField("54", valorStr) +
+        formatField("58", "BR") +
+        formatField("59", nomeLimpo) +
+        formatField("60", cidadeLimpa) +
+        formatField("62", formatField("05", txidLimpo)) +
+        "6304";
+
+      return payload + crc16(payload);
+    }
+
+    // ==========================================
+    // FLUXO PIX (MERCADO PAGO OU CHAVE DIRETA)
+    // ==========================================
+    var intervaloTimerPix = null;
+
+    function iniciarCronometroPix() {
+      if (intervaloTimerPix) clearInterval(intervaloTimerPix);
+      var segundosRestantes = 30 * 60;
+      var totalSegundos = segundosRestantes;
+
+      intervaloTimerPix = setInterval(function() {
+        segundosRestantes--;
+        if (segundosRestantes <= 0) {
+          clearInterval(intervaloTimerPix);
+          document.getElementById("pixTimerTexto").innerText = "00 : 00";
+          document.getElementById("pixTimerBarra").style.width = "0%";
+          return;
+        }
+        var min = String(Math.floor(segundosRestantes / 60)).padStart(2, '0');
+        var seg = String(segundosRestantes % 60).padStart(2, '0');
+        document.getElementById("pixTimerTexto").innerText = min + " : " + seg;
+        document.getElementById("pixTimerBarra").style.width = ((segundosRestantes / totalSegundos) * 100) + "%";
+      }, 1000);
+    }
+
+    async function processarPagamentoPix(pedidoCriado, valorTotal, nomeCliente, emailCliente) {
+      const modal = document.getElementById("modalPix");
+      const carregando = document.getElementById("pixCarregando");
+      const conteudo = document.getElementById("pixConteudo");
+      const confirmado = document.getElementById("pixConfirmado");
+      const btnComprovante = document.getElementById("btnJaPagueiPixDireto");
+
+      modal.style.display = "flex";
+      carregando.style.display = "block";
+      conteudo.style.display = "none";
+      confirmado.style.display = "none";
+      if (btnComprovante) btnComprovante.style.display = "none";
+
+      // MODO CHAVE PIX DIRETA (Configurada no Painel Admin)
+      if (config.modoPix === 'chave_direta' && config.chavePix) {
+        var payloadDireto = gerarPayloadPixEstatico(
+          config.chavePix,
+          config.nomeRecebedorPix,
+          config.cidadePix,
+          valorTotal,
+          "PEDIDO" + pedidoCriado.id
+        );
+        var qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(payloadDireto);
+
+        document.getElementById("pixQrImg").src = qrUrl;
+        document.getElementById("pixCodigoCopia").value = payloadDireto;
+        document.getElementById("pixCodigoBox").innerText = payloadDireto;
+
+        carregando.style.display = "none";
+        conteudo.style.display = "flex";
+        if (btnComprovante) btnComprovante.style.display = "block";
+
+        iniciarCronometroPix();
+        escutarConfirmacaoPix(pedidoCriado.id);
+        return;
+      }
+
+      // MODO MERCADO PAGO API AUTOMÁTICA
+      try {
+        const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+        const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+
+        const response = await fetch(`${supabaseUrl}/functions/v1/criar-pix`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${supabaseAnonKey}`,
+            "apikey": supabaseAnonKey
+          },
+          body: JSON.stringify({
+            pedidoId: pedidoCriado.id,
+            total: Number(valorTotal),
+            clienteNome: nomeCliente || "Cliente Açaizeiro",
+            clienteEmail: emailCliente || "cliente@acaizeiro.com"
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.error || "Erro ao gerar Pix.");
+
+        document.getElementById("pixQrImg").src = `data:image/png;base64,${data.qrCodeBase64}`;
+        document.getElementById("pixCodigoCopia").value = data.qrCode;
+        document.getElementById("pixCodigoBox").innerText = data.qrCode;
+
+        carregando.style.display = "none";
+        conteudo.style.display = "flex";
+
+        iniciarCronometroPix();
+        escutarConfirmacaoPix(pedidoCriado.id);
+      } catch (err) {
+        alert("Não foi possível gerar a cobrança Pix: " + err.message);
+        modal.style.display = "none";
+      }
+    }
+
+    function confirmarEnvioComprovantePixDireto() {
+      if (window.intervaloPix) clearInterval(window.intervaloPix);
+      if (intervaloTimerPix) clearInterval(intervaloTimerPix);
+      document.getElementById("modalPix").style.display = "none";
+      carrinho = [];
+      atualizarBarra();
+      if (textoPedidoWhatsApp) {
+        window.location.href = "https://wa.me/" + config.whatsapp + "?text=" + encodeURIComponent(textoPedidoWhatsApp + "\n\n*Status:* PIX REALIZADO (Segue comprovante abaixo)");
+      }
+    }
+
+    function escutarConfirmacaoPix(pedidoId) {
+      const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+      const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+
+      if (window.intervaloPix) clearInterval(window.intervaloPix);
+
+      window.intervaloPix = setInterval(async () => {
+        try {
+          const res = await fetch(`${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoId}&select=status`, {
+            headers: { "apikey": supabaseAnonKey, "Authorization": `Bearer ${supabaseAnonKey}` }
+          });
+          const dados = await res.json();
+
+          if (dados && dados.length > 0 && dados[0].status === "Em preparo") {
+            clearInterval(window.intervaloPix);
+            if (intervaloTimerPix) clearInterval(intervaloTimerPix);
+
+            document.getElementById("modalPix").style.display = "none";
+            carrinho = [];
+            atualizarBarra();
+
+            if (textoPedidoWhatsApp) {
+              window.location.href = "https://wa.me/" + config.whatsapp + "?text=" + encodeURIComponent(textoPedidoWhatsApp + "\n\n*Status:* PAGO VIA PIX (Aprovado)");
+            }
+          }
+        } catch (e) {}
+      }, 2000);
+    }
+
+    function cancelarModalPix() {
+      if (window.intervaloPix) clearInterval(window.intervaloPix);
+      if (intervaloTimerPix) clearInterval(intervaloTimerPix);
+      document.getElementById("modalPix").style.display = "none";
+    }
+
+    function copiarPixPayload() {
+      const codigo = document.getElementById("pixCodigoCopia").value;
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(codigo);
+
+      const btn = document.getElementById("btnCopiarPix");
+      const textoOriginal = btn.innerText;
+      btn.innerText = "Código Copiado! ✓";
+      btn.style.background = "#16a34a";
+
+      setTimeout(() => {
+        btn.innerText = textoOriginal;
+        btn.style.background = "#411564";
+      }, 3000);
+    }
+
+    function concluirFluxoPix() {
+      document.getElementById("modalPix").style.display = "none";
+      carrinho = [];
+      atualizarBarra();
+      window.location.reload();
+    }
   </script>
 </body>
 </html>
