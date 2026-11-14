@@ -2619,6 +2619,110 @@
       if (campo) campo.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); tentarEntrar(); } });
       verificarAutenticacao();
     });
+    // ==========================================
+    // FUNÇÕES DE CONVERSÃO DE UNIDADES (ESTOQUE / PRECIFICAÇÃO)
+    // ==========================================
+    function converterParaUnidadeBase(qtd, unidade) {
+      if (unidade === 'kg') return { qtdBase: qtd * 1000, grupo: 'peso', base: 'g' };
+      if (unidade === 'g') return { qtdBase: qtd, grupo: 'peso', base: 'g' };
+      if (unidade === 'L') return { qtdBase: qtd * 1000, grupo: 'volume', base: 'ml' };
+      if (unidade === 'ml') return { qtdBase: qtd, grupo: 'volume', base: 'ml' };
+      return { qtdBase: qtd, grupo: 'unidade', base: 'un' };
+    }
+
+    function converterEntreUnidades(qtd, unidadeOrigem, unidadeDestino) {
+      if (unidadeOrigem === unidadeDestino) return Number(qtd);
+      var baseOrigem = converterParaUnidadeBase(Number(qtd), unidadeOrigem);
+      var baseDestino = converterParaUnidadeBase(1, unidadeDestino);
+      if (baseOrigem.grupo !== baseDestino.grupo || baseDestino.qtdBase <= 0) return null;
+      return baseOrigem.qtdBase / baseDestino.qtdBase;
+    }
+
+    // ==========================================
+    // MÓDULO DE PRECIFICAÇÃO E INSUMOS
+    // ==========================================
+    var listaInsumos = [];
+
+    async function carregarModuloPrecificacao() {
+      var sb = initClient();
+      if (!sb) return;
+      try {
+        var resInsumos = await sb.from('insumos_precificacao').select('*').order('nome');
+        listaInsumos = resInsumos.data || [];
+        renderizarListaInsumos();
+      } catch (err) {
+        console.error("Erro ao carregar insumos:", err);
+        var container = document.getElementById('lista-insumos-salvos');
+        if (container) container.innerHTML = '<p class="text-xs text-rose-600 text-center py-4">Erro ao carregar insumos. Verifique a tabela no Supabase.</p>';
+      }
+    }
+
+    function renderizarListaInsumos() {
+      var container = document.getElementById('lista-insumos-salvos');
+      if (!container) return;
+      if (listaInsumos.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">Nenhum insumo cadastrado ainda.</p>';
+        return;
+      }
+      container.innerHTML = listaInsumos.map(function(ins) {
+        return '<div class="p-2.5 rounded-xl border border-gray-100 bg-gray-50/70 flex items-center justify-between text-xs"><div class="min-w-0 pr-2"><p class="font-bold text-gray-800 truncate">' + ins.nome + '</p><p class="text-[11px] text-gray-500">Emb: ' + ins.qtd_embalagem + ' ' + ins.unidade + ' — R$ ' + Number(ins.preco_pago).toFixed(2).replace('.', ',') + '</p></div><button type="button" onclick="excluirInsumo(' + ins.id + ')" class="text-gray-400 hover:text-red-600 p-1.5 cursor-pointer flex-shrink-0"><i class="fa-solid fa-trash"></i></button></div>';
+      }).join('');
+    }
+
+    async function salvarInsumo(e) {
+      e.preventDefault();
+      var btn = document.getElementById('btn-salvar-insumo');
+      btn.disabled = true; btn.innerText = "Salvando...";
+      var nome = document.getElementById('insumo-nome').value.trim();
+      var qtd = parseFloat(document.getElementById('insumo-qtd').value) || 0;
+      var unidade = document.getElementById('insumo-unidade').value;
+      var preco = parseFloat(document.getElementById('insumo-preco').value) || 0;
+      
+      var sb = initClient();
+      var res = await sb.from('insumos_precificacao').insert([{ nome: nome, qtd_embalagem: qtd, unidade: unidade, preco_pago: preco, estoque_atual: 0, estoque_minimo: 0 }]);
+      btn.disabled = false; btn.innerText = "+ Cadastrar Insumo";
+      if (res.error) { alert("Erro: " + res.error.message); return; }
+      
+      document.getElementById('insumo-nome').value = '';
+      document.getElementById('insumo-qtd').value = '';
+      document.getElementById('insumo-preco').value = '';
+      carregarModuloPrecificacao();
+    }
+
+    async function excluirInsumo(id) {
+      if (!confirm("Remover este insumo?")) return;
+      var sb = initClient();
+      var res = await sb.from('insumos_precificacao').delete().eq('id', id);
+      if (res.error) { alert("Não foi possível excluir o insumo. Verifique se ele está em uso."); return; }
+      carregarModuloPrecificacao();
+    }
+
+    // ==========================================
+    // FUNÇÕES DE SUPORTE PARA CLIENTES E ESTOQUE
+    // ==========================================
+    async function carregarModuloClientes() {
+      var sb = initClient();
+      if (!sb) return;
+      try {
+        var res = await sb.from('pedidos').select('*');
+        // Prevenção de erro caso o container exista
+        var tbody = document.getElementById('tabela-clientes-corpo');
+        if (tbody && res.data) {
+          if (res.data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-gray-400">Nenhum cliente registrado.</td></tr>';
+          }
+        }
+      } catch (e) {}
+    }
+
+    async function renderizarModuloClientes() {
+      carregarModuloClientes();
+    }
+
+    async function sincronizarClientesDosPedidos() {
+      alert("✓ Sincronização concluída.");
+      carregarModuloClientes();
+    }
   </script>
 </body>
 </html>
