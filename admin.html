@@ -1187,6 +1187,28 @@
       <!-- ========================================================= -->
       <!-- ABA 8: CONFIGURAÇÕES DA LOJA                              -->
       <!-- ========================================================= -->
+      <!-- Controle de Status da Loja -->
+      function atualizarTextoToggleStatus() {
+      var ativo = document.getElementById('cfg-loja-aberta').checked;
+      var txt = document.getElementById('txt-status-toggle');
+      if (txt) {
+        txt.innerText = ativo ? 'Aberta' : 'Fechada';
+        txt.className = ativo ? 'text-xs font-black text-emerald-600' : 'text-xs font-black text-rose-600';
+      }
+    }
+            <div class="p-4 rounded-xl border-2 border-purple-200 bg-purple-50/30 flex items-center justify-between gap-3">
+              <div>
+                <p class="text-xs font-extrabold text-gray-900 uppercase">Status Operacional do Site</p>
+                <p class="text-[11px] text-gray-500">Quando fechado, o site avisará os clientes que a loja está fechada.</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span id="txt-status-toggle" class="text-xs font-black text-emerald-600">Aberta</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="cfg-loja-aberta" onchange="atualizarTextoToggleStatus()" class="sr-only peer" checked>
+                  <div class="w-11 h-6 bg-rose-500 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+            </div>
       <section id="aba-config" class="max-w-3xl w-full mx-auto p-4 hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-5">
           <div class="border-b pb-3">
@@ -3765,6 +3787,12 @@
         document.getElementById('cfg-chave-pix').value = cfg.chave_pix || '';
         document.getElementById('cfg-nome-pix').value = cfg.nome_recebedor_pix || 'ACAIZEIRO DELIVERY';
         document.getElementById('cfg-cidade-pix').value = cfg.cidade_pix || 'IBITINGA';
+        
+        // Status da Loja
+        var isAberta = cfg.loja_aberta !== false;
+        var chkLoja = document.getElementById('cfg-loja-aberta');
+        if (chkLoja) { chkLoja.checked = isAberta; atualizarTextoToggleStatus(); }
+
         var modo = cfg.modo_pix || 'mercadopago';
         var radio = document.querySelector('input[name="modo_pix"][value="' + modo + '"]');
         if (radio) radio.checked = true;
@@ -3785,6 +3813,7 @@
       btn.disabled = true; btn.innerText = "Salvando...";
       var whatsapp = document.getElementById('cfg-whatsapp').value.replace(/\D/g, '');
       var taxa = parseFloat(document.getElementById('cfg-taxa').value) || 0;
+      var lojaAberta = document.getElementById('cfg-loja-aberta').checked;
       var modoEl = document.querySelector('input[name="modo_pix"]:checked');
       var modoPix = modoEl ? modoEl.value : 'mercadopago';
       var chavePix = document.getElementById('cfg-chave-pix').value.trim();
@@ -3794,10 +3823,19 @@
       if (modoPix === 'chave_direta' && !chavePix) { alert("Informe a sua Chave Pix."); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar Configurações'; return; }
 
       var sb = initClient();
-      var res = await sb.from('configuracoes_loja').upsert({ id: 1, whatsapp: whatsapp, taxa_entrega: taxa, modo_pix: modoPix, chave_pix: chavePix, nome_recebedor_pix: nomePix, cidade_pix: cidadePix });
+      var res = await sb.from('configuracoes_loja').upsert({ 
+        id: 1, 
+        whatsapp: whatsapp, 
+        taxa_entrega: taxa, 
+        loja_aberta: lojaAberta,
+        modo_pix: modoPix, 
+        chave_pix: chavePix, 
+        nome_recebedor_pix: nomePix, 
+        cidade_pix: cidadePix 
+      });
       btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar Configurações';
       if (res.error) alert("Erro: " + res.error.message);
-      else alert("✓ Configurações salvas!");
+      else alert("✓ Configurações e status da loja salvos!");
     }
 
     window.addEventListener('DOMContentLoaded', function() {
