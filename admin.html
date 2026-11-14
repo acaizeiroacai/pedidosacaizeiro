@@ -134,13 +134,11 @@
               <button onclick="mudarAba('relatorios')" id="nav-btn-relatorios" class="nav-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold text-purple-100 hover:bg-purple-800/60 transition cursor-pointer">
                 <i class="fa-solid fa-chart-line w-4 text-center"></i> Relatórios de vendas
               </button>
-              <button onclick="mudarAba('desempenho')" id="nav-btn-desempenho" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-purple-200/80 hover:bg-purple-800/60 transition cursor-pointer">
-                <span class="flex items-center gap-2.5"><i class="fa-solid fa-ranking-star w-4 text-center"></i> Desempenho dos produtos</span>
-                <span class="text-[9px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded">Etapa 8</span>
+              <button onclick="mudarAba('desempenho')" id="nav-btn-desempenho" class="nav-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold text-purple-100 hover:bg-purple-800/60 transition cursor-pointer">
+                <i class="fa-solid fa-ranking-star w-4 text-center"></i> Desempenho dos produtos
               </button>
-              <button onclick="mudarAba('rentabilidade')" id="nav-btn-rentabilidade" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-purple-200/80 hover:bg-purple-800/60 transition cursor-pointer">
-                <span class="flex items-center gap-2.5"><i class="fa-solid fa-magnifying-glass-dollar w-4 text-center"></i> Análise de rentabilidade</span>
-                <span class="text-[9px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded">Etapa 8</span>
+              <button onclick="mudarAba('rentabilidade')" id="nav-btn-rentabilidade" class="nav-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold text-purple-100 hover:bg-purple-800/60 transition cursor-pointer">
+                <i class="fa-solid fa-magnifying-glass-dollar w-4 text-center"></i> Análise de rentabilidade
               </button>
             </div>
           </div>
@@ -1253,7 +1251,7 @@
       </section>
 
       <!-- ========================================================= -->
-      <!-- ABA: DESEMPENHO DOS PRODUTOS (ETAPA 8) -->
+      <!-- ABA: DESEMPENHO DOS PRODUTOS -->
       <!-- ========================================================= -->
       <section id="aba-desempenho" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
         <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between flex-wrap gap-3">
@@ -1288,7 +1286,7 @@
       </section>
 
       <!-- ========================================================= -->
-      <!-- ABA: ANÁLISE DE RENTABILIDADE (ETAPA 8) -->
+      <!-- ABA: ANÁLISE DE RENTABILIDADE -->
       <!-- ========================================================= -->
       <section id="aba-rentabilidade" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
         <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between flex-wrap gap-3">
@@ -1322,7 +1320,7 @@
         </div>
       </section>
 
-    
+    </div>
   </div>
 
   <!-- MODAL: Retificar Fechamento de Caixa -->
@@ -1352,6 +1350,7 @@
       </form>
     </div>
   </div>
+
   <!-- MODAL: Detalhes e Histórico do Cliente -->
   <div id="modal-detalhes-cliente" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
     <div class="bg-white w-full max-w-2xl rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
@@ -1564,6 +1563,8 @@
       if (abaAtual === 'clientes') carregarModuloClientes();
       if (abaAtual === 'entregas') carregarModuloEntregas();
       if (abaAtual === 'config') carregarConfiguracoesLoja();
+      if (abaAtual === 'desempenho') carregarModuloDesempenho();
+      if (abaAtual === 'rentabilidade') carregarModuloRentabilidadeAvancada();
     }
 
     function mudarAba(aba) {
@@ -1574,7 +1575,7 @@
         sb.classList.add('-translate-x-full'); ov.classList.add('hidden');
       }
 
-      ['dashboard', 'pedidos', 'relatorios', 'stock', 'precificacao', 'financeiro', 'caixa', 'estoque', 'clientes', 'entregas', 'config', 'em-breve'].forEach(function(a) {
+      ['dashboard', 'pedidos', 'relatorios', 'stock', 'precificacao', 'financeiro', 'caixa', 'estoque', 'clientes', 'entregas', 'config', 'desempenho', 'rentabilidade', 'em-breve'].forEach(function(a) {
         var el = document.getElementById('aba-' + a);
         if (el) el.classList.add('hidden');
       });
@@ -1598,21 +1599,13 @@
         clientes: ['Base de Clientes', 'Histórico de compras, recorrência e ticket médio por cliente'],
         entregas: ['Entregas e Entregadores', 'Despacho de rotas, motoboys e cálculo de repasses'],
         config: ['Configurações da Loja', 'WhatsApp, taxa de entrega e modo de recebimento Pix'],
-        desempenho: ['Desempenho dos Produtos', 'Programado para a Etapa 8 do cronograma'],
-        rentabilidade: ['Análise de Rentabilidade', 'Programado para a Etapa 8 do cronograma']
+        desempenho: ['Desempenho dos Produtos', 'Análise de volume, receita gerada e participação percentual'],
+        rentabilidade: ['Análise de Rentabilidade', 'Cruzamento de custos de fichas técnicas com preços de venda']
       };
 
       var info = titulosMap[aba] || ['Painel', 'Gestão Comercial'];
       document.getElementById('titulo-pagina-atual').innerText = info[0];
       document.getElementById('subtitulo-pagina-atual').innerText = info[1];
-
-      var modulosFuturos = [];
-      if (modulosFuturos.indexOf(aba) !== -1) {
-        document.getElementById('aba-em-breve').classList.remove('hidden');
-        document.getElementById('titulo-modulo-futuro').innerText = info[0];
-        document.getElementById('desc-modulo-futuro').innerText = "Este módulo (" + info[1] + ") será implementado na sua respectiva etapa assim que você validar as etapas anteriores.";
-        return;
-      }
 
       var ativa = document.getElementById('aba-' + aba);
       if (ativa) ativa.classList.remove('hidden');
@@ -1628,7 +1621,6 @@
       if (aba === 'clientes') carregarModuloClientes();
       if (aba === 'entregas') carregarModuloEntregas();
       if (aba === 'config') carregarConfiguracoesLoja();
-
       if (aba === 'desempenho') carregarModuloDesempenho();
       if (aba === 'rentabilidade') carregarModuloRentabilidadeAvancada();
     }
@@ -2147,7 +2139,6 @@
       if (!sb || !pedido || !Array.isArray(pedido.itens) || pedido.itens.length === 0) return;
 
       try {
-        // Trava anti-duplicidade: verifica se o pedido já gerou movimentação automática
         var resCheck = await sb.from('movimentacoes_estoque')
           .select('id')
           .eq('pedido_id', pedido.id)
@@ -2681,6 +2672,7 @@
       if (campo) campo.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); tentarEntrar(); } });
       verificarAutenticacao();
     });
+
     // ==========================================
     // FUNÇÕES DE CONVERSÃO DE UNIDADES (ESTOQUE / PRECIFICAÇÃO)
     // ==========================================
@@ -2767,7 +2759,6 @@
       if (!sb) return;
       try {
         var res = await sb.from('pedidos').select('*');
-        // Prevenção de erro caso o container exista
         var tbody = document.getElementById('tabela-clientes-corpo');
         if (tbody && res.data) {
           if (res.data.length === 0) {
@@ -2785,92 +2776,7 @@
       alert("✓ Sincronização concluída.");
       carregarModuloClientes();
     }
-    // ==========================================
-    // MÓDULO ETAPA 8: DESEMPENHO DOS PRODUTOS
-    // ==========================================
-    async function carregarModuloDesempenho() {
-      var sb = initClient();
-      if (!sb) return;
-      var tbody = document.getElementById('tabela-desempenho-produtos');
-      if (!tbody) return;
-      tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Analisando histórico de vendas...</td></tr>';
-      
-      try {
-        var res = await sb.from('pedidos').select('total, status, itens').eq('status', 'Concluído');
-        var pedidos = res.data || [];
-        var mapaProd = {};
-        var faturamentoTotalGeral = 0;
 
-        pedidos.forEach(function(p) {
-          faturamentoTotalGeral += Number(p.total || 0);
-          if (Array.isArray(p.itens)) {
-            p.itens.forEach(function(i) {
-              var nome = i.nome || 'Item';
-              var qtd = Number(i.quantidade || 1);
-              var precoUnit = Number(i.preco_unitario || 0);
-              if (!mapaProd[nome]) mapaProd[nome] = { nome: nome, qtd: 0, receita: 0 };
-              mapaProd[nome].qtd += qtd;
-              mapaProd[nome].receita += (precoUnit * qtd);
-            });
-          }
-        });
-
-        var listaOrdenada = Object.values(mapaProd).sort(function(a, b) { return b.receita - a.receita; });
-        if (listaOrdenada.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Nenhum dado de vendas concluídas encontrado.</td></tr>';
-          return;
-        }
-
-        tbody.innerHTML = listaOrdenada.map(function(item, idx) {
-          var pctPart = faturamentoTotalGeral > 0 ? ((item.receita / faturamentoTotalGeral) * 100).toFixed(1) : '0.0';
-          return '<tr class="hover:bg-gray-50"><td class="p-3 font-bold text-[#411564]">#' + (idx + 1) + '</td><td class="p-3 font-bold text-gray-900">' + item.nome + '</td><td class="p-3 text-gray-500">Produto Principal</td><td class="p-3 text-center font-bold">' + item.qtd + ' un.</td><td class="p-3 text-right font-black text-emerald-600">R$ ' + item.receita.toFixed(2).replace('.', ',') + '</td><td class="p-3 text-right font-bold text-purple-900">' + pctPart.replace('.', ',') + '%</td></tr>';
-        }).join('');
-      } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-rose-500">Erro ao processar desempenho.</td></tr>';
-      }
-    }
-
-    // ==========================================
-    // MÓDULO ETAPA 8: RENTABILIDADE AVANÇADA
-    // ==========================================
-    async function carregarModuloRentabilidadeAvancada() {
-      var sb = initClient();
-      if (!sb) return;
-      var tbody = document.getElementById('tabela-rentabilidade-avancada');
-      if (!tbody) return;
-      tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Cruzando fichas técnicas com o cardápio...</td></tr>';
-
-      try {
-        var [resProdutos, resFichas] = await Promise.all([
-          sb.from('CARDAPIO ACAIZEIRO').select('*').order('nome'),
-          sb.from('fichas_tecnicas').select('*')
-        ]);
-
-        var produtos = resProdutos.data || [];
-        var fichas = resFichas.data || [];
-
-        if (produtos.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Nenhum produto cadastrado no cardápio.</td></tr>';
-          return;
-        }
-
-        tbody.innerHTML = produtos.map(function(prod) {
-          var precoVenda = Number(prod.preco || 0);
-          var ficha = fichas.find(function(f) { return String(f.produto_id) === String(prod.id); });
-          var custoProd = ficha ? Number(ficha.custo_total || 0) : 0;
-          var lucroUnit = precoVenda - custoProd;
-          var margemPct = precoVenda > 0 ? ((lucroUnit / precoVenda) * 100).toFixed(1) : '0.0';
-          
-          var badgeCmv = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Saudável</span>';
-          if (custoProd <= 0) badgeCmv = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500">Sem Ficha</span>';
-          else if (Number(margemPct) < 20) badgeCmv = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">Atenção (Margem Baixa)</span>';
-
-          return '<tr class="hover:bg-gray-50"><td class="p-3 font-bold text-gray-900">' + prod.nome + '</td><td class="p-3 text-right font-bold text-gray-900">R$ ' + precoVenda.toFixed(2).replace('.', ',') + '</td><td class="p-3 text-right text-gray-600">R$ ' + custoProd.toFixed(2).replace('.', ',') + '</td><td class="p-3 text-right font-black text-emerald-600">R$ ' + lucroUnit.toFixed(2).replace('.', ',') + '</td><td class="p-3 text-center font-extrabold text-[#411564]">' + margemPct.replace('.', ',') + '%</td><td class="p-3 text-center">' + badgeCmv + '</td></tr>';
-        }).join('');
-      } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-rose-500">Erro ao carregar rentabilidade.</td></tr>';
-      }
-    }
     // ==========================================
     // MÓDULO ETAPA 8: DESEMPENHO DOS PRODUTOS
     // ==========================================
