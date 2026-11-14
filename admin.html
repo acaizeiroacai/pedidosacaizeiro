@@ -1253,15 +1253,157 @@
       </section>
 
       <!-- ========================================================= -->
-      <!-- MÓDULOS PROGRAMADOS PARA AS PRÓXIMAS ETAPAS    -->
+      <!-- ABA: DESEMPENHO DOS PRODUTOS (ETAPA 8) -->
       <!-- ========================================================= -->
-      <section id="aba-em-breve" class="max-w-2xl w-full mx-auto p-6 hidden">
-        <div class="bg-white p-8 rounded-3xl border border-purple-100 shadow-sm text-center space-y-3">
-          <div class="w-14 h-14 rounded-2xl bg-purple-100 text-[#411564] mx-auto flex items-center justify-center text-2xl"><i class="fa-solid fa-layer-group"></i></div>
-          <h3 id="titulo-modulo-futuro" class="text-lg font-extrabold text-gray-900">Módulo em Preparação</h3>
-          <p id="desc-modulo-futuro" class="text-xs text-gray-500 leading-relaxed max-w-md mx-auto">Este módulo faz parte do cronograma de evolução e será ativado na respectiva etapa.</p>
+      <section id="aba-desempenho" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
+        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h2 class="text-base font-extrabold text-[#411564] flex items-center gap-2"><i class="fa-solid fa-ranking-star"></i> Desempenho Detalhado dos Produtos</h2>
+            <p class="text-xs text-gray-500">Análise de volume, receita gerada e participação percentual de cada item do cardápio.</p>
+          </div>
+          <button onclick="carregarModuloDesempenho()" class="bg-purple-50 hover:bg-purple-100 text-[#411564] font-bold px-3.5 py-2 rounded-xl text-xs cursor-pointer"><i class="fa-solid fa-rotate-right mr-1"></i> Atualizar Dados</button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-12 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-gray-600">
+                <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100">
+                  <tr>
+                    <th class="p-3">#</th>
+                    <th class="p-3">Produto / Item</th>
+                    <th class="p-3">Categoria</th>
+                    <th class="p-3 text-center">Qtd. Vendida</th>
+                    <th class="p-3 text-right">Faturamento Total</th>
+                    <th class="p-3 text-right">% do Faturamento</th>
+                  </tr>
+                </thead>
+                <tbody id="tabela-desempenho-produtos" class="divide-y divide-gray-100 font-medium">
+                  <tr><td colspan="6" class="p-6 text-center text-gray-400">A carregar desempenho...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
+
+      <!-- ========================================================= -->
+      <!-- ABA: ANÁLISE DE RENTABILIDADE (ETAPA 8) -->
+      <!-- ========================================================= -->
+      <section id="aba-rentabilidade" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
+        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h2 class="text-base font-extrabold text-[#411564] flex items-center gap-2"><i class="fa-solid fa-magnifying-glass-dollar"></i> Análise Avançada de Rentabilidade</h2>
+            <p class="text-xs text-gray-500">Cruzamento de custos de fichas técnicas com preços de venda para auditoria de margens.</p>
+          </div>
+          <button onclick="carregarModuloRentabilidadeAvancada()" class="bg-purple-50 hover:bg-purple-100 text-[#411564] font-bold px-3.5 py-2 rounded-xl text-xs cursor-pointer"><i class="fa-solid fa-rotate-right mr-1"></i> Recalcular Margens</button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-12 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-gray-600">
+                <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100">
+                  <tr>
+                    <th class="p-3">Produto</th>
+                    <th class="p-3 text-right">Preço de Venda</th>
+                    <th class="p-3 text-right">Custo Produção (Ficha)</th>
+                    <th class="p-3 text-right">Lucro Bruto Unitário</th>
+                    <th class="p-3 text-center">Margem Líquida (%)</th>
+                    <th class="p-3 text-center">Status CMV</th>
+                  </tr>
+                </thead>
+                <tbody id="tabela-rentabilidade-avancada" class="divide-y divide-gray-100 font-medium">
+                  <tr><td colspan="6" class="p-6 text-center text-gray-400">A carregar análise de rentabilidade...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    // No seu objeto titulosMap dentro de mudarAba, ajuste ou certifique-se que inclui:
+    var modulosFuturos = []; // Removido 'desempenho' e 'rentabilidade' daqui para ativar as abas reais!
+
+    // Adicione estas funções lógicas no seu bloco <script>:
+    async function carregarModuloDesempenho() {
+      var sb = initClient();
+      if (!sb) return;
+      var tbody = document.getElementById('tabela-desempenho-produtos');
+      tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Analisando histórico de vendas...</td></tr>';
+      
+      try {
+        var res = await sb.from('pedidos').select('total, status, itens').eq('status', 'Concluído');
+        var pedidos = res.data || [];
+        var mapaProd = {};
+        var faturamentoTotalGeral = 0;
+
+        pedidos.forEach(function(p) {
+          faturamentoTotalGeral += Number(p.total || 0);
+          if (Array.isArray(p.itens)) {
+            p.itens.forEach(function(i) {
+              var nome = i.nome || 'Item';
+              var qtd = Number(i.quantidade || 1);
+              var precoUnit = Number(i.preco_unitario || 0);
+              if (!mapaProd[nome]) mapaProd[nome] = { nome: nome, qtd: 0, receita: 0 };
+              mapaProd[nome].qtd += qtd;
+              mapaProd[nome].receita += (precoUnit * qtd);
+            });
+          }
+        });
+
+        var listaOrdenada = Object.values(mapaProd).sort(function(a, b) { return b.receita - a.receita; });
+        if (listaOrdenada.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Nenhum dado de vendas concluídas encontrado.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = listaOrdenada.map(function(item, idx) {
+          var pctPart = faturamentoTotalGeral > 0 ? ((item.receita / faturamentoTotalGeral) * 100).toFixed(1) : '0.0';
+          return '<tr class="hover:bg-gray-50"><td class="p-3 font-bold text-[#411564]">#' + (idx + 1) + '</td><td class="p-3 font-bold text-gray-900">' + item.nome + '</td><td class="p-3 text-gray-500">Produto Principal</td><td class="p-3 text-center font-bold">' + item.qtd + ' un.</td><td class="p-3 text-right font-black text-emerald-600">R$ ' + item.receita.toFixed(2).replace('.', ',') + '</td><td class="p-3 text-right font-bold text-purple-900">' + pctPart.replace('.', ',') + '%</td></tr>';
+        }).join('');
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-rose-500">Erro ao processar desempenho.</td></tr>';
+      }
+    }
+
+    async function carregarModuloRentabilidadeAvancada() {
+      var sb = initClient();
+      if (!sb) return;
+      var tbody = document.getElementById('tabela-rentabilidade-avancada');
+      tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Cruzando fichas técnicas com o cardápio...</td></tr>';
+
+      try {
+        var [resProdutos, resFichas] = await Promise.all([
+          sb.from('CARDAPIO ACAIZEIRO').select('*').order('nome'),
+          sb.from('fichas_tecnicas').select('*')
+        ]);
+
+        var produtos = resProdutos.data || [];
+        var fichas = resFichas.data || [];
+
+        if (produtos.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Nenhum produto cadastrado no cardápio.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = produtos.map(function(prod) {
+          var precoVenda = Number(prod.preco || 0);
+          var ficha = fichas.find(function(f) { return String(f.produto_id) === String(prod.id); });
+          var custoProd = ficha ? Number(ficha.custo_total || 0) : 0;
+          var lucroUnit = precoVenda - custoProd;
+          var margemPct = precoVenda > 0 ? ((lucroUnit / precoVenda) * 100).toFixed(1) : '0.0';
+          
+          var badgeCmv = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Saudável</span>';
+          if (custoProd <= 0) badgeCmv = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500">Sem Ficha</span>';
+          else if (Number(margemPct) < 20) badgeCmv = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">Atenção (Margem Baixa)</span>';
+
+          return '<tr class="hover:bg-gray-50"><td class="p-3 font-bold text-gray-900">' + prod.nome + '</td><td class="p-3 text-right font-bold text-gray-900">R$ ' + precoVenda.toFixed(2).replace('.', ',') + '</td><td class="p-3 text-right text-gray-600">R$ ' + custoProd.toFixed(2).replace('.', ',') + '</td><td class="p-3 text-right font-black text-emerald-600">R$ ' + lucroUnit.toFixed(2).replace('.', ',') + '</td><td class="p-3 text-center font-extrabold text-[#411564]">' + margemPct.replace('.', ',') + '%</td><td class="p-3 text-center">' + badgeCmv + '</td></tr>';
+        }).join('');
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-rose-500">Erro ao carregar rentabilidade.</td></tr>';
+      }
+    }
 
     </div>
   </div>
