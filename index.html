@@ -33,9 +33,10 @@
       </div>
       <div>
         <h1 class="fonte-bryndan text-2xl font-bold tracking-wider leading-tight text-white drop-shadow-sm">AÇAIZEIRO</h1>
-        <p class="text-xs text-purple-200 flex items-center gap-1.5 font-medium">
+        <!-- Indicador Dinâmico de Loja Aberta/Fechada -->
+        <div id="indicador-status-loja" class="text-xs text-purple-200 flex items-center gap-1.5 font-medium">
           <span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span> Aberto para Pedidos
-        </p>
+        </div>
       </div>
     </div>
   </header>
@@ -519,6 +520,36 @@
       taxaEntrega: 1.00
     };
 
+    var SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+    var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+
+    // Função para verificar se a loja está aberta ou fechada dinamicamente
+    async function verificarStatusLojaPublico() {
+      try {
+        if (window.supabase && window.supabase.createClient) {
+          var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+          var res = await client.from('configuracoes_loja').select('loja_aberta').eq('id', 1).single();
+          var indicador = document.getElementById('indicador-status-loja');
+          if (res.data && indicador) {
+            var aberta = res.data.loja_aberta !== false;
+            indicador.innerHTML = aberta
+              ? '<span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span> Aberto para Pedidos'
+              : '<span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span> Loja Fechada';
+
+            var btnSacola = document.getElementById('btn-sacola');
+            if (!aberta && btnSacola) {
+              btnSacola.disabled = true;
+              btnSacola.innerText = "Loja Fechada";
+              btnSacola.classList.add('bg-gray-400', 'hover:bg-gray-400');
+              btnSacola.classList.remove('bg-[#411564]', 'hover:bg-purple-900');
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("Erro ao verificar status da loja:", e);
+      }
+    }
+
     var categorias = ["Todos"];
     var categoriaAtiva = "Todos";
 
@@ -745,7 +776,12 @@
       var totais = calcularTotais();
       document.getElementById('total-barra').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
       document.getElementById('qtd-itens').innerText = totais.totalQtd;
-      document.getElementById('btn-sacola').disabled = totais.totalQtd === 0;
+      
+      // Mantém desabilitado se vazio
+      var btn = document.getElementById('btn-sacola');
+      if (btn) {
+        btn.disabled = totais.totalQtd === 0;
+      }
     }
 
     function renderizarItensSacola() {
@@ -1098,10 +1134,7 @@
 
       try {
         if (window.supabase && window.supabase.createClient) {
-          var client = window.supabase.createClient(
-            "https://sfxvbnxswuvkpssnryjk.supabase.co",
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE"
-          );
+          var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
           var resPedido = await client.from('pedidos').insert([{
             cliente_nome: nome,
@@ -1132,10 +1165,10 @@
               texto += '\n• *' + item.qtd + 'x ' + item.nome + '* — R$ ' + sub.toFixed(2).replace('.', ',') + '\n';
               if (item.complementos.length > 0) {
                 item.complementos.forEach(function(c) {
-                  texto += '   └ + ' + c.nome + ' (R$ ' + c.preco.toFixed(2).replace('.', ',') + ')\n';
+                  texto += '    └ + ' + c.nome + ' (R$ ' + c.preco.toFixed(2).replace('.', ',') + ')\n';
                 });
               }
-              if (item.obs) texto += '   └ Obs item: ' + item.obs + '\n';
+              if (item.obs) texto += '    └ Obs item: ' + item.obs + '\n';
             });
 
             texto += '\n*SUBTOTAL:* R$ ' + totais.subtotal.toFixed(2).replace('.', ',') + '\n';
@@ -1167,11 +1200,8 @@
 
       window.intervaloAceite = setInterval(async () => {
         try {
-          const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
-          const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
-
-          const res = await fetch(`${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoCriado.id}&select=status`, {
-            headers: { "apikey": supabaseAnonKey, "Authorization": `Bearer ${supabaseAnonKey}` }
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/pedidos?id=eq.${pedidoCriado.id}&select=status`, {
+            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
           });
           const dados = await res.json();
 
@@ -1224,10 +1254,10 @@
       s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
       s.onload = function() {
         try {
-          var client = window.supabase.createClient(
-            "https://sfxvbnxswuvkpssnryjk.supabase.co",
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE"
-          );
+          var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+          // Verifica status da loja ao abrir
+          verificarStatusLojaPublico();
 
           Promise.all([
             client.from('CARDAPIO ACAIZEIRO').select('*').order('id'),
@@ -1322,15 +1352,12 @@
       confirmado.style.display = "none";
 
       try {
-        const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
-        const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
-
-        const response = await fetch(`${supabaseUrl}/functions/v1/criar-pix`, {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/criar-pix`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${supabaseAnonKey}`,
-            "apikey": supabaseAnonKey
+            "Authorization": `Bearer ${SUPABASE_KEY}`,
+            "apikey": SUPABASE_KEY
           },
           body: JSON.stringify({
             pedidoId: pedidoCriado.id,
@@ -1363,17 +1390,14 @@
     }
 
     function escutarConfirmacaoPix(pedidoId) {
-      const supabaseUrl = "https://sfxvbnxswuvkpssnryjk.supabase.co";
-      const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
-
       if (window.intervaloPix) clearInterval(window.intervaloPix);
 
       window.intervaloPix = setInterval(async () => {
         try {
-          const res = await fetch(`${supabaseUrl}/rest/v1/pedidos?id=eq.${pedidoId}&select=status`, {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/pedidos?id=eq.${pedidoId}&select=status`, {
             headers: {
-              "apikey": supabaseAnonKey,
-              "Authorization": `Bearer ${supabaseAnonKey}`
+              "apikey": SUPABASE_KEY,
+              "Authorization": `Bearer ${SUPABASE_KEY}`
             }
           });
           const dados = await res.json();
@@ -1427,16 +1451,17 @@
       window.location.reload();
     }
   </script>
-  <!-- Rodapé / Assinatura do Desenvolvedor (Espaçamento reduzido) -->
-<footer class="bg-white text-gray-700 py-8 px-4 mt-12 border-t border-gray-200 text-center shadow-inner">
-  <div class="max-w-md mx-auto space-y-0.5">
-    <div class="flex justify-center">
-      <img src="manhublogo.png" alt="Manhub Logo" class="h-16 w-auto object-contain" onerror="this.style.display='none';">
+
+  <!-- Rodapé / Assinatura do Desenvolvedor (Logotipo em cima, espaçamento reduzido) -->
+  <footer class="bg-white text-gray-700 py-8 px-4 mt-12 border-t border-gray-200 text-center shadow-inner">
+    <div class="max-w-md mx-auto space-y-1">
+      <div class="flex justify-center">
+        <img src="manhublogo.png" alt="Manhub Logo" class="h-16 w-auto object-contain" onerror="this.style.display='none';">
+      </div>
+      <p class="text-[6px] tracking-widest font-extrabold text-gray-600 uppercase">
+        DESENVOLVIDO POR MANHUB SISTEMA DE GESTÃO
+      </p>
     </div>
-    <p class="text-[6px] tracking-widest font-extrabold text-gray-600 uppercase">
-      DESENVOLVIDO POR MANHUB SISTEMA DE GESTÃO
-    </p>
-  </div>
-</footer>
+  </footer>
 </body>
 </html>
