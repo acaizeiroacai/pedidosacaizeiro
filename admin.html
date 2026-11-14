@@ -427,7 +427,16 @@
         campo.value = "";
       }
     }
+var configDashboard = { margemPadrao: 35, origemConfig: 'localStorage' };
 
+    function inicializarConfigDashboard() {
+      var margemSalva = parseFloat(localStorage.getItem('acaizeiro_margem_padrao'));
+      if (!isNaN(margemSalva) && margemSalva >= 1 && margemSalva <= 95) {
+        configDashboard.margemPadrao = margemSalva;
+      }
+      var input = document.getElementById('dash-margem-padrao');
+      if (input) input.value = configDashboard.margemPadrao;
+    }
     function liberarAcesso() {
       document.getElementById('tela-login').classList.add('hidden');
       document.getElementById('painel-conteudo').classList.remove('hidden');
