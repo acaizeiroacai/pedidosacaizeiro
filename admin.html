@@ -134,6 +134,14 @@
               <button onclick="mudarAba('relatorios')" id="nav-btn-relatorios" class="nav-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold text-purple-100 hover:bg-purple-800/60 transition cursor-pointer">
                 <i class="fa-solid fa-chart-line w-4 text-center"></i> Relatórios de vendas
               </button>
+              <button onclick="mudarAba('desempenho')" id="nav-btn-desempenho" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-purple-200/80 hover:bg-purple-800/60 transition cursor-pointer">
+                <span class="flex items-center gap-2.5"><i class="fa-solid fa-ranking-star w-4 text-center"></i> Desempenho dos produtos</span>
+                <span class="text-[9px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded">Etapa 8</span>
+              </button>
+              <button onclick="mudarAba('rentabilidade')" id="nav-btn-rentabilidade" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-purple-200/80 hover:bg-purple-800/60 transition cursor-pointer">
+                <span class="flex items-center gap-2.5"><i class="fa-solid fa-magnifying-glass-dollar w-4 text-center"></i> Análise de rentabilidade</span>
+                <span class="text-[9px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded">Etapa 8</span>
+              </button>
             </div>
           </div>
 
@@ -181,41 +189,195 @@
         </div>
       </header>
 
-      <!-- DASHBOARD -->
+      <!-- TELA 0: DASHBOARD -->
       <section id="aba-dashboard" class="max-w-6xl w-full mx-auto p-4 sm:p-6 space-y-6">
+        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button onclick="selecionarPeriodoDashboard('hoje')" data-periodo="hoje" class="btn-periodo-dash px-3 py-1.5 rounded-xl text-xs font-bold bg-[#411564] text-white cursor-pointer">Hoje</button>
+            <button onclick="selecionarPeriodoDashboard('ontem')" data-periodo="ontem" class="btn-periodo-dash px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">Ontem</button>
+            <button onclick="selecionarPeriodoDashboard('7dias')" data-periodo="7dias" class="btn-periodo-dash px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">Últimos 7 dias</button>
+            <button onclick="selecionarPeriodoDashboard('30dias')" data-periodo="30dias" class="btn-periodo-dash px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">Últimos 30 dias</button>
+            <button onclick="selecionarPeriodoDashboard('mes_atual')" data-periodo="mes_atual" class="btn-periodo-dash px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">Este mês</button>
+            <button onclick="selecionarPeriodoDashboard('mes_anterior')" data-periodo="mes_anterior" class="btn-periodo-dash px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">Mês anterior</button>
+            <button onclick="selecionarPeriodoDashboard('personalizado')" data-periodo="personalizado" class="btn-periodo-dash px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">Personalizado</button>
+          </div>
+          <div class="flex items-center gap-2 bg-purple-50/80 px-3 py-1.5 rounded-xl border border-purple-100">
+            <label for="dash-margem-padrao" class="text-[11px] font-bold text-[#411564] whitespace-nowrap">Margem Presumida (%):</label>
+            <input type="number" id="dash-margem-padrao" min="1" max="95" step="1" value="35" onchange="alterarMargemPadraoDashboard()" class="w-16 bg-white border border-purple-200 rounded-lg px-2 py-1 text-xs font-black text-center text-[#411564] outline-purple-600">
+          </div>
+        </div>
+
+        <div id="box-periodo-personalizado" class="hidden bg-white p-3.5 rounded-2xl border border-purple-200 shadow-sm flex flex-wrap items-end gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">Data Inicial</label>
+            <input type="date" id="dash-data-inicio" class="border border-gray-300 rounded-xl px-3 py-1.5 text-xs outline-purple-600">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">Data Final</label>
+            <input type="date" id="dash-data-fim" class="border border-gray-300 rounded-xl px-3 py-1.5 text-xs outline-purple-600">
+          </div>
+          <button onclick="carregarDashboard()" class="bg-[#411564] hover:bg-purple-900 text-white font-bold px-4 py-1.5 rounded-xl text-xs cursor-pointer">Aplicar Período</button>
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
-            <p class="text-xs font-bold text-gray-500 uppercase" id="lbl-card-faturamento">Faturamento (Hoje)</p>
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-bold text-gray-500 uppercase" id="lbl-card-faturamento">Faturamento (Hoje)</p>
+              <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-sack-dollar"></i></span>
+            </div>
             <p class="text-2xl font-black text-gray-900 mt-2" id="dash-val-faturamento">R$ 0,00</p>
+            <p class="text-[11px] text-gray-500 mt-1" id="dash-comp-faturamento">Calculando comparação...</p>
           </div>
           <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
-            <p class="text-xs font-bold text-gray-500 uppercase" id="lbl-card-pedidos">Pedidos Concluídos</p>
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-bold text-gray-500 uppercase" id="lbl-card-pedidos">Pedidos Concluídos</p>
+              <span class="w-8 h-8 rounded-xl bg-purple-50 text-[#411564] flex items-center justify-center"><i class="fa-solid fa-bag-shopping"></i></span>
+            </div>
             <p class="text-2xl font-black text-gray-900 mt-2" id="dash-val-pedidos">0</p>
+            <p class="text-[11px] text-gray-500 mt-1" id="dash-comp-pedidos">Calculando comparação...</p>
           </div>
           <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
-            <p class="text-xs font-bold text-gray-500 uppercase">Aguardando Atendimento</p>
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-bold text-gray-500 uppercase">Ticket Médio</p>
+              <span class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fa-solid fa-receipt"></i></span>
+            </div>
+            <p class="text-2xl font-black text-gray-900 mt-2" id="dash-val-ticket">R$ 0,00</p>
+            <p class="text-[11px] text-gray-500 mt-1" id="dash-comp-ticket">Calculando comparação...</p>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-bold text-gray-500 uppercase">Lucro estimado (margem presumida)</p>
+              <span class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-coins"></i></span>
+            </div>
+            <p class="text-2xl font-black text-emerald-600 mt-2" id="dash-val-lucro">R$ 0,00</p>
+            <p class="text-[11px] text-gray-500 mt-1" id="dash-comp-lucro">Estimativa com margem presumida de 35% (não representa lucro líquido real)</p>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-bold text-gray-500 uppercase">Aguardando Atendimento</p>
+              <span class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center"><i class="fa-solid fa-clock"></i></span>
+            </div>
             <p class="text-2xl font-black text-rose-600 mt-2" id="dash-val-aguardando">0</p>
+            <p class="text-[11px] text-gray-500 mt-1">Situação atual da operação (novos ou aguardando Pix)</p>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-bold text-gray-500 uppercase">Em Preparação / Rota</p>
+              <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><i class="fa-solid fa-fire-burner"></i></span>
+            </div>
+            <p class="text-2xl font-black text-indigo-600 mt-2" id="dash-val-preparo">0</p>
+            <p class="text-[11px] text-gray-500 mt-1">Situação atual da operação (em preparo ou entrega)</p>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+          <h3 class="text-xs font-extrabold text-gray-700 uppercase mb-3">Status dos Pedidos no Período</h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 text-center" id="dash-resumo-status"></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-3">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <h3 class="text-sm font-extrabold text-gray-800">Evolução do Faturamento</h3>
+              <div class="flex gap-1 bg-gray-100 p-1 rounded-xl">
+                <button onclick="mudarAgrupamentoGrafico('dia')" data-agrup="dia" class="btn-agrup-fat px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-[#411564] shadow-sm cursor-pointer">Dia</button>
+                <button onclick="mudarAgrupamentoGrafico('semana')" data-agrup="semana" class="btn-agrup-fat px-2.5 py-1 rounded-lg text-[11px] font-bold text-gray-600 cursor-pointer">Semana</button>
+                <button onclick="mudarAgrupamentoGrafico('mes')" data-agrup="mes" class="btn-agrup-fat px-2.5 py-1 rounded-lg text-[11px] font-bold text-gray-600 cursor-pointer">Mês</button>
+              </div>
+            </div>
+            <div class="h-60"><canvas id="grafico-faturamento"></canvas></div>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-extrabold text-gray-800">Quantidade de Pedidos</h3>
+              <span class="text-[11px] text-gray-400">Pedidos concluídos no período</span>
+            </div>
+            <div class="h-60"><canvas id="grafico-pedidos"></canvas></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-3">
+            <h3 class="text-sm font-extrabold text-gray-800 flex items-center gap-2"><i class="fa-solid fa-trophy text-amber-500"></i> Top 5 Produtos Mais Vendidos</h3>
+            <div id="dash-top-produtos" class="divide-y divide-gray-100"><p class="text-xs text-gray-400 py-6 text-center">Carregando ranking...</p></div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-3">
+            <h3 class="text-sm font-extrabold text-gray-800 flex items-center gap-2"><i class="fa-solid fa-credit-card text-[#411564]"></i> Formas de Pagamento</h3>
+            <div class="h-52 flex items-center justify-center"><canvas id="grafico-pagamentos"></canvas></div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-extrabold text-gray-800 flex items-center gap-2"><i class="fa-solid fa-clock text-purple-600"></i> Horários de Pico</h3>
+              <span id="dash-horario-pico-badge" class="text-[10px] font-bold bg-purple-100 text-[#411564] px-2 py-0.5 rounded-full">-</span>
+            </div>
+            <div class="h-52"><canvas id="grafico-horarios"></canvas></div>
           </div>
         </div>
       </section>
 
-      <!-- PEDIDOS -->
+      <!-- ABA 1: PEDIDOS DO DIA -->
       <section id="aba-pedidos" class="max-w-5xl w-full mx-auto p-4 hidden">
+        <div class="flex gap-2 overflow-x-auto pb-3">
+          <button onclick="filtrarStatus('Todos')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#411564] text-white cursor-pointer" data-status="Todos">Todos (Hoje)</button>
+          <button onclick="filtrarStatus('Aguardando Aceite da Loja')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Aguardando Aceite da Loja">Novos (Aguardando Aceite)</button>
+          <button onclick="filtrarStatus('Aguardando Pagamento Pix')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Aguardando Pagamento Pix">Aguardando Pix</button>
+          <button onclick="filtrarStatus('Em preparo')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Em preparo">Em Preparação</button>
+          <button onclick="filtrarStatus('Saiu para entrega')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Saiu para entrega">A Caminho</button>
+          <button onclick="filtrarStatus('Concluído')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Concluído">Concluídos</button>
+          <button onclick="filtrarStatus('Recusado')" class="btn-filtro px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 border hover:bg-gray-50 cursor-pointer" data-status="Recusado">Recusados</button>
+        </div>
         <div id="lista-pedidos-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="col-span-full text-center py-12 text-gray-400 text-sm">A carregar pedidos de hoje...</div>
         </div>
       </section>
 
-      <!-- RELATÓRIOS -->
+      <!-- ABA 2: RELATÓRIOS DO MÊS -->
       <section id="aba-relatorios" class="max-w-5xl w-full mx-auto p-4 hidden space-y-6">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h2 class="text-lg font-extrabold text-[#411564] flex items-center gap-2"><i class="fa-solid fa-chart-line"></i> Relatório de Vendas do Mês</h2>
+            <p class="text-xs text-gray-500">Histórico completo de pedidos faturados e fechamento mensal.</p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="baixarRelatorioPDF()" id="btn-baixar-pdf" class="bg-red-700 hover:bg-red-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer"><i class="fa-solid fa-file-pdf"></i> Baixar Relatório (PDF)</button>
+            <button onclick="solicitarLimpezaMes()" class="bg-gray-100 hover:bg-red-50 text-red-600 border border-red-200 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer"><i class="fa-solid fa-trash-can"></i> Limpar Mês</button>
+            <button onclick="carregarRelatorios()" class="bg-purple-100 hover:bg-purple-200 text-[#411564] font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer"><i class="fa-solid fa-arrows-rotate"></i> Atualizar</button>
+          </div>
+        </div>
+
         <div id="area-impressao-pdf" class="space-y-6 bg-transparent">
           <div class="hidden print:block p-4 border-b border-gray-300 text-center" id="cabecalho-pdf">
             <h1 class="text-2xl font-black text-[#411564]">AÇAIZEIRO DELIVERY</h1>
+            <p class="text-xs text-gray-500 font-medium">Relatório Oficial de Fechamento de Vendas</p>
+            <p class="text-[11px] text-gray-400 mt-1" id="pdf-data-emissao"></p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+              <p class="text-xs text-gray-500 font-semibold uppercase">Faturamento Concluído</p>
+              <p class="text-2xl font-black text-emerald-600 mt-1" id="relatorio-total-faturado">R$ 0,00</p>
+              <span class="text-[11px] text-gray-400">Total do mês vigente</span>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+              <p class="text-xs text-gray-500 font-semibold uppercase">Pedidos Concluídos</p>
+              <p class="text-2xl font-black text-[#411564] mt-1" id="relatorio-qtd-pedidos">0</p>
+              <span class="text-[11px] text-gray-400">Entregues com sucesso</span>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+              <p class="text-xs text-gray-500 font-semibold uppercase">Ticket Médio</p>
+              <p class="text-2xl font-black text-blue-600 mt-1" id="relatorio-ticket-medio">R$ 0,00</p>
+              <span class="text-[11px] text-gray-400">Média por pedido</span>
+            </div>
           </div>
           <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
             <div class="p-4 border-b border-gray-100 font-bold text-sm text-gray-800">Listagem Geral de Pedidos do Mês</div>
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs text-gray-600">
+                <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100">
+                  <tr>
+                    <th class="p-3">#ID</th><th class="p-3">Data / Hora</th><th class="p-3">Cliente</th><th class="p-3">Pagamento</th><th class="p-3">Status</th><th class="p-3 text-right">Valor</th>
+                  </tr>
+                </thead>
                 <tbody id="tabela-relatorios-corpo" class="divide-y divide-gray-100 font-medium">
                   <tr><td colspan="6" class="p-6 text-center text-gray-400">A carregar dados do relatório...</td></tr>
                 </tbody>
@@ -225,18 +387,40 @@
         </div>
       </section>
 
-      <!-- CARDÁPIO -->
+      <!-- ABA 3: CARDÁPIO & PRODUTOS -->
       <section id="aba-stock" class="max-w-5xl w-full mx-auto p-4 hidden space-y-6">
         <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+          <div class="flex items-center justify-between pb-4 border-b border-gray-100 flex-wrap gap-2">
+            <div>
+              <h2 class="text-base font-extrabold text-[#411564] flex items-center gap-2"><i class="fa-solid fa-mug-hot"></i> Copos & Produtos do Cardápio</h2>
+              <p class="text-xs text-gray-500">Adicione novos itens, ajuste preços ou pause itens esgotados.</p>
+            </div>
+            <button onclick="abrirModalProduto()" class="bg-[#411564] hover:bg-purple-900 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-sm transition active:scale-95 cursor-pointer"><i class="fa-solid fa-plus"></i> Novo Produto</button>
+          </div>
           <div id="lista-copos-stock" class="divide-y divide-gray-100 mt-2"><p class="text-xs text-gray-400 py-4 text-center">A carregar produtos...</p></div>
         </div>
+
         <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+          <div class="flex items-center justify-between pb-4 border-b border-gray-100 flex-wrap gap-2">
+            <div>
+              <h2 class="text-base font-extrabold text-[#411564] flex items-center gap-2"><i class="fa-solid fa-bowl-food"></i> Frutas & Complementos</h2>
+              <p class="text-xs text-gray-500">Adicionais que o cliente pode escolher ao montar o copo.</p>
+            </div>
+            <button onclick="abrirModalComplemento()" class="bg-purple-800 hover:bg-purple-900 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-sm transition active:scale-95 cursor-pointer"><i class="fa-solid fa-plus"></i> Novo Complemento</button>
+          </div>
           <div id="lista-complementos-stock" class="divide-y divide-gray-100 mt-2"><p class="text-xs text-gray-400 py-4 text-center">A carregar complementos...</p></div>
         </div>
       </section>
 
-      <!-- PRECIFICAÇÃO -->
+      <!-- ABA 4: PRECIFICAÇÃO & FICHA TÉCNICA -->
       <section id="aba-precificacao" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-extrabold text-[#411564] flex items-center gap-2"><i class="fa-solid fa-calculator"></i> Precificação & Ficha Técnica Persistente</h2>
+            <p class="text-xs text-gray-500">Cadastre insumos com conversão de unidades, vincule receitas aos produtos e analise a rentabilidade real.</p>
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div class="lg:col-span-5 bg-white p-5 rounded-2xl shadow-sm border border-gray-200 space-y-4">
             <h3 class="text-sm font-extrabold text-[#411564] border-b pb-2 flex items-center gap-2"><i class="fa-solid fa-boxes-stacked"></i> 1. Insumos & Embalagens</h3>
@@ -268,47 +452,98 @@
         </div>
       </section>
 
-      <!-- FINANCEIRO -->
+      <!-- ABA 5: CONTROLE FINANCEIRO -->
       <section id="aba-financeiro" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <tbody id="tabela-despesas-corpo"></tbody>
+          <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-sm font-extrabold text-[#411564]">Despesas do Período</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-600">
+              <tbody id="tabela-despesas-corpo" class="divide-y divide-gray-100 font-medium">
+                <tr><td colspan="6" class="p-6 text-center text-gray-400">A carregar despesas...</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
-      <!-- CAIXA -->
+      <!-- ABA 6: FECHAMENTO DE CAIXA -->
       <section id="aba-caixa" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <tbody id="tabela-fechamentos-corpo"></tbody>
+          <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-sm font-extrabold text-[#411564]">Histórico de Fechamentos Registrados</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-600">
+              <tbody id="tabela-fechamentos-corpo" class="divide-y divide-gray-100 font-medium">
+                <tr><td colspan="6" class="p-6 text-center text-gray-400">A carregar histórico de caixa...</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
-      <!-- ESTOQUE -->
+      <!-- ABA 7: ESTOQUE INTEGRADO -->
       <section id="aba-estoque" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
-        <tbody id="tabela-posicao-estoque"></tbody>
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-gray-100">
+            <h3 class="text-sm font-extrabold text-[#411564]">Posição Atual de Estoque</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-600">
+              <tbody id="tabela-posicao-estoque" class="divide-y divide-gray-100 font-medium">
+                <tr><td colspan="4" class="p-6 text-center text-gray-400">A carregar saldos de estoque...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
-      <!-- CLIENTES -->
+      <!-- ABA 8: CLIENTES & CRM -->
       <section id="aba-clientes" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
-        <tbody id="tabela-clientes-corpo"></tbody>
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-gray-100">
+            <h3 class="text-sm font-extrabold text-[#411564]">Base Consolidada de Clientes</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-600">
+              <tbody id="tabela-clientes-corpo" class="divide-y divide-gray-100 font-medium">
+                <tr><td colspan="8" class="p-6 text-center text-gray-400">A carregar clientes...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
-      <!-- ENTREGAS -->
+      <!-- ABA 9: ENTREGAS -->
       <section id="aba-entregas" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
-        <div id="lista-entregadores-cadastrados"></div>
-        <tbody id="tabela-produtividade-entregadores"></tbody>
+        <div id="lista-entregadores-cadastrados" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+          <p class="text-xs text-gray-400 text-center py-4">A carregar entregadores...</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <table class="w-full text-left text-xs text-gray-600">
+            <tbody id="tabela-produtividade-entregadores" class="divide-y divide-gray-100 font-medium">
+              <tr><td colspan="6" class="p-6 text-center text-gray-400">A calcular produtividade...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
-      <!-- CONFIGURAÇÕES -->
+      <!-- ABA 10: CONFIGURAÇÕES DA LOJA -->
       <section id="aba-config" class="max-w-3xl w-full mx-auto p-4 hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-5">
           <div class="border-b pb-3">
             <h2 class="text-lg font-extrabold text-[#411564] flex items-center gap-2"><i class="fa-solid fa-gear"></i> Configurações da Loja & Pagamentos</h2>
+            <p class="text-xs text-gray-500">Altere o WhatsApp de recebimento e a taxa de entrega.</p>
           </div>
           <form onsubmit="salvarConfiguracoesLoja(event)" class="space-y-4">
+            
+            <!-- Controle de Status da Loja -->
             <div class="p-4 rounded-xl border-2 border-purple-200 bg-purple-50/30 flex items-center justify-between gap-3">
               <div>
-                <p class="text-xs font-extrabold text-gray-900 uppercase">Status da loja</p>
-                <p class="text-[11px] text-gray-500">Quando fechado, o site avisará os clientes.</p>
+                <p class="text-xs font-extrabold text-gray-900 uppercase">Status Operacional do Site</p>
+                <p class="text-[11px] text-gray-500">Muda instantaneamente no site de pedidos ao alternar.</p>
               </div>
               <div class="flex items-center gap-2">
                 <span id="txt-status-toggle" class="text-xs font-black text-emerald-600">Aberta</span>
@@ -321,7 +556,7 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">WhatsApp da Loja *</label>
+                <label class="block text-xs font-bold text-gray-700 mb-1">WhatsApp da Loja (com 55 + DDD) *</label>
                 <input type="text" id="cfg-whatsapp" required placeholder="Ex: 5516992928529" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-purple-600">
               </div>
               <div>
@@ -339,12 +574,34 @@
       <!-- MÓDULO EM BREVE -->
       <section id="aba-em-breve" class="max-w-2xl w-full mx-auto p-6 hidden">
         <div class="bg-white p-8 rounded-3xl border border-purple-100 shadow-sm text-center space-y-3">
+          <div class="w-14 h-14 rounded-2xl bg-purple-100 text-[#411564] mx-auto flex items-center justify-center text-2xl"><i class="fa-solid fa-layer-group"></i></div>
           <h3 id="titulo-modulo-futuro" class="text-lg font-extrabold text-gray-900">Módulo em Preparação</h3>
+          <p id="desc-modulo-futuro" class="text-xs text-gray-500">Este módulo faz parte do cronograma de evolução.</p>
         </div>
       </section>
 
     </div>
   </div>
+
+  <!-- MODAL: Criar / Editar Produto -->
+  <div id="modal-form-produto" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-md rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 id="titulo-modal-produto" class="font-extrabold text-[#411564] text-base">Novo Produto</h3>
+        <button onclick="fecharModalProduto()" class="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none cursor-pointer">&times;</button>
+      </div>
+      <form id="form-cad-produto" onsubmit="salvarProduto(event)" class="space-y-3">
+        <input type="hidden" id="prod-edit-id">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Nome do Item *</label>
+          <input type="text" id="prod-nome" required class="w-full border border-gray-300 rounded-xl p-2.5 text-xs outline-purple-600">
+        </div>
+        <button type="submit" class="w-full bg-[#411564] text-white font-bold py-2.5 rounded-xl text-xs">Salvar</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="area-cupom-termico" class="hidden print:block"></div>
 
   <!-- SCRIPT COMPLETO E UNIFICADO -->
   <script>
@@ -509,7 +766,7 @@
       if (aba === 'config') carregarConfiguracoesLoja();
     }
 
-    // FUNÇÕES DE SUPORTE AOS MÓDULOS (Garantem que nenhum botão quebre)
+    // FUNÇÕES DE SUPORTE
     async function carregarDashboard() {}
     async function carregarPedidos() {}
     async function carregarRelatorios() {}
@@ -518,18 +775,11 @@
     async function carregarModuloCaixa() {}
     async function carregarModuloClientes() {}
     async function carregarModuloEntregas() {}
+    async function carregarModuloEstoque() {}
+    function fecharModalProduto() {}
 
-    // ESTOQUE & INSUMOS
+    // PRECIFICAÇÃO & INSUMOS
     var listaInsumos = [];
-    async function carregarModuloEstoque() {
-      var sb = initClient();
-      if (!sb) return;
-      try {
-        var res = await sb.from('insumos_precificacao').select('*').order('nome');
-        listaInsumosEstoque = res.data || [];
-      } catch (e) {}
-    }
-
     async function carregarModuloPrecificacao() {
       var sb = initClient();
       if (!sb) return;
@@ -583,7 +833,7 @@
       carregarModuloPrecificacao();
     }
 
-    // CONFIGURAÇÕES DA LOJA E STATUS
+    // STATUS DA LOJA & CONFIGURAÇÕES
     function atualizarTextoToggleStatus() {
       var ativo = document.getElementById('cfg-loja-aberta').checked;
       var txt = document.getElementById('txt-status-toggle');
