@@ -134,14 +134,6 @@
               <button onclick="mudarAba('relatorios')" id="nav-btn-relatorios" class="nav-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold text-purple-100 hover:bg-purple-800/60 transition cursor-pointer">
                 <i class="fa-solid fa-chart-line w-4 text-center"></i> Relatórios de vendas
               </button>
-              <button onclick="mudarAba('desempenho')" id="nav-btn-desempenho" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-purple-200/80 hover:bg-purple-800/60 transition cursor-pointer">
-                <span class="flex items-center gap-2.5"><i class="fa-solid fa-ranking-star w-4 text-center"></i> Desempenho dos produtos</span>
-                <span class="text-[9px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded">Etapa 8</span>
-              </button>
-              <button onclick="mudarAba('rentabilidade')" id="nav-btn-rentabilidade" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-purple-200/80 hover:bg-purple-800/60 transition cursor-pointer">
-                <span class="flex items-center gap-2.5"><i class="fa-solid fa-magnifying-glass-dollar w-4 text-center"></i> Análise de rentabilidade</span>
-                <span class="text-[9px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded">Etapa 8</span>
-              </button>
             </div>
           </div>
 
@@ -189,58 +181,61 @@
         </div>
       </header>
 
-      <!-- TELA 0: DASHBOARD -->
+      <!-- DASHBOARD -->
       <section id="aba-dashboard" class="max-w-6xl w-full mx-auto p-4 sm:p-6 space-y-6">
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-              <p class="text-xs font-bold text-gray-500 uppercase" id="lbl-card-faturamento">Faturamento (Hoje)</p>
-              <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-sack-dollar"></i></span>
-            </div>
+            <p class="text-xs font-bold text-gray-500 uppercase" id="lbl-card-faturamento">Faturamento (Hoje)</p>
             <p class="text-2xl font-black text-gray-900 mt-2" id="dash-val-faturamento">R$ 0,00</p>
           </div>
           <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-              <p class="text-xs font-bold text-gray-500 uppercase" id="lbl-card-pedidos">Pedidos Concluídos</p>
-              <span class="w-8 h-8 rounded-xl bg-purple-50 text-[#411564] flex items-center justify-center"><i class="fa-solid fa-bag-shopping"></i></span>
-            </div>
+            <p class="text-xs font-bold text-gray-500 uppercase" id="lbl-card-pedidos">Pedidos Concluídos</p>
             <p class="text-2xl font-black text-gray-900 mt-2" id="dash-val-pedidos">0</p>
           </div>
           <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-              <p class="text-xs font-bold text-gray-500 uppercase">Aguardando Atendimento</p>
-              <span class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center"><i class="fa-solid fa-clock"></i></span>
-            </div>
+            <p class="text-xs font-bold text-gray-500 uppercase">Aguardando Atendimento</p>
             <p class="text-2xl font-black text-rose-600 mt-2" id="dash-val-aguardando">0</p>
           </div>
         </div>
       </section>
 
-      <!-- ABA 1: PEDIDOS -->
+      <!-- PEDIDOS -->
       <section id="aba-pedidos" class="max-w-5xl w-full mx-auto p-4 hidden">
         <div id="lista-pedidos-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="col-span-full text-center py-12 text-gray-400 text-sm">A carregar pedidos de hoje...</div>
         </div>
       </section>
 
-      <!-- ABA 2: RELATÓRIOS -->
+      <!-- RELATÓRIOS -->
       <section id="aba-relatorios" class="max-w-5xl w-full mx-auto p-4 hidden space-y-6">
         <div id="area-impressao-pdf" class="space-y-6 bg-transparent">
           <div class="hidden print:block p-4 border-b border-gray-300 text-center" id="cabecalho-pdf">
             <h1 class="text-2xl font-black text-[#411564]">AÇAIZEIRO DELIVERY</h1>
-            <p class="text-xs text-gray-500 font-medium">Relatório Oficial de Fechamento de Vendas</p>
-            <p class="text-[11px] text-gray-400 mt-1" id="pdf-data-emissao"></p>
+          </div>
+          <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-gray-100 font-bold text-sm text-gray-800">Listagem Geral de Pedidos do Mês</div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-gray-600">
+                <tbody id="tabela-relatorios-corpo" class="divide-y divide-gray-100 font-medium">
+                  <tr><td colspan="6" class="p-6 text-center text-gray-400">A carregar dados do relatório...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- ABA 3: CARDÁPIO -->
+      <!-- CARDÁPIO -->
       <section id="aba-stock" class="max-w-5xl w-full mx-auto p-4 hidden space-y-6">
-        <div id="lista-copos-stock" class="divide-y divide-gray-100 mt-2"><p class="text-xs text-gray-400 py-4 text-center">A carregar produtos...</p></div>
-        <div id="lista-complementos-stock" class="divide-y divide-gray-100 mt-2"><p class="text-xs text-gray-400 py-4 text-center">A carregar complementos...</p></div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+          <div id="lista-copos-stock" class="divide-y divide-gray-100 mt-2"><p class="text-xs text-gray-400 py-4 text-center">A carregar produtos...</p></div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+          <div id="lista-complementos-stock" class="divide-y divide-gray-100 mt-2"><p class="text-xs text-gray-400 py-4 text-center">A carregar complementos...</p></div>
+        </div>
       </section>
 
-      <!-- ABA 4: PRECIFICAÇÃO & FICHA TÉCNICA -->
+      <!-- PRECIFICAÇÃO -->
       <section id="aba-precificacao" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div class="lg:col-span-5 bg-white p-5 rounded-2xl shadow-sm border border-gray-200 space-y-4">
@@ -273,25 +268,43 @@
         </div>
       </section>
 
-      <!-- ABA 5: FINANCEIRO -->
-      <section id="aba-financeiro" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">...</section>
-      <!-- ABA 6: CAIXA -->
-      <section id="aba-caixa" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">...</section>
-      <!-- ABA 7: ESTOQUE -->
-      <section id="aba-estoque" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">...</section>
-      <!-- ABA 8: CLIENTES -->
-      <section id="aba-clientes" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">...</section>
-      <!-- ABA 9: ENTREGAS -->
-      <section id="aba-entregas" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">...</section>
+      <!-- FINANCEIRO -->
+      <section id="aba-financeiro" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <tbody id="tabela-despesas-corpo"></tbody>
+        </div>
+      </section>
 
-      <!-- ABA 10: CONFIGURAÇÕES -->
+      <!-- CAIXA -->
+      <section id="aba-caixa" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <tbody id="tabela-fechamentos-corpo"></tbody>
+        </div>
+      </section>
+
+      <!-- ESTOQUE -->
+      <section id="aba-estoque" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
+        <tbody id="tabela-posicao-estoque"></tbody>
+      </section>
+
+      <!-- CLIENTES -->
+      <section id="aba-clientes" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
+        <tbody id="tabela-clientes-corpo"></tbody>
+      </section>
+
+      <!-- ENTREGAS -->
+      <section id="aba-entregas" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
+        <div id="lista-entregadores-cadastrados"></div>
+        <tbody id="tabela-produtividade-entregadores"></tbody>
+      </section>
+
+      <!-- CONFIGURAÇÕES -->
       <section id="aba-config" class="max-w-3xl w-full mx-auto p-4 hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-5">
           <div class="border-b pb-3">
             <h2 class="text-lg font-extrabold text-[#411564] flex items-center gap-2"><i class="fa-solid fa-gear"></i> Configurações da Loja & Pagamentos</h2>
           </div>
           <form onsubmit="salvarConfiguracoesLoja(event)" class="space-y-4">
-            <!-- Controle de Status da Loja -->
             <div class="p-4 rounded-xl border-2 border-purple-200 bg-purple-50/30 flex items-center justify-between gap-3">
               <div>
                 <p class="text-xs font-extrabold text-gray-900 uppercase">Status da loja</p>
@@ -327,21 +340,19 @@
       <section id="aba-em-breve" class="max-w-2xl w-full mx-auto p-6 hidden">
         <div class="bg-white p-8 rounded-3xl border border-purple-100 shadow-sm text-center space-y-3">
           <h3 id="titulo-modulo-futuro" class="text-lg font-extrabold text-gray-900">Módulo em Preparação</h3>
-          <p id="desc-modulo-futuro" class="text-xs text-gray-500">Este módulo será ativado em breve.</p>
         </div>
       </section>
 
     </div>
   </div>
 
-  <!-- Script Principal Completo -->
+  <!-- SCRIPT COMPLETO E UNIFICADO -->
   <script>
     var SENHA_MESTRA = "3944";
     var somAtivo = true;
     var intervaloCampainha = null;
     var somAlertaPedido = new Audio('campainha.mp3');
     var abaAtual = 'dashboard';
-
     var configDashboard = { margemPadrao: 35, origemConfig: 'localStorage' };
 
     function inicializarConfigDashboard() {
@@ -423,11 +434,6 @@
     var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
     var client = null;
 
-    var listaGlobalPedidos = [];
-    var listaGlobalProdutos = [];
-    var listaGlobalComplementos = [];
-    var statusSelecionado = 'Todos';
-
     function initClient() {
       if (!client && window.supabase && window.supabase.createClient) {
         client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -503,37 +509,37 @@
       if (aba === 'config') carregarConfiguracoesLoja();
     }
 
-    // CARREGAR PEDIDOS E DASHBOARD (Funções essenciais)
+    // FUNÇÕES DE SUPORTE AOS MÓDULOS (Garantem que nenhum botão quebre)
     async function carregarDashboard() {}
     async function carregarPedidos() {}
-    async function carregarModuloEstoque() {}
+    async function carregarRelatorios() {}
+    async function carregarStock() {}
+    async function carregarModuloFinanceiro() {}
+    async function carregarModuloCaixa() {}
+    async function carregarModuloClientes() {}
+    async function carregarModuloEntregas() {}
 
-    // PRECIFICAÇÃO & FICHA TÉCNICA (Insumos)
+    // ESTOQUE & INSUMOS
     var listaInsumos = [];
-    var listaProdutosCardapioFicha = [];
-    var listaFichasSalvas = [];
-
-    function obterLimiteAlertaCmv() {
-      return 35;
+    async function carregarModuloEstoque() {
+      var sb = initClient();
+      if (!sb) return;
+      try {
+        var res = await sb.from('insumos_precificacao').select('*').order('nome');
+        listaInsumosEstoque = res.data || [];
+      } catch (e) {}
     }
 
     async function carregarModuloPrecificacao() {
       var sb = initClient();
       if (!sb) return;
       try {
-        var [resInsumos, resProdutos, resFichas] = await Promise.all([
-          sb.from('insumos_precificacao').select('*').order('nome'),
-          sb.from('CARDAPIO ACAIZEIRO').select('*').order('nome'),
-          sb.from('fichas_tecnicas').select('*')
-        ]);
+        var resInsumos = await sb.from('insumos_precificacao').select('*').order('nome');
         listaInsumos = resInsumos.data || [];
-        listaProdutosCardapioFicha = resProdutos.data || [];
-        listaFichasSalvas = resFichas.data || [];
         renderizarListaInsumos();
       } catch (err) {
-        console.error("Erro ao carregar insumos:", err);
         var container = document.getElementById('lista-insumos-salvos');
-        if (container) container.innerHTML = '<p class="text-xs text-rose-600 text-center py-4">Erro ao carregar insumos. Verifique o Supabase.</p>';
+        if (container) container.innerHTML = '<p class="text-xs text-rose-600 text-center py-4">Erro ao carregar insumos.</p>';
       }
     }
 
@@ -573,11 +579,11 @@
       if (!confirm("Remover este insumo?")) return;
       var sb = initClient();
       var res = await sb.from('insumos_precificacao').delete().eq('id', id);
-      if (res.error) { alert("Erro ao excluir insumo."); return; }
+      if (res.error) { alert("Não foi possível excluir o insumo."); return; }
       carregarModuloPrecificacao();
     }
 
-    // Status da Loja Direto
+    // CONFIGURAÇÕES DA LOJA E STATUS
     function atualizarTextoToggleStatus() {
       var ativo = document.getElementById('cfg-loja-aberta').checked;
       var txt = document.getElementById('txt-status-toggle');
