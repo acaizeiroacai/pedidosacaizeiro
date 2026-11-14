@@ -2619,6 +2619,27 @@
       if (campo) campo.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); tentarEntrar(); } });
       verificarAutenticacao();
     });
+    async function salvarStatusLojaDireto() {
+      var lojaAberta = document.getElementById('cfg-loja-aberta').checked;
+      
+      var txt = document.getElementById('txt-status-toggle');
+      if (txt) {
+        txt.innerText = lojaAberta ? 'Aberta' : 'Fechada';
+        txt.className = lojaAberta ? 'text-xs font-black text-emerald-600' : 'text-xs font-black text-rose-600';
+      }
+
+      var sb = initClient();
+      if (!sb) return;
+
+      var res = await sb.from('configuracoes_loja').upsert({ 
+        id: 1, 
+        loja_aberta: lojaAberta 
+      }, { onConflict: 'id' });
+
+      if (res.error) {
+        alert("Erro ao alterar o status da loja: " + res.error.message);
+      }
+    }
   </script>
 </body>
 </html>
