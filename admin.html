@@ -1423,60 +1423,6 @@
       if (aba === 'config') carregarConfiguracoesLoja();
     }
 
-      ['dashboard', 'pedidos', 'relatorios', 'stock', 'precificacao', 'financeiro', 'caixa', 'estoque', 'config', 'em-breve'].forEach(function(a) {
-        var el = document.getElementById('aba-' + a);
-        if (el) el.classList.add('hidden');
-      });
-
-      document.querySelectorAll('.nav-item').forEach(function(btn) {
-        btn.classList.remove('bg-[#411564]', 'text-white', 'shadow');
-      });
-
-      var btnAtivo = document.getElementById('nav-btn-' + aba);
-      if (btnAtivo) btnAtivo.classList.add('bg-[#411564]', 'text-white', 'shadow');
-
-      var titulosMap = {
-        dashboard: ['Dashboard', 'Visão geral do desempenho, faturamento e indicadores'],
-        pedidos: ['Pedidos em Tempo Real', 'Acompanhamento operacional e impressão de comandas'],
-        relatorios: ['Relatórios de Vendas', 'Fechamento mensal e exportação em PDF'],
-        stock: ['Cardápio e Produtos', 'Gerenciamento de itens, preços, fotos e complementos'],
-        precificacao: ['Precificação e Ficha Técnica', 'Insumos, fichas técnicas persistentes e rentabilidade'],
-        financeiro: ['Controle Financeiro', 'Entradas, despesas operacionais, recorrências e resultado'],
-        caixa: ['Fechamento de Caixa', 'Conferência diária de pagamentos, gaveta e histórico auditado'],
-        estoque: ['Estoque Integrado', 'Saldos de insumos, alertas mínimos e baixa automática por venda'],
-        config: ['Configurações da Loja', 'WhatsApp, taxa de entrega e modo de recebimento Pix'],
-        entregas: ['Entregas e Motoboys', 'Programado para a Etapa 7 do cronograma'],
-        clientes: ['Base de Clientes', 'Programado para a Etapa 6 do cronograma'],
-        desempenho: ['Desempenho dos Produtos', 'Programado para a Etapa 8 do cronograma'],
-        rentabilidade: ['Análise de Rentabilidade', 'Programado para a Etapa 8 do cronograma']
-      };
-
-      var info = titulosMap[aba] || ['Painel', 'Gestão Comercial'];
-      document.getElementById('titulo-pagina-atual').innerText = info[0];
-      document.getElementById('subtitulo-pagina-atual').innerText = info[1];
-
-      var modulosFuturos = ['entregas', 'clientes', 'desempenho', 'rentabilidade'];
-      if (modulosFuturos.indexOf(aba) !== -1) {
-        document.getElementById('aba-em-breve').classList.remove('hidden');
-        document.getElementById('titulo-modulo-futuro').innerText = info[0];
-        document.getElementById('desc-modulo-futuro').innerText = "Este módulo (" + info[1] + ") será implementado na sua respectiva etapa assim que você validar as etapas anteriores.";
-        return;
-      }
-
-      var ativa = document.getElementById('aba-' + aba);
-      if (ativa) ativa.classList.remove('hidden');
-
-      if (aba === 'dashboard') carregarDashboard();
-      if (aba === 'pedidos') carregarPedidos();
-      if (aba === 'stock') carregarStock();
-      if (aba === 'relatorios') carregarRelatorios();
-      if (aba === 'precificacao') carregarModuloPrecificacao();
-      if (aba === 'financeiro') carregarModuloFinanceiro();
-      if (aba === 'caixa') carregarModuloCaixa();
-      if (aba === 'estoque') carregarModuloEstoque();
-      if (aba === 'config') carregarConfiguracoesLoja();
-    }
-
     // DASHBOARD
     var configDashboard = { margemPadrao: 35, origemConfig: 'localStorage' };
     var periodoDashboardAtual = 'hoje';
