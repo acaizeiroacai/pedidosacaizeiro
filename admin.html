@@ -88,9 +88,8 @@
                 <span class="flex items-center gap-2.5"><i class="fa-solid fa-bell-concierge w-4 text-center"></i> Pedidos</span>
                 <span id="badge-novos-pedidos" class="hidden bg-amber-400 text-purple-950 text-[10px] font-black px-2 py-0.5 rounded-full">0</span>
               </button>
-              <button onclick="mudarAba('entregas')" id="nav-btn-entregas" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-purple-200/80 hover:bg-purple-800/60 transition cursor-pointer">
-                <span class="flex items-center gap-2.5"><i class="fa-solid fa-motorcycle w-4 text-center"></i> Entregas</span>
-                <span class="text-[9px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded">Etapa 7</span>
+              <button onclick="mudarAba('entregas')" id="nav-btn-entregas" class="nav-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold text-purple-100 hover:bg-purple-800/60 transition cursor-pointer">
+                <i class="fa-solid fa-motorcycle w-4 text-center"></i> Entregas
               </button>
             </div>
           </div>
@@ -1055,6 +1054,135 @@
           </div>
         </div>
       </section>
+      <!-- ========================================================= -->
+      <!-- ABA 9: ENTREGAS & ENTREGADORES (ETAPA 7)                  -->
+      <!-- ========================================================= -->
+      <section id="aba-entregas" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
+        
+        <!-- Filtros e Indicadores Logísticos -->
+        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base font-extrabold text-[#411564] flex items-center gap-2">
+              <i class="fa-solid fa-motorcycle"></i> Central de Entregas & Repasses
+            </h2>
+            <p class="text-xs text-gray-500">Despacho de pedidos, envio de rota via WhatsApp e apuração de repasses dos motoboys.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button onclick="selecionarPeriodoEntregas('hoje')" data-ent-periodo="hoje" class="btn-periodo-ent px-3 py-1.5 rounded-xl text-xs font-bold bg-[#411564] text-white cursor-pointer">Hoje</button>
+            <button onclick="selecionarPeriodoEntregas('7dias')" data-ent-periodo="7dias" class="btn-periodo-ent px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">7 Dias</button>
+            <button onclick="selecionarPeriodoEntregas('mes_atual')" data-ent-periodo="mes_atual" class="btn-periodo-ent px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">Este Mês</button>
+          </div>
+        </div>
+
+        <!-- 4 Cards de Resumo -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-500 uppercase">Prontos p/ Despacho</p>
+            <p class="text-2xl font-black text-amber-600 mt-1" id="ent-card-preparo">0</p>
+            <span class="text-[10px] text-gray-400">Pedidos em preparo</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-500 uppercase">Em Rota Agora</p>
+            <p class="text-2xl font-black text-indigo-600 mt-1" id="ent-card-rota">0</p>
+            <span class="text-[10px] text-gray-400">Saíram para entrega</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-500 uppercase">Entregas Concluídas</p>
+            <p class="text-2xl font-black text-emerald-600 mt-1" id="ent-card-concluidas">0</p>
+            <span class="text-[10px] text-gray-400">No período selecionado</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-500 uppercase">Total Repasses</p>
+            <p class="text-2xl font-black text-[#411564] mt-1" id="ent-card-repasses">R$ 0,00</p>
+            <span class="text-[10px] text-gray-400">A pagar aos entregadores</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Coluna Esquerda: Cadastro e Equipe de Entregadores -->
+          <div class="lg:col-span-5 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+            <h3 class="text-sm font-extrabold text-[#411564] border-b pb-2 flex items-center gap-2">
+              <i class="fa-solid fa-id-card"></i> Equipe de Entregadores
+            </h3>
+
+            <form onsubmit="salvarEntregador(event)" class="space-y-2.5 bg-purple-50/50 p-3.5 rounded-xl border border-purple-100">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Nome do Entregador *</label>
+                  <input type="text" id="ent-nome" required placeholder="Ex: Carlos Motoboy" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">WhatsApp (DDD+Número)</label>
+                  <input type="text" id="ent-telefone" placeholder="Ex: 16999999999" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Veículo</label>
+                  <select id="ent-veiculo" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                    <option value="Moto">Moto</option>
+                    <option value="Bicicleta">Bicicleta</option>
+                    <option value="Carro">Carro</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Placa</label>
+                  <input type="text" id="ent-placa" placeholder="ABC-1234" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Repasse/Entrega (R$)</label>
+                  <input type="number" step="0.01" id="ent-valor-repasse" value="5.00" required class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs font-bold outline-purple-600">
+                </div>
+              </div>
+              <button type="submit" id="btn-salvar-entregador" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-bold py-2.5 rounded-xl text-xs shadow transition cursor-pointer">
+                + Cadastrar Entregador
+              </button>
+            </form>
+
+            <div id="lista-entregadores-cadastrados" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+              <p class="text-xs text-gray-400 text-center py-4">A carregar entregadores...</p>
+            </div>
+          </div>
+
+          <!-- Coluna Direita: Fila de Despacho e Pedidos em Rota -->
+          <div class="lg:col-span-7 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b pb-2">
+              <h3 class="text-sm font-extrabold text-[#411564] flex items-center gap-2">
+                <i class="fa-solid fa-route"></i> Fila de Despacho & Pedidos em Rota
+              </h3>
+              <button onclick="carregarModuloEntregas()" class="text-xs font-bold text-purple-700 hover:underline cursor-pointer">Atualizar</button>
+            </div>
+
+            <div id="lista-pedidos-despacho" class="space-y-3 max-h-[520px] overflow-y-auto pr-1">
+              <p class="text-xs text-gray-400 text-center py-8">A carregar fila de entregas...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela de Produtividade e Repasses por Entregador -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-gray-100">
+            <h3 class="text-sm font-extrabold text-[#411564]">Produtividade & Repasse por Entregador (Período Selecionado)</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-600">
+              <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100">
+                <tr>
+                  <th class="p-3">Entregador</th>
+                  <th class="p-3">Veículo / Placa</th>
+                  <th class="p-3 text-center">Entregas Concluídas</th>
+                  <th class="p-3 text-right">Valor em Pedidos</th>
+                  <th class="p-3 text-right">Repasse Unit.</th>
+                  <th class="p-3 text-right">Total a Pagar</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-produtividade-entregadores" class="divide-y divide-gray-100 font-medium">
+                <tr><td colspan="6" class="p-6 text-center text-gray-400">A calcular produtividade...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
       <!-- ========================================================= -->
       <!-- ABA 8: CONFIGURAÇÕES DA LOJA                              -->
@@ -1357,6 +1485,7 @@
       if (abaAtual === 'caixa') carregarModuloCaixa();
       if (abaAtual === 'estoque') carregarModuloEstoque();
       if (abaAtual === 'clientes') carregarModuloClientes();
+      if (abaAtual === 'entregas') carregarModuloEntregas();
       if (abaAtual === 'config') carregarConfiguracoesLoja();
     }
 
@@ -1368,7 +1497,7 @@
         sb.classList.add('-translate-x-full'); ov.classList.add('hidden');
       }
 
-      ['dashboard', 'pedidos', 'relatorios', 'stock', 'precificacao', 'financeiro', 'caixa', 'estoque', 'clientes', 'config', 'em-breve'].forEach(function(a) {
+      ['dashboard', 'pedidos', 'relatorios', 'stock', 'precificacao', 'financeiro', 'caixa', 'estoque', 'clientes', 'entregas', 'config', 'em-breve'].forEach(function(a) {
         var el = document.getElementById('aba-' + a);
         if (el) el.classList.add('hidden');
       });
@@ -1390,8 +1519,8 @@
         caixa: ['Fechamento de Caixa', 'Conferência diária de pagamentos, gaveta e histórico auditado'],
         estoque: ['Estoque Integrado', 'Saldos de insumos, alertas mínimos e baixa automática por venda'],
         clientes: ['Base de Clientes', 'Histórico de compras, recorrência e ticket médio por cliente'],
+        entregas: ['Entregas e Entregadores', 'Despacho de rotas, motoboys e cálculo de repasses'],
         config: ['Configurações da Loja', 'WhatsApp, taxa de entrega e modo de recebimento Pix'],
-        entregas: ['Entregas e Motoboys', 'Programado para a Etapa 7 do cronograma'],
         desempenho: ['Desempenho dos Produtos', 'Programado para a Etapa 8 do cronograma'],
         rentabilidade: ['Análise de Rentabilidade', 'Programado para a Etapa 8 do cronograma']
       };
@@ -1400,7 +1529,7 @@
       document.getElementById('titulo-pagina-atual').innerText = info[0];
       document.getElementById('subtitulo-pagina-atual').innerText = info[1];
 
-      var modulosFuturos = ['entregas', 'desempenho', 'rentabilidade'];
+      var modulosFuturos = ['desempenho', 'rentabilidade'];
       if (modulosFuturos.indexOf(aba) !== -1) {
         document.getElementById('aba-em-breve').classList.remove('hidden');
         document.getElementById('titulo-modulo-futuro').innerText = info[0];
@@ -1420,6 +1549,7 @@
       if (aba === 'caixa') carregarModuloCaixa();
       if (aba === 'estoque') carregarModuloEstoque();
       if (aba === 'clientes') carregarModuloClientes();
+      if (aba === 'entregas') carregarModuloEntregas();
       if (aba === 'config') carregarConfiguracoesLoja();
     }
 
@@ -3370,6 +3500,258 @@
 
     function fecharModalCliente() {
       document.getElementById('modal-detalhes-cliente').classList.add('hidden');
+    }
+    // ==========================================
+    // MÓDULO DE ENTREGAS & ENTREGADORES (ETAPA 7)
+    // ==========================================
+    var periodoEntregasAtual = 'hoje';
+    var listaEntregadores = [];
+    var listaPedidosEntregas = [];
+
+    function selecionarPeriodoEntregas(periodo) {
+      periodoEntregasAtual = periodo;
+      document.querySelectorAll('.btn-periodo-ent').forEach(function(b) {
+        b.className = b.getAttribute('data-ent-periodo') === periodo
+          ? "btn-periodo-ent px-3 py-1.5 rounded-xl text-xs font-bold bg-[#411564] text-white cursor-pointer"
+          : "btn-periodo-ent px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer";
+      });
+      carregarModuloEntregas();
+    }
+
+    function obterInicioPeriodoEntregas() {
+      var agora = new Date();
+      var inicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 0, 0, 0, 0);
+      if (periodoEntregasAtual === '7dias') inicio.setDate(inicio.getDate() - 6);
+      else if (periodoEntregasAtual === 'mes_atual') inicio = new Date(agora.getFullYear(), agora.getMonth(), 1, 0, 0, 0, 0);
+      return inicio.toISOString();
+    }
+
+    async function carregarModuloEntregas() {
+      var sb = initClient();
+      if (!sb) return;
+
+      var inicioIso = obterInicioPeriodoEntregas();
+
+      var [resEnt, resPed] = await Promise.all([
+        sb.from('entregadores').select('*').order('nome'),
+        sb.from('pedidos')
+          .select('*')
+          .in('status', ['Em preparo', 'Saiu para entrega', 'Concluído'])
+          .gte('created_at', inicioIso)
+          .order('id', { ascending: false })
+      ]);
+
+      listaEntregadores = resEnt.data || [];
+      listaPedidosEntregas = resPed.data || [];
+
+      renderizarListaEntregadores();
+      renderizarFilaDespacho();
+      renderizarProdutividadeEntregadores();
+    }
+
+    async function salvarEntregador(e) {
+      e.preventDefault();
+      var btn = document.getElementById('btn-salvar-entregador');
+      btn.disabled = true; btn.innerText = "Salvando...";
+
+      var nome = document.getElementById('ent-nome').value.trim();
+      var telefone = document.getElementById('ent-telefone').value.replace(/\D/g, '');
+      var veiculo = document.getElementById('ent-veiculo').value;
+      var placa = document.getElementById('ent-placa').value.trim().toUpperCase();
+      var valorRepasse = parseFloat(document.getElementById('ent-valor-repasse').value) || 0;
+
+      var sb = initClient();
+      var res = await sb.from('entregadores').insert([{
+        nome: nome,
+        telefone: telefone,
+        veiculo: veiculo,
+        placa: placa,
+        tipo_repasse: 'Fixo',
+        valor_repasse: valorRepasse,
+        ativo: true
+      }]);
+
+      btn.disabled = false; btn.innerText = "+ Cadastrar Entregador";
+
+      if (res.error) { alert("Erro ao cadastrar entregador: " + res.error.message); return; }
+
+      document.getElementById('ent-nome').value = '';
+      document.getElementById('ent-telefone').value = '';
+      document.getElementById('ent-placa').value = '';
+      carregarModuloEntregas();
+    }
+
+    async function toggleEntregadorAtivo(id, ativoAtual) {
+      var sb = initClient();
+      await sb.from('entregadores').update({ ativo: !ativoAtual }).eq('id', id);
+      carregarModuloEntregas();
+    }
+
+    function renderizarListaEntregadores() {
+      var box = document.getElementById('lista-entregadores-cadastrados');
+      if (!box) return;
+      if (listaEntregadores.length === 0) {
+        box.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">Nenhum entregador cadastrado ainda.</p>';
+        return;
+      }
+
+      box.innerHTML = listaEntregadores.map(function(ent) {
+        var ativo = ent.ativo !== false;
+        var badge = ativo
+          ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Ativo</span>'
+          : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-200 text-gray-600">Inativo</span>';
+
+        return '<div class="p-3 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-between gap-2 text-xs">' +
+          '<div>' +
+            '<p class="font-bold text-gray-800">' + ent.nome + ' ' + badge + '</p>' +
+            '<p class="text-[11px] text-gray-500">' + ent.veiculo + (ent.placa ? ' • ' + ent.placa : '') + ' • Repasse: <strong>R$ ' + Number(ent.valor_repasse || 0).toFixed(2).replace('.', ',') + '</strong></p>' +
+          '</div>' +
+          '<button type="button" onclick="toggleEntregadorAtivo(' + ent.id + ', ' + ativo + ')" class="text-[11px] font-bold text-purple-700 hover:underline cursor-pointer">' + (ativo ? 'Pausar' : 'Ativar') + '</button>' +
+        '</div>';
+      }).join('');
+    }
+
+    function renderizarFilaDespacho() {
+      var box = document.getElementById('lista-pedidos-despacho');
+      if (!box) return;
+
+      var emPreparo = listaPedidosEntregas.filter(function(p) { return p.status === 'Em preparo'; });
+      var emRota = listaPedidosEntregas.filter(function(p) { return p.status === 'Saiu para entrega'; });
+      var filaAtiva = emPreparo.concat(emRota);
+
+      document.getElementById('ent-card-preparo').innerText = emPreparo.length;
+      document.getElementById('ent-card-rota').innerText = emRota.length;
+
+      if (filaAtiva.length === 0) {
+        box.innerHTML = '<p class="text-xs text-gray-400 text-center py-8">Nenhum pedido aguardando despacho ou em rota no momento.</p>';
+        return;
+      }
+
+      var entregadoresAtivos = listaEntregadores.filter(function(e) { return e.ativo !== false; });
+
+      box.innerHTML = filaAtiva.map(function(p) {
+        var isRota = p.status === 'Saiu para entrega';
+        var badge = isRota
+          ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800">Em Rota 🛵</span>'
+          : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Pronto p/ Despacho</span>';
+
+        var optionsEnt = '<option value="">Selecione o motoboy...</option>' + entregadoresAtivos.map(function(e) {
+          var sel = (p.entregador_id && Number(p.entregador_id) === Number(e.id)) ? 'selected' : '';
+          return '<option value="' + e.id + '" ' + sel + '>' + e.nome + ' (' + e.veiculo + ')</option>';
+        }).join('');
+
+        var btnAcao = !isRota
+          ? '<button type="button" onclick="despacharPedidoMotoboy(' + p.id + ')" class="bg-[#411564] hover:bg-purple-900 text-white font-bold px-3 py-1.5 rounded-xl text-xs cursor-pointer">Despachar</button>'
+          : '<button type="button" onclick="concluirEntregaPedido(' + p.id + ')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs cursor-pointer">Confirmar Entrega ✓</button>';
+
+        return '<div class="p-3.5 rounded-2xl border ' + (isRota ? 'border-indigo-200 bg-indigo-50/30' : 'border-gray-200 bg-white') + ' space-y-2.5 text-xs">' +
+          '<div class="flex items-center justify-between gap-2">' +
+            '<div><span class="font-black text-purple-900">#' + p.id + '</span> — <strong>' + (p.cliente_nome || 'Cliente') + '</strong> ' + badge + '</div>' +
+            '<span class="font-black text-gray-900">R$ ' + Number(p.total || 0).toFixed(2).replace('.', ',') + ' (' + (p.forma_pagamento || '-') + ')</span>' +
+          '</div>' +
+          '<p class="text-[11px] text-gray-600"><i class="fa-solid fa-location-dot text-gray-400 mr-1"></i>' + (p.cliente_endereco || 'Retirada') + '</p>' +
+          '<div class="flex flex-wrap items-center gap-2 pt-1">' +
+            '<select id="sel-ent-pedido-' + p.id + '" class="flex-1 min-w-[160px] border border-gray-300 rounded-xl px-2.5 py-1.5 text-xs bg-white outline-purple-600">' + optionsEnt + '</select>' +
+            btnAcao +
+            '<button type="button" onclick="enviarRotaWhatsApp(' + p.id + ')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold px-2.5 py-1.5 rounded-xl text-xs cursor-pointer" title="Enviar endereço no WhatsApp do motoboy"><i class="fa-brands fa-whatsapp"></i> Rota</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    async function despacharPedidoMotoboy(pedidoId) {
+      var sel = document.getElementById('sel-ent-pedido-' + pedidoId);
+      var entId = sel ? sel.value : '';
+      if (!entId) { alert("Selecione um entregador antes de despachar o pedido."); return; }
+
+      var sb = initClient();
+      var res = await sb.from('pedidos').update({
+        entregador_id: Number(entId),
+        status: 'Saiu para entrega'
+      }).eq('id', pedidoId);
+
+      if (res.error) { alert("Erro ao despachar: " + res.error.message); return; }
+      carregarModuloEntregas();
+      carregarPedidos();
+    }
+
+    async function concluirEntregaPedido(pedidoId) {
+      var sel = document.getElementById('sel-ent-pedido-' + pedidoId);
+      var entId = sel && sel.value ? Number(sel.value) : null;
+
+      var sb = initClient();
+      var payload = { status: 'Concluído', entregue_em: new Date().toISOString() };
+      if (entId) payload.entregador_id = entId;
+
+      var res = await sb.from('pedidos').update(payload).eq('id', pedidoId);
+      if (res.error) { alert("Erro ao concluir entrega: " + res.error.message); return; }
+
+      var ped = listaPedidosEntregas.find(function(x) { return Number(x.id) === Number(pedidoId); });
+      if (ped) {
+        ped.status = 'Concluído';
+        await baixarEstoquePedidoConcluido(ped);
+      }
+
+      carregarModuloEntregas();
+      carregarPedidos();
+    }
+
+    function enviarRotaWhatsApp(pedidoId) {
+      var p = listaPedidosEntregas.find(function(x) { return Number(x.id) === Number(pedidoId); });
+      if (!p) return;
+
+      var sel = document.getElementById('sel-ent-pedido-' + pedidoId);
+      var entId = sel ? sel.value : p.entregador_id;
+      var ent = listaEntregadores.find(function(e) { return String(e.id) === String(entId); });
+
+      var msg = "*ENTREGA AÇAIZEIRO #" + p.id + "*\n" +
+        "*Cliente:* " + (p.cliente_nome || 'Cliente') + "\n" +
+        "*Endereço:* " + (p.cliente_endereco || 'Não informado') + "\n" +
+        "*Pagamento:* " + (p.forma_pagamento || '-') + "\n" +
+        "*Valor Total:* R$ " + Number(p.total || 0).toFixed(2).replace('.', ',');
+
+      var fone = ent && ent.telefone ? ('55' + ent.telefone.replace(/^55/, '')) : '';
+      var url = fone
+        ? 'https://wa.me/' + fone + '?text=' + encodeURIComponent(msg)
+        : 'https://wa.me/?text=' + encodeURIComponent(msg);
+
+      window.open(url, '_blank');
+    }
+
+    function renderizarProdutividadeEntregadores() {
+      var tbody = document.getElementById('tabela-produtividade-entregadores');
+      if (!tbody) return;
+
+      var concluidos = listaPedidosEntregas.filter(function(p) { return p.status === 'Concluído'; });
+      document.getElementById('ent-card-concluidas').innerText = concluidos.length;
+
+      var totalRepassesGeral = 0;
+
+      if (listaEntregadores.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Cadastre seus entregadores acima para acompanhar os repasses.</td></tr>';
+        document.getElementById('ent-card-repasses').innerText = 'R$ 0,00';
+        return;
+      }
+
+      tbody.innerHTML = listaEntregadores.map(function(ent) {
+        var entregasDoMotoboy = concluidos.filter(function(p) { return p.entregador_id && Number(p.entregador_id) === Number(ent.id); });
+        var qtd = entregasDoMotoboy.length;
+        var valorPedidos = entregasDoMotoboy.reduce(function(acc, p) { return acc + Number(p.total || 0); }, 0);
+        var repasseUnit = Number(ent.valor_repasse || 0);
+        var totalPagar = qtd * repasseUnit;
+        totalRepassesGeral += totalPagar;
+
+        return '<tr class="hover:bg-gray-50">' +
+          '<td class="p-3 font-bold text-gray-800">' + ent.nome + '</td>' +
+          '<td class="p-3 text-gray-500">' + ent.veiculo + (ent.placa ? ' (' + ent.placa + ')' : '') + '</td>' +
+          '<td class="p-3 text-center font-black text-[#411564]">' + qtd + '</td>' +
+          '<td class="p-3 text-right">R$ ' + valorPedidos.toFixed(2).replace('.', ',') + '</td>' +
+          '<td class="p-3 text-right">R$ ' + repasseUnit.toFixed(2).replace('.', ',') + '</td>' +
+          '<td class="p-3 text-right font-black text-emerald-700">R$ ' + totalPagar.toFixed(2).replace('.', ',') + '</td>' +
+        '</tr>';
+      }).join('');
+
+      document.getElementById('ent-card-repasses').innerText = 'R$ ' + totalRepassesGeral.toFixed(2).replace('.', ',');
     }
     // CONFIGURAÇÕES DA LOJA
     async function carregarConfiguracoesLoja() {
