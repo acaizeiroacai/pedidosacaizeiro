@@ -2782,6 +2782,92 @@
       alert("✓ Sincronização concluída.");
       carregarModuloClientes();
     }
+    // ==========================================
+    // MÓDULO ETAPA 8: DESEMPENHO DOS PRODUTOS
+    // ==========================================
+    async function carregarModuloDesempenho() {
+      var sb = initClient();
+      if (!sb) return;
+      var tbody = document.getElementById('tabela-desempenho-produtos');
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Analisando histórico de vendas...</td></tr>';
+      
+      try {
+        var res = await sb.from('pedidos').select('total, status, itens').eq('status', 'Concluído');
+        var pedidos = res.data || [];
+        var mapaProd = {};
+        var faturamentoTotalGeral = 0;
+
+        pedidos.forEach(function(p) {
+          faturamentoTotalGeral += Number(p.total || 0);
+          if (Array.isArray(p.itens)) {
+            p.itens.forEach(function(i) {
+              var nome = i.nome || 'Item';
+              var qtd = Number(i.quantidade || 1);
+              var precoUnit = Number(i.preco_unitario || 0);
+              if (!mapaProd[nome]) mapaProd[nome] = { nome: nome, qtd: 0, receita: 0 };
+              mapaProd[nome].qtd += qtd;
+              mapaProd[nome].receita += (precoUnit * qtd);
+            });
+          }
+        });
+
+        var listaOrdenada = Object.values(mapaProd).sort(function(a, b) { return b.receita - a.receita; });
+        if (listaOrdenada.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Nenhum dado de vendas concluídas encontrado.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = listaOrdenada.map(function(item, idx) {
+          var pctPart = faturamentoTotalGeral > 0 ? ((item.receita / faturamentoTotalGeral) * 100).toFixed(1) : '0.0';
+          return '<tr class="hover:bg-gray-50"><td class="p-3 font-bold text-[#411564]">#' + (idx + 1) + '</td><td class="p-3 font-bold text-gray-900">' + item.nome + '</td><td class="p-3 text-gray-500">Produto Principal</td><td class="p-3 text-center font-bold">' + item.qtd + ' un.</td><td class="p-3 text-right font-black text-emerald-600">R$ ' + item.receita.toFixed(2).replace('.', ',') + '</td><td class="p-3 text-right font-bold text-purple-900">' + pctPart.replace('.', ',') + '%</td></tr>';
+        }).join('');
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-rose-500">Erro ao processar desempenho.</td></tr>';
+      }
+    }
+
+    // ==========================================
+    // MÓDULO ETAPA 8: RENTABILIDADE AVANÇADA
+    // ==========================================
+    async function carregarModuloRentabilidadeAvancada() {
+      var sb = initClient();
+      if (!sb) return;
+      var tbody = document.getElementById('tabela-rentabilidade-avancada');
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Cruzando fichas técnicas com o cardápio...</td></tr>';
+
+      try {
+        var [resProdutos, resFichas] = await Promise.all([
+          sb.from('CARDAPIO ACAIZEIRO').select('*').order('nome'),
+          sb.from('fichas_tecnicas').select('*')
+        ]);
+
+        var produtos = resProdutos.data || [];
+        var fichas = resFichas.data || [];
+
+        if (produtos.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Nenhum produto cadastrado no cardápio.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = produtos.map(function(prod) {
+          var precoVenda = Number(prod.preco || 0);
+          var ficha = fichas.find(function(f) { return String(f.produto_id) === String(prod.id); });
+          var custoProd = ficha ? Number(ficha.custo_total || 0) : 0;
+          var lucroUnit = precoVenda - custoProd;
+          var margemPct = precoVenda > 0 ? ((lucroUnit / precoVenda) * 100).toFixed(1) : '0.0';
+          
+          var badgeCmv = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Saudável</span>';
+          if (custoProd <= 0) badgeCmv = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500">Sem Ficha</span>';
+          else if (Number(margemPct) < 20) badgeCmv = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">Atenção (Margem Baixa)</span>';
+
+          return '<tr class="hover:bg-gray-50"><td class="p-3 font-bold text-gray-900">' + prod.nome + '</td><td class="p-3 text-right font-bold text-gray-900">R$ ' + precoVenda.toFixed(2).replace('.', ',') + '</td><td class="p-3 text-right text-gray-600">R$ ' + custoProd.toFixed(2).replace('.', ',') + '</td><td class="p-3 text-right font-black text-emerald-600">R$ ' + lucroUnit.toFixed(2).replace('.', ',') + '</td><td class="p-3 text-center font-extrabold text-[#411564]">' + margemPct.replace('.', ',') + '%</td><td class="p-3 text-center">' + badgeCmv + '</td></tr>';
+        }).join('');
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-rose-500">Erro ao carregar rentabilidade.</td></tr>';
+      }
+    }
   </script>
 </body>
 </html>
