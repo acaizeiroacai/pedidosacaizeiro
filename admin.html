@@ -104,9 +104,8 @@
               <button onclick="mudarAba('stock')" id="nav-btn-stock" class="nav-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold text-purple-100 hover:bg-purple-800/60 transition cursor-pointer">
                 <i class="fa-solid fa-mug-hot w-4 text-center"></i> Cardápio e produtos
               </button>
-              <button onclick="mudarAba('clientes')" id="nav-btn-clientes" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-purple-200/80 hover:bg-purple-800/60 transition cursor-pointer">
-                <span class="flex items-center gap-2.5"><i class="fa-solid fa-users w-4 text-center"></i> Clientes</span>
-                <span class="text-[9px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded">Etapa 6</span>
+              <button onclick="mudarAba('clientes')" id="nav-btn-clientes" class="nav-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold text-purple-100 hover:bg-purple-800/60 transition cursor-pointer">
+                <i class="fa-solid fa-users w-4 text-center"></i> Clientes
               </button>
               <button onclick="mudarAba('estoque')" id="nav-btn-estoque" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-purple-100 hover:bg-purple-800/60 transition cursor-pointer">
                 <span class="flex items-center gap-2.5"><i class="fa-solid fa-boxes-stacked w-4 text-center"></i> Estoque</span>
@@ -964,6 +963,98 @@
           </div>
         </div>
       </section>
+      <!-- ========================================================= -->
+      <!-- ABA 8: CLIENTES & CRM (ETAPA 6)                           -->
+      <!-- ========================================================= -->
+      <section id="aba-clientes" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
+        
+        <!-- Barra de Ações e Filtro de Inatividade -->
+        <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base font-extrabold text-[#411564] flex items-center gap-2">
+              <i class="fa-solid fa-users"></i> Base Consolidada de Clientes
+            </h2>
+            <p class="text-xs text-gray-500">Clientes unificados automaticamente pelo telefone sem duplicidade.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-200">
+              <label for="cli-dias-inativo" class="text-[11px] font-bold text-gray-600">Inativo após (dias):</label>
+              <input type="number" id="cli-dias-inativo" value="30" min="1" max="365" onchange="renderizarModuloClientes()" class="w-14 bg-white border border-gray-300 rounded-lg px-2 py-0.5 text-xs font-black text-center outline-purple-600">
+            </div>
+            <button type="button" id="btn-sincronizar-clientes" onclick="sincronizarClientesDosPedidos()" class="bg-[#411564] hover:bg-purple-900 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer">
+              <i class="fa-solid fa-arrows-rotate"></i> Sincronizar dos Pedidos
+            </button>
+          </div>
+        </div>
+
+        <!-- 5 Indicadores Comerciais -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-500 uppercase">Base Total</p>
+            <p class="text-2xl font-black text-[#411564] mt-1" id="cli-card-total">0</p>
+            <span class="text-[10px] text-gray-400">Clientes únicos cadastrados</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-500 uppercase">Clientes Novos</p>
+            <p class="text-2xl font-black text-blue-600 mt-1" id="cli-card-novos">0</p>
+            <span class="text-[10px] text-gray-400">1 pedido concluído</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-500 uppercase">Recorrentes</p>
+            <p class="text-2xl font-black text-emerald-600 mt-1" id="cli-card-recorrentes">0</p>
+            <span class="text-[10px] text-gray-400">2 ou mais pedidos</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-500 uppercase">Inativos</p>
+            <p class="text-2xl font-black text-rose-600 mt-1" id="cli-card-inativos">0</p>
+            <span class="text-[10px] text-gray-400" id="cli-card-inativos-sub">Sem compra há +30 dias</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[11px] font-bold text-gray-500 uppercase">Ticket Médio / Cliente</p>
+            <p class="text-2xl font-black text-gray-900 mt-1" id="cli-card-ticket">R$ 0,00</p>
+            <span class="text-[10px] text-gray-400">Gasto médio acumulado</span>
+          </div>
+        </div>
+
+        <!-- Pesquisa e Filtros -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="relative flex-1 max-w-md">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-xs"></i>
+              <input type="text" id="cli-busca-texto" oninput="renderizarTabelaClientes()" placeholder="Pesquisar por nome ou telefone..." class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-xl text-xs outline-purple-600">
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <select id="cli-filtro-perfil" onchange="renderizarTabelaClientes()" class="border border-gray-300 rounded-xl px-3 py-2 text-xs font-bold outline-purple-600 bg-white">
+                <option value="Todos">Todos os clientes</option>
+                <option value="Recorrentes">Recorrentes (2+ pedidos)</option>
+                <option value="Novos">Novos (1 pedido)</option>
+                <option value="Inativos">Inativos (sem compra recente)</option>
+                <option value="VIP">Maiores Compradores (Top Gasto)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-600">
+              <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100">
+                <tr>
+                  <th class="p-3">Cliente</th>
+                  <th class="p-3">Telefone</th>
+                  <th class="p-3 text-center">Pedidos</th>
+                  <th class="p-3 text-right">Total Gasto</th>
+                  <th class="p-3 text-right">Ticket Médio</th>
+                  <th class="p-3">Última Compra</th>
+                  <th class="p-3 text-center">Perfil</th>
+                  <th class="p-3 text-center">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-clientes-corpo" class="divide-y divide-gray-100 font-medium">
+                <tr><td colspan="8" class="p-6 text-center text-gray-400">A carregar clientes...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
       <!-- ========================================================= -->
       <!-- ABA 8: CONFIGURAÇÕES DA LOJA                              -->
@@ -1054,6 +1145,47 @@
           <button type="submit" class="flex-1 bg-[#411564] hover:bg-purple-900 text-white font-bold py-2.5 rounded-xl text-xs shadow-md cursor-pointer">Confirmar Retificação</button>
         </div>
       </form>
+    </div>
+  </div>
+  <!-- MODAL: Detalhes e Histórico do Cliente -->
+  <div id="modal-detalhes-cliente" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-2xl rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-start border-b pb-3">
+        <div>
+          <h3 id="det-cli-nome" class="font-extrabold text-[#411564] text-lg">Cliente</h3>
+          <p id="det-cli-contato" class="text-xs text-gray-500 mt-0.5"></p>
+        </div>
+        <button onclick="fecharModalCliente()" class="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none cursor-pointer">&times;</button>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs">
+        <div class="p-2.5 rounded-xl bg-purple-50 border border-purple-100">
+          <p class="text-[10px] font-bold text-purple-800 uppercase">Pedidos</p>
+          <p class="text-base font-black text-[#411564]" id="det-cli-qtd">0</p>
+        </div>
+        <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-100">
+          <p class="text-[10px] font-bold text-emerald-800 uppercase">Total Gasto</p>
+          <p class="text-base font-black text-emerald-700" id="det-cli-total">R$ 0,00</p>
+        </div>
+        <div class="p-2.5 rounded-xl bg-blue-50 border border-blue-100">
+          <p class="text-[10px] font-bold text-blue-800 uppercase">Ticket Médio</p>
+          <p class="text-base font-black text-blue-700" id="det-cli-ticket">R$ 0,00</p>
+        </div>
+        <div class="p-2.5 rounded-xl bg-gray-50 border border-gray-200">
+          <p class="text-[10px] font-bold text-gray-600 uppercase">1ª Compra</p>
+          <p class="text-xs font-black text-gray-800 mt-1" id="det-cli-primeira">-</p>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 p-3 rounded-xl border border-gray-200">
+        <h4 class="text-xs font-extrabold text-gray-700 uppercase mb-2">Produtos Favoritos deste Cliente</h4>
+        <div id="det-cli-favoritos" class="flex flex-wrap gap-1.5 text-xs"></div>
+      </div>
+
+      <div>
+        <h4 class="text-xs font-extrabold text-gray-700 uppercase mb-2">Histórico de Pedidos</h4>
+        <div id="det-cli-historico" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+      </div>
     </div>
   </div>
 
@@ -1224,6 +1356,7 @@
       if (abaAtual === 'financeiro') carregarModuloFinanceiro();
       if (abaAtual === 'caixa') carregarModuloCaixa();
       if (abaAtual === 'estoque') carregarModuloEstoque();
+      if (abaAtual === 'clientes') carregarModuloClientes();
       if (abaAtual === 'config') carregarConfiguracoesLoja();
     }
 
@@ -1234,6 +1367,61 @@
       if (sb && !sb.classList.contains('-translate-x-full') && window.innerWidth < 1024) {
         sb.classList.add('-translate-x-full'); ov.classList.add('hidden');
       }
+
+      ['dashboard', 'pedidos', 'relatorios', 'stock', 'precificacao', 'financeiro', 'caixa', 'estoque', 'clientes', 'config', 'em-breve'].forEach(function(a) {
+        var el = document.getElementById('aba-' + a);
+        if (el) el.classList.add('hidden');
+      });
+
+      document.querySelectorAll('.nav-item').forEach(function(btn) {
+        btn.classList.remove('bg-[#411564]', 'text-white', 'shadow');
+      });
+
+      var btnAtivo = document.getElementById('nav-btn-' + aba);
+      if (btnAtivo) btnAtivo.classList.add('bg-[#411564]', 'text-white', 'shadow');
+
+      var titulosMap = {
+        dashboard: ['Dashboard', 'Visão geral do desempenho, faturamento e indicadores'],
+        pedidos: ['Pedidos em Tempo Real', 'Acompanhamento operacional e impressão de comandas'],
+        relatorios: ['Relatórios de Vendas', 'Fechamento mensal e exportação em PDF'],
+        stock: ['Cardápio e Produtos', 'Gerenciamento de itens, preços, fotos e complementos'],
+        precificacao: ['Precificação e Ficha Técnica', 'Insumos, fichas técnicas persistentes e rentabilidade'],
+        financeiro: ['Controle Financeiro', 'Entradas, despesas operacionais, recorrências e resultado'],
+        caixa: ['Fechamento de Caixa', 'Conferência diária de pagamentos, gaveta e histórico auditado'],
+        estoque: ['Estoque Integrado', 'Saldos de insumos, alertas mínimos e baixa automática por venda'],
+        clientes: ['Base de Clientes', 'Histórico de compras, recorrência e ticket médio por cliente'],
+        config: ['Configurações da Loja', 'WhatsApp, taxa de entrega e modo de recebimento Pix'],
+        entregas: ['Entregas e Motoboys', 'Programado para a Etapa 7 do cronograma'],
+        desempenho: ['Desempenho dos Produtos', 'Programado para a Etapa 8 do cronograma'],
+        rentabilidade: ['Análise de Rentabilidade', 'Programado para a Etapa 8 do cronograma']
+      };
+
+      var info = titulosMap[aba] || ['Painel', 'Gestão Comercial'];
+      document.getElementById('titulo-pagina-atual').innerText = info[0];
+      document.getElementById('subtitulo-pagina-atual').innerText = info[1];
+
+      var modulosFuturos = ['entregas', 'desempenho', 'rentabilidade'];
+      if (modulosFuturos.indexOf(aba) !== -1) {
+        document.getElementById('aba-em-breve').classList.remove('hidden');
+        document.getElementById('titulo-modulo-futuro').innerText = info[0];
+        document.getElementById('desc-modulo-futuro').innerText = "Este módulo (" + info[1] + ") será implementado na sua respectiva etapa assim que você validar as etapas anteriores.";
+        return;
+      }
+
+      var ativa = document.getElementById('aba-' + aba);
+      if (ativa) ativa.classList.remove('hidden');
+
+      if (aba === 'dashboard') carregarDashboard();
+      if (aba === 'pedidos') carregarPedidos();
+      if (aba === 'stock') carregarStock();
+      if (aba === 'relatorios') carregarRelatorios();
+      if (aba === 'precificacao') carregarModuloPrecificacao();
+      if (aba === 'financeiro') carregarModuloFinanceiro();
+      if (aba === 'caixa') carregarModuloCaixa();
+      if (aba === 'estoque') carregarModuloEstoque();
+      if (aba === 'clientes') carregarModuloClientes();
+      if (aba === 'config') carregarConfiguracoesLoja();
+    }
 
       ['dashboard', 'pedidos', 'relatorios', 'stock', 'precificacao', 'financeiro', 'caixa', 'estoque', 'config', 'em-breve'].forEach(function(a) {
         var el = document.getElementById('aba-' + a);
@@ -2978,7 +3166,265 @@
       alert("✓ Retificação registrada e auditada com sucesso!");
       carregarHistoricoFechamentosCaixa();
     }
+// ==========================================
+    // MÓDULO DE CLIENTES & CRM (ETAPA 6)
+    // ==========================================
+    var listaClientesBase = [];
+    var listaPedidosParaClientes = [];
 
+    function extrairTelefoneLimpo(pedido) {
+      // Tenta extrair telefone de campo dedicado ou do texto do endereço/nome se existir
+      var bruto = pedido.cliente_telefone || pedido.telefone || '';
+      if (!bruto && pedido.cliente_endereco) {
+        var matchTel = pedido.cliente_endereco.match(/(?:\+?55\s?)?(?:\(?\d{2}\)?\s?)?\d{4,5}[-\s]?\d{4}/);
+        if (matchTel) bruto = matchTel[0];
+      }
+      var digitos = String(bruto).replace(/\D/g, '');
+      if (digitos.length >= 12 && digitos.indexOf('55') === 0) digitos = digitos.slice(2);
+      return digitos;
+    }
+
+    function formatarTelefoneExibicao(digitos) {
+      if (!digitos) return 'Sem telefone';
+      if (digitos.length === 11) return '(' + digitos.slice(0, 2) + ') ' + digitos.slice(2, 7) + '-' + digitos.slice(7);
+      if (digitos.length === 10) return '(' + digitos.slice(0, 2) + ') ' + digitos.slice(2, 6) + '-' + digitos.slice(6);
+      return digitos;
+    }
+
+    async function sincronizarClientesDosPedidos() {
+      var btn = document.getElementById('btn-sincronizar-clientes');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Sincronizando...'; }
+
+      var sb = initClient();
+      if (!sb) return;
+
+      try {
+        var resPedidos = await sb.from('pedidos')
+          .select('id, created_at, cliente_nome, cliente_endereco, total, status, itens, cliente_id')
+          .eq('status', 'Concluído')
+          .order('created_at', { ascending: true });
+
+        if (resPedidos.error) throw new Error(resPedidos.error.message);
+
+        var pedidos = resPedidos.data || [];
+        var mapaClientes = {};
+
+        pedidos.forEach(function(p) {
+          var telLimpo = extrairTelefoneLimpo(p);
+          var nomeNorm = (p.cliente_nome || 'Cliente').trim();
+          // Chave única: telefone normalizado quando disponível, ou nome normalizado como fallback
+          var chaveUnica = telLimpo.length >= 8 ? ('TEL_' + telLimpo) : ('NOME_' + nomeNorm.toLowerCase());
+
+          if (!mapaClientes[chaveUnica]) {
+            mapaClientes[chaveUnica] = {
+              nome: nomeNorm,
+              telefone_limpo: telLimpo.length >= 8 ? telLimpo : ('sem_tel_' + nomeNorm.toLowerCase().replace(/[^a-z0-9]/g, '_')),
+              telefone_exibicao: telLimpo.length >= 8 ? formatarTelefoneExibicao(telLimpo) : 'Não informado',
+              ultimo_endereco: p.cliente_endereco || '',
+              primeiro_pedido_em: p.created_at,
+              ultimo_pedido_em: p.created_at,
+              total_pedidos: 0,
+              total_gasto: 0,
+              pedidoIds: []
+            };
+          }
+
+          var c = mapaClientes[chaveUnica];
+          if (nomeNorm && nomeNorm !== 'Cliente') c.nome = nomeNorm;
+          if (p.cliente_endereco) c.ultimo_endereco = p.cliente_endereco;
+          if (p.created_at && p.created_at < c.primeiro_pedido_em) c.primeiro_pedido_em = p.created_at;
+          if (p.created_at && p.created_at > c.ultimo_pedido_em) c.ultimo_pedido_em = p.created_at;
+          c.total_pedidos += 1;
+          c.total_gasto += Number(p.total || 0);
+          c.pedidoIds.push(p.id);
+        });
+
+        var registros = Object.values(mapaClientes);
+        for (var i = 0; i < registros.length; i++) {
+          var item = registros[i];
+          var resUpsert = await sb.from('clientes').upsert({
+            nome: item.nome,
+            telefone_limpo: item.telefone_limpo,
+            telefone_exibicao: item.telefone_exibicao,
+            ultimo_endereco: item.ultimo_endereco,
+            primeiro_pedido_em: item.primeiro_pedido_em,
+            ultimo_pedido_em: item.ultimo_pedido_em,
+            total_pedidos: item.total_pedidos,
+            total_gasto: Number(item.total_gasto.toFixed(2)),
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'telefone_limpo' }).select('id').single();
+
+          if (!resUpsert.error && resUpsert.data && item.pedidoIds.length > 0) {
+            await sb.from('pedidos').update({ cliente_id: resUpsert.data.id }).in('id', item.pedidoIds);
+          }
+        }
+
+        await carregarModuloClientes();
+      } catch (err) {
+        alert("Erro ao sincronizar clientes: " + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Sincronizar dos Pedidos'; }
+      }
+    }
+
+    async function carregarModuloClientes() {
+      var sb = initClient();
+      if (!sb) return;
+
+      var [resCli, resPed] = await Promise.all([
+        sb.from('clientes').select('*').order('total_gasto', { ascending: false }),
+        sb.from('pedidos').select('id, created_at, cliente_nome, cliente_endereco, total, status, itens, cliente_id').eq('status', 'Concluído').order('created_at', { ascending: false })
+      ]);
+
+      listaClientesBase = resCli.data || [];
+      listaPedidosParaClientes = resPed.data || [];
+
+      if (listaClientesBase.length === 0 && listaPedidosParaClientes.length > 0) {
+        await sincronizarClientesDosPedidos();
+        return;
+      }
+
+      renderizarModuloClientes();
+    }
+
+    function renderizarModuloClientes() {
+      var diasInativo = parseInt(document.getElementById('cli-dias-inativo').value, 10) || 30;
+      var limiteMs = Date.now() - (diasInativo * 24 * 60 * 60 * 1000);
+
+      var novos = 0, recorrentes = 0, inativos = 0, somaGastoTotal = 0;
+
+      listaClientesBase.forEach(function(c) {
+        var qtd = Number(c.total_pedidos || 0);
+        var gasto = Number(c.total_gasto || 0);
+        somaGastoTotal += gasto;
+        if (qtd === 1) novos++;
+        if (qtd >= 2) recorrentes++;
+        if (c.ultimo_pedido_em && new Date(c.ultimo_pedido_em).getTime() < limiteMs) inativos++;
+      });
+
+      var ticketGeralCliente = listaClientesBase.length > 0 ? (somaGastoTotal / listaClientesBase.length) : 0;
+
+      document.getElementById('cli-card-total').innerText = listaClientesBase.length;
+      document.getElementById('cli-card-novos').innerText = novos;
+      document.getElementById('cli-card-recorrentes').innerText = recorrentes;
+      document.getElementById('cli-card-inativos').innerText = inativos;
+      document.getElementById('cli-card-inativos-sub').innerText = 'Sem compra há +' + diasInativo + ' dias';
+      document.getElementById('cli-card-ticket').innerText = 'R$ ' + ticketGeralCliente.toFixed(2).replace('.', ',');
+
+      renderizarTabelaClientes();
+    }
+
+    function renderizarTabelaClientes() {
+      var tbody = document.getElementById('tabela-clientes-corpo');
+      if (!tbody) return;
+
+      var termo = (document.getElementById('cli-busca-texto').value || '').toLowerCase().trim();
+      var perfil = document.getElementById('cli-filtro-perfil').value;
+      var diasInativo = parseInt(document.getElementById('cli-dias-inativo').value, 10) || 30;
+      var limiteMs = Date.now() - (diasInativo * 24 * 60 * 60 * 1000);
+
+      var filtrados = listaClientesBase.filter(function(c) {
+        var matchTexto = !termo ||
+          (c.nome && c.nome.toLowerCase().indexOf(termo) !== -1) ||
+          (c.telefone_limpo && c.telefone_limpo.indexOf(termo) !== -1) ||
+          (c.telefone_exibicao && c.telefone_exibicao.toLowerCase().indexOf(termo) !== -1);
+
+        if (!matchTexto) return false;
+
+        var qtd = Number(c.total_pedidos || 0);
+        var isInativo = c.ultimo_pedido_em && new Date(c.ultimo_pedido_em).getTime() < limiteMs;
+
+        if (perfil === 'Recorrentes') return qtd >= 2;
+        if (perfil === 'Novos') return qtd === 1;
+        if (perfil === 'Inativos') return isInativo;
+        return true;
+      });
+
+      if (perfil === 'VIP') {
+        filtrados = filtrados.slice().sort(function(a, b) { return Number(b.total_gasto || 0) - Number(a.total_gasto || 0); }).slice(0, 15);
+      }
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-gray-400">Nenhum cliente encontrado com este filtro.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtrados.map(function(c) {
+        var qtd = Number(c.total_pedidos || 0);
+        var gasto = Number(c.total_gasto || 0);
+        var ticket = qtd > 0 ? (gasto / qtd) : 0;
+        var ultData = c.ultimo_pedido_em ? new Date(c.ultimo_pedido_em).toLocaleDateString('pt-BR') : '-';
+        var isInativo = c.ultimo_pedido_em && new Date(c.ultimo_pedido_em).getTime() < limiteMs;
+
+        var badgePerfil = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">Novo</span>';
+        if (isInativo) {
+          badgePerfil = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Inativo</span>';
+        } else if (qtd >= 2) {
+          badgePerfil = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Recorrente</span>';
+        }
+
+        return '<tr class="hover:bg-gray-50">' +
+          '<td class="p-3 font-bold text-gray-800">' + c.nome + '<br><span class="text-[10px] text-gray-400 font-normal truncate block max-w-[200px]">' + (c.ultimo_endereco || '') + '</span></td>' +
+          '<td class="p-3 whitespace-nowrap">' + (c.telefone_exibicao || '-') + '</td>' +
+          '<td class="p-3 text-center font-bold">' + qtd + '</td>' +
+          '<td class="p-3 text-right font-black text-[#411564]">R$ ' + gasto.toFixed(2).replace('.', ',') + '</td>' +
+          '<td class="p-3 text-right">R$ ' + ticket.toFixed(2).replace('.', ',') + '</td>' +
+          '<td class="p-3 whitespace-nowrap">' + ultData + '</td>' +
+          '<td class="p-3 text-center">' + badgePerfil + '</td>' +
+          '<td class="p-3 text-center"><button onclick="abrirDetalhesCliente(' + c.id + ')" class="text-purple-700 hover:underline font-bold text-[11px] cursor-pointer">Histórico</button></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function abrirDetalhesCliente(clienteId) {
+      var cli = listaClientesBase.find(function(c) { return Number(c.id) === Number(clienteId); });
+      if (!cli) return;
+
+      var pedidosDoCliente = listaPedidosParaClientes.filter(function(p) {
+        if (p.cliente_id && Number(p.cliente_id) === Number(cli.id)) return true;
+        return (p.cliente_nome || '').trim().toLowerCase() === (cli.nome || '').trim().toLowerCase();
+      });
+
+      var qtd = Number(cli.total_pedidos || pedidosDoCliente.length);
+      var gasto = Number(cli.total_gasto || 0);
+      var ticket = qtd > 0 ? (gasto / qtd) : 0;
+
+      document.getElementById('det-cli-nome').innerText = cli.nome;
+      document.getElementById('det-cli-contato').innerText = (cli.telefone_exibicao || 'Sem telefone') + (cli.ultimo_endereco ? ' • ' + cli.ultimo_endereco : '');
+      document.getElementById('det-cli-qtd').innerText = qtd;
+      document.getElementById('det-cli-total').innerText = 'R$ ' + gasto.toFixed(2).replace('.', ',');
+      document.getElementById('det-cli-ticket').innerText = 'R$ ' + ticket.toFixed(2).replace('.', ',');
+      document.getElementById('det-cli-primeira').innerText = cli.primeiro_pedido_em ? new Date(cli.primeiro_pedido_em).toLocaleDateString('pt-BR') : '-';
+
+      var mapaItens = {};
+      pedidosDoCliente.forEach(function(p) {
+        if (Array.isArray(p.itens)) {
+          p.itens.forEach(function(it) {
+            var nm = it.nome || 'Item';
+            mapaItens[nm] = (mapaItens[nm] || 0) + Number(it.quantidade || 1);
+          });
+        }
+      });
+
+      var favs = Object.keys(mapaItens).sort(function(a, b) { return mapaItens[b] - mapaItens[a]; });
+      document.getElementById('det-cli-favoritos').innerHTML = favs.length > 0
+        ? favs.map(function(nm) { return '<span class="px-2.5 py-1 rounded-full bg-purple-100 text-[#411564] font-bold">' + mapaItens[nm] + 'x ' + nm + '</span>'; }).join('')
+        : '<span class="text-gray-400">Sem itens detalhados.</span>';
+
+      document.getElementById('det-cli-historico').innerHTML = pedidosDoCliente.length > 0
+        ? pedidosDoCliente.map(function(p) {
+            var dt = p.created_at ? new Date(p.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
+            var resumoItens = Array.isArray(p.itens) ? p.itens.map(function(i) { return i.quantidade + 'x ' + i.nome; }).join(', ') : '';
+            return '<div class="p-2.5 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-between gap-2 text-xs"><div><strong>Pedido #' + p.id + '</strong> <span class="text-gray-400">(' + dt + ')</span><p class="text-[11px] text-gray-600 mt-0.5">' + resumoItens + '</p></div><span class="font-black text-[#411564] whitespace-nowrap">R$ ' + Number(p.total || 0).toFixed(2).replace('.', ',') + '</span></div>';
+          }).join('')
+        : '<p class="text-xs text-gray-400 text-center py-4">Nenhum pedido encontrado.</p>';
+
+      document.getElementById('modal-detalhes-cliente').classList.remove('hidden');
+    }
+
+    function fecharModalCliente() {
+      document.getElementById('modal-detalhes-cliente').classList.add('hidden');
+    }
     // CONFIGURAÇÕES DA LOJA
     async function carregarConfiguracoesLoja() {
       var sb = initClient();
