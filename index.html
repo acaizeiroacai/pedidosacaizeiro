@@ -502,39 +502,57 @@
     </div>
   </div>
 
-  <!-- Rodapé / Assinatura do Desenvolvedor Interativo (Fora do script) -->
-  <footer class="bg-white text-gray-700 py-3 px-4 mt-6 border-t border-gray-200 text-center shadow-inner relative z-10">
-    <div class="max-w-md mx-auto flex flex-col items-center relative">
+  <!-- Rodapé / Assinatura do Desenvolvedor Interativo -->
+<footer class="bg-white text-gray-700 py-3 px-4 mt-6 border-t border-gray-200 text-center shadow-inner relative">
+  <div class="max-w-md mx-auto flex flex-col items-center relative">
+    
+    <!-- Contêiner do Logotipo Clicável -->
+    <div class="relative inline-block">
+      <img src="manhublogo.png" alt="Manhub Logo" class="h-12 w-auto object-contain cursor-pointer transition hover:scale-105" onclick="toggleMenuManhub()" onerror="this.style.display='none';">
       
-      <!-- Contêiner do Logotipo Clicável -->
-      <div class="relative inline-block">
-        <img src="manhublogo.png" alt="Manhub Logo" class="h-12 w-auto object-contain cursor-pointer transition hover:scale-105" onclick="toggleMenuManhub()" onerror="this.style.display='none';">
-        
-        <!-- Aba Pop-up com os links -->
-        <div id="popup-manhub" class="hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-white rounded-2xl shadow-2xl border border-purple-200 p-2.5 text-left z-50 space-y-1.5 animate-in fade-in zoom-in-95 duration-150">
-          <div class="text-[10px] font-extrabold text-[#411564] px-2 pt-0.5 border-b pb-1 flex justify-between items-center">
-            <span>  FALE CONOSCO  </span>
-            <span class="text-gray-400 cursor-pointer text-xs" onclick="toggleMenuManhub()">&times;</span>
-          </div>
-          
-          <!-- Link do WhatsApp -->
-          <a href="https://wa.me/5516996276674?text=Olá!%20Vim%20pelo%20sistema%20Açaizeiro." target="_blank" class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-purple-50 text-xs font-bold text-gray-700 transition">
-            <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i> WhatsApp
-          </a>
-          
-          <!-- Link do Instagram -->
-          <a href="https://instagram.com/manhubsistemagestao" target="_blank" class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-purple-50 text-xs font-bold text-gray-700 transition">
-            <i class="fa-brands fa-instagram text-pink-600 text-sm"></i> Instagram
-          </a>
+      <!-- Aba Pop-up com os links (inicialmente oculta com 'hidden') -->
+      <div id="popup-manhub" class="hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-white rounded-2xl shadow-2xl border border-purple-200 p-2.5 text-left z-50 space-y-1.5 animate-in fade-in zoom-in-95 duration-150">
+        <div class="text-[10px] font-extrabold text-[#411564] px-2 pt-0.5 border-b pb-1 flex justify-between items-center">
+          <span>Fale conosco</span>
+          <span class="text-gray-400 cursor-pointer text-xs" onclick="toggleMenuManhub()">&times;</span>
         </div>
+        
+        <!-- Link do WhatsApp (Altere o número em wa.me/55...) -->
+        <a href="https://wa.me/5516992928529?text=Olá!%20Vim%20pelo%20sistema%20Açaizeiro." target="_blank" class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-purple-50 text-xs font-bold text-gray-700 transition">
+          <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i> WhatsApp
+        </a>
+        
+        <!-- Link do Instagram (Altere o link do seu perfil) -->
+        <a href="https://instagram.com/manhubgestao" target="_blank" class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-purple-50 text-xs font-bold text-gray-700 transition">
+          <i class="fa-brands fa-instagram text-pink-600 text-sm"></i> Instagram
+        </a>
       </div>
-
-      <!-- Texto abaixo colado no logotipo (-mt-2 reduz o espaço) -->
-      <p class="text-[6px] tracking-widest font-extrabold text-gray-600 uppercase -mt-2">
-        DESENVOLVIDO POR MANHUB
-      </p>
     </div>
-  </footer>
+
+    <!-- Texto abaixo colado no logotipo (-mt-2 diminui o espaço) -->
+    <p class="text-[6px] tracking-widest font-extrabold text-gray-600 uppercase -mt-2">
+      DESENVOLVIDO POR MANHUB SISTEMA DE GESTÃO
+    </p>
+  </div>
+</footer>
+
+<!-- Script para controlar a abertura e fechamento da aba -->
+<script>
+  function toggleMenuManhub() {
+    var popup = document.getElementById('popup-manhub');
+    if (popup) {
+      popup.classList.toggle('hidden');
+    }
+  }
+
+  // Fecha a aba automaticamente se o utilizador clicar fora dela
+  window.addEventListener('click', function(e) {
+    var popup = document.getElementById('popup-manhub');
+    var logo = document.querySelector('img[alt="Manhub Logo"]');
+    if (popup && logo && !popup.contains(e.target) && !logo.contains(e.target)) {
+      popup.classList.add('hidden');
+    }
+  });
 
   <script>
     function alternarListaComplementos() {
