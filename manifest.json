@@ -1,0 +1,20 @@
+{
+  "name": "Açaizeiro Delivery",
+  "short_name": "Açaizeiro",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#411564",
+  "theme_color": "#411564",
+  "icons": [
+    {
+      "src": "LOGO2.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "LOGO2.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
