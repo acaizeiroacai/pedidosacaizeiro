@@ -502,6 +502,40 @@
     </div>
   </div>
 
+  <!-- Rodapé / Assinatura do Desenvolvedor Interativo (Fora do script) -->
+  <footer class="bg-white text-gray-700 py-3 px-4 mt-6 border-t border-gray-200 text-center shadow-inner relative z-10">
+    <div class="max-w-md mx-auto flex flex-col items-center relative">
+      
+      <!-- Contêiner do Logotipo Clicável -->
+      <div class="relative inline-block">
+        <img src="manhublogo.png" alt="Manhub Logo" class="h-12 w-auto object-contain cursor-pointer transition hover:scale-105" onclick="toggleMenuManhub()" onerror="this.style.display='none';">
+        
+        <!-- Aba Pop-up com os links -->
+        <div id="popup-manhub" class="hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-white rounded-2xl shadow-2xl border border-purple-200 p-2.5 text-left z-50 space-y-1.5 animate-in fade-in zoom-in-95 duration-150">
+          <div class="text-[10px] font-extrabold text-[#411564] px-2 pt-0.5 border-b pb-1 flex justify-between items-center">
+            <span>Fale conosco</span>
+            <span class="text-gray-400 cursor-pointer text-xs" onclick="toggleMenuManhub()">&times;</span>
+          </div>
+          
+          <!-- Link do WhatsApp -->
+          <a href="https://wa.me/5516996276674?text=Olá!%20Vim%20pelo%20sistema%20Açaizeiro." target="_blank" class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-purple-50 text-xs font-bold text-gray-700 transition">
+            <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i> WhatsApp
+          </a>
+          
+          <!-- Link do Instagram -->
+          <a href="https://instagram.com/manhubsistemagestao" target="_blank" class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-purple-50 text-xs font-bold text-gray-700 transition">
+            <i class="fa-brands fa-instagram text-pink-600 text-sm"></i> Instagram
+          </a>
+        </div>
+      </div>
+
+      <!-- Texto abaixo colado no logotipo (-mt-2 reduz o espaço) -->
+      <p class="text-[6px] tracking-widest font-extrabold text-gray-600 uppercase -mt-2">
+        DESENVOLVIDO POR MANHUB SISTEMA DE GESTÃO
+      </p>
+    </div>
+  </footer>
+
   <script>
     function alternarListaComplementos() {
       var painel = document.getElementById('container-sanfona-complementos');
@@ -517,13 +551,12 @@
 
     var config = {
       whatsapp: "5516992928529",
-      taxaEntrega: 1.00
+      taxaEntrega: 10.00
     };
 
     var SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
     var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
 
-    // Função para verificar se a loja está aberta ou fechada dinamicamente
     async function verificarStatusLojaPublico() {
       try {
         if (window.supabase && window.supabase.createClient) {
@@ -573,7 +606,6 @@
     var produtoEmEdicao = null;
     var textoPedidoWhatsApp = "";
 
-    // Estado do Checkout em Etapas
     var etapaAtualCheckout = 0;
     var estadoCheckout = {
       quando: "Padrão",
@@ -777,7 +809,6 @@
       document.getElementById('total-barra').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
       document.getElementById('qtd-itens').innerText = totais.totalQtd;
       
-      // Mantém desabilitado se vazio
       var btn = document.getElementById('btn-sacola');
       if (btn) {
         btn.disabled = totais.totalQtd === 0;
@@ -812,9 +843,6 @@
       document.getElementById('step0-subtotal').innerText = 'R$ ' + totais.subtotal.toFixed(2).replace('.', ',');
     }
 
-    // ==========================================
-    // CONTROLE DE ETAPAS DO CHECKOUT
-    // ==========================================
     function abrirModalCheckout() {
       carregarDadosSalvosCliente();
       renderizarItensSacola();
@@ -923,7 +951,6 @@
       }
     }
 
-    // Seleções Etapa 1
     function selecionarQuando(opcao) {
       estadoCheckout.quando = opcao;
       var cardPadrão = document.getElementById('card-quando-padrão');
@@ -1016,7 +1043,6 @@
       document.getElementById('end-salvo-bairro').innerText = end.bairro + " - Ibitinga/SP";
     }
 
-    // Seleções Etapa 2
     function selecionarPagamento(valor, label) {
       estadoCheckout.pagamentoValor = valor;
       estadoCheckout.pagamentoLabel = label;
@@ -1059,7 +1085,6 @@
       btn.className = "w-full bg-[#411564] hover:bg-purple-900 text-white font-extrabold py-3.5 rounded-2xl shadow-lg transition active:scale-95 text-sm cursor-pointer";
     }
 
-    // Etapa 3: Preencher Resumo Final
     function preencherResumoFinal() {
       var totais = calcularTotais();
       var nome = document.getElementById('cliente-nome').value.trim();
@@ -1093,9 +1118,6 @@
       document.getElementById('resumo-final-total').innerText = 'R$ ' + totais.total.toFixed(2).replace('.', ',');
     }
 
-    // ==========================================
-    // ENVIO FINAL PARA SUPABASE
-    // ==========================================
     async function enviarPedidoFinal() {
       var btn = document.getElementById('btn-acao-checkout');
       btn.disabled = true;
@@ -1248,7 +1270,6 @@
       document.getElementById("modalAguardandoAceite").style.display = "none";
     }
 
-    // Carregamento dinâmico via Supabase
     setTimeout(function() {
       var s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
@@ -1256,7 +1277,6 @@
         try {
           var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-          // Verifica status da loja ao abrir
           verificarStatusLojaPublico();
 
           Promise.all([
@@ -1313,14 +1333,11 @@
       document.head.appendChild(s);
     }, 200);
 
-    // ==========================================
-    // PIX COM CRONÔMETRO REGRESSIVO
-    // ==========================================
     var intervaloTimerPix = null;
 
     function iniciarCronometroPix() {
       if (intervaloTimerPix) clearInterval(intervaloTimerPix);
-      var segundosRestantes = 30 * 60; // 30 minutos
+      var segundosRestantes = 30 * 60;
       var totalSegundos = segundosRestantes;
 
       intervaloTimerPix = setInterval(function() {
@@ -1450,59 +1467,22 @@
       atualizarBarra();
       window.location.reload();
     }
-    <!-- Rodapé / Assinatura do Desenvolvedor Interativo -->
-<footer class="bg-white text-gray-700 py-3 px-4 mt-6 border-t border-gray-200 text-center shadow-inner relative">
-  <div class="max-w-md mx-auto flex flex-col items-center relative">
-    
-    <!-- Contêiner do Logotipo Clicável -->
-    <div class="relative inline-block">
-      <img src="manhublogo.png" alt="Manhub Logo" class="h-12 w-auto object-contain cursor-pointer transition hover:scale-105" onclick="toggleMenuManhub()" onerror="this.style.display='none';">
-      
-      <!-- Aba Pop-up com os links (inicialmente oculta com 'hidden') -->
-      <div id="popup-manhub" class="hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-white rounded-2xl shadow-2xl border border-purple-200 p-2.5 text-left z-50 space-y-1.5 animate-in fade-in zoom-in-95 duration-150">
-        <div class="text-[10px] font-extrabold text-[#411564] px-2 pt-0.5 border-b pb-1 flex justify-between items-center">
-          <span>Fale conosco</span>
-          <span class="text-gray-400 cursor-pointer text-xs" onclick="toggleMenuManhub()">&times;</span>
-        </div>
-        
-        <!-- Link do WhatsApp (Altere o número em wa.me/5516996276674) -->
-        <a href="https://wa.me/5516996276674?text=Olá!%20Vim%20pelo%20sistema%20Açaizeiro." target="_blank" class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-purple-50 text-xs font-bold text-gray-700 transition">
-          <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i> WhatsApp
-        </a>
-        
-        <!-- Link do Instagram (Altere o link do seu perfil) -->
-        <a href="https://instagram.com/manhubsistemagestao" target="_blank" class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-purple-50 text-xs font-bold text-gray-700 transition">
-          <i class="fa-brands fa-instagram text-pink-600 text-sm"></i> Instagram
-        </a>
-      </div>
-    </div>
 
-    <!-- Texto abaixo colado no logotipo (-mt-2 diminui o espaço) -->
-    <p class="text-[6px] tracking-widest font-extrabold text-gray-600 uppercase -mt-2">
-      DESENVOLVIDO
-    </p>
-  </div>
-</footer>
-
-<!-- Script para controlar a abertura e fechamento da aba -->
-<script>
-  function toggleMenuManhub() {
-    var popup = document.getElementById('popup-manhub');
-    if (popup) {
-      popup.classList.toggle('hidden');
+    // Funções do menu pop-up interativo do rodapé
+    function toggleMenuManhub() {
+      var popup = document.getElementById('popup-manhub');
+      if (popup) {
+        popup.classList.toggle('hidden');
+      }
     }
-  }
 
-  // Fecha a aba automaticamente se o utilizador clicar fora dela
-  window.addEventListener('click', function(e) {
-    var popup = document.getElementById('popup-manhub');
-    var logo = document.querySelector('img[alt="Manhub Logo"]');
-    if (popup && logo && !popup.contains(e.target) && !logo.contains(e.target)) {
-      popup.classList.add('hidden');
-    }
-  });
-</script>
+    window.addEventListener('click', function(e) {
+      var popup = document.getElementById('popup-manhub');
+      var logo = document.querySelector('img[alt="Manhub Logo"]');
+      if (popup && logo && !popup.contains(e.target) && !logo.contains(e.target)) {
+        popup.classList.add('hidden');
+      }
+    });
   </script>
-  
 </body>
 </html>
