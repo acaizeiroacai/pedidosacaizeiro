@@ -6,15 +6,13 @@
  *
  * Ao publicar uma nova versão do painel, aumente o número abaixo.
  * ===================================================================== */
-const VERSAO = 'acaizeiro-admin-v1';
+const VERSAO = 'acaizeiro-admin-v2';
 const CACHE_APP = VERSAO + '-app';
 const CACHE_CDN = VERSAO + '-cdn';
 
 const ARQUIVOS_APP = [
   './admin.html',
   './manifest-admin.json',
-  './js/core.js', './js/dashboard.js', './js/pedidos.js', './js/cardapio.js', './js/estoque.js',
-  './js/precificacao.js', './js/financeiro.js', './js/caixa.js', './js/clientes.js', './js/entregas.js', './js/app.js',
   './icons/icon-192.png', './icons/icon-512.png'
 ];
 // Arquivos opcionais (se não existirem no servidor, a instalação continua)
