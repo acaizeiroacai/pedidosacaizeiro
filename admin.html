@@ -318,6 +318,7 @@
         sessionStorage.setItem('admin_acaizeiro_auth', 'true');
         liberarAcesso();
       } else {
+        erro.classList.add('hidden'); // Corrigido para não ocultar erro acidentalmente
         erro.classList.remove('hidden');
         campo.value = "";
       }
@@ -350,16 +351,31 @@
       }
     }
 
+    function atualizarTelaAtual() {
+      mudarAba(abaAtual);
+    }
+
     function mudarAba(aba) {
+      window.abaAtual = aba;
       var sb = document.getElementById('sidebar-menu');
       var ov = document.getElementById('sidebar-overlay');
       if (sb && !sb.classList.contains('-translate-x-full') && window.innerWidth < 1024) {
         sb.classList.add('-translate-x-full'); ov.classList.add('hidden');
       }
-      ['dashboard', 'pedidos', 'entregas', 'stock', 'clientes', 'estoque', 'precificacao', 'financeiro', 'caixa', 'relatorios', 'desempenho', 'rentabilidade', 'config'].forEach(function(a) {
+
+      var idsAbas = ['dashboard', 'pedidos', 'entregas', 'stock', 'clientes', 'estoque', 'precificacao', 'financeiro', 'caixa', 'relatorios', 'desempenho', 'rentabilidade', 'config'];
+      idsAbas.forEach(function(a) {
         var el = document.getElementById('aba-' + a);
         if (el) el.classList.add('hidden');
       });
+
+      document.querySelectorAll('.nav-item').forEach(function(btn) {
+        btn.classList.remove('bg-[#411564]', 'text-white', 'shadow');
+      });
+
+      var btnAtivo = document.getElementById('nav-btn-' + aba);
+      if (btnAtivo) btnAtivo.classList.add('bg-[#411564]', 'text-white', 'shadow');
+
       var ativa = document.getElementById('aba-' + aba);
       if (ativa) ativa.classList.remove('hidden');
 
