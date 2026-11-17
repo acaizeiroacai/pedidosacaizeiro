@@ -39,7 +39,7 @@
   <!-- Configurações de PWA -->
   <link rel="manifest" href="manifest-admin.json">
   <meta name="theme-color" content="#2e0d49">
-  <link rel="apple-touch-icon" href="logo1.png">
+  <link rel="apple-touch-icon" href="LOGO2.png">
 </head>
 <body class="bg-gray-100 text-gray-800 antialiased min-h-screen">
 
@@ -47,7 +47,7 @@
   <div id="tela-login" class="fixed inset-0 bg-[#411564] z-50 flex items-center justify-center p-4">
     <div class="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-xs text-center space-y-4">
       <div class="w-16 h-16 rounded-full bg-black mx-auto flex items-center justify-center overflow-hidden border-2 border-purple-300">
-        <img src="logo1.png" alt="Açaizeiro" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.src='PURO.png';">
+        <img src="LOGO2.png" alt="Açaizeiro" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.src='PURO.png';">
       </div>
       <div>
         <h2 class="fonte-bryndan text-2xl font-bold text-[#411564]">AÇAIZEIRO</h2>
@@ -74,7 +74,7 @@
         <div class="p-4 bg-[#411564] flex items-center justify-between border-b border-purple-800/60">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-full bg-black flex items-center justify-center overflow-hidden border border-purple-300 flex-shrink-0">
-              <img src="logo1.png" alt="Açaizeiro" class="w-full h-full object-contain p-0.5" onerror="this.onerror=null; this.src='PURO.png';">
+              <img src="LOGO2.png" alt="Açaizeiro" class="w-full h-full object-contain p-0.5" onerror="this.onerror=null; this.src='PURO.png';">
             </div>
             <div>
               <h1 class="fonte-bryndan text-lg font-bold tracking-wide leading-none">AÇAIZEIRO</h1>
@@ -340,7 +340,7 @@
         </div>
       </section>
 
-      <!-- Demais abas mantêm a mesma estrutura original... -->
+      <!-- Demais abas -->
       <section id="aba-relatorios" class="max-w-5xl w-full mx-auto p-4 hidden space-y-6">...</section>
       <section id="aba-stock" class="max-w-5xl w-full mx-auto p-4 hidden space-y-6">...</section>
       <section id="aba-precificacao" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">...</section>
@@ -356,11 +356,10 @@
     </div>
   </div>
 
-  <!-- Modais do sistema (Mantidos intactos) -->
-  <div id="modal-retificar-caixa" class="..."></div>
-  <div id="modal-detalhes-cliente" class="..."></div>
-  <div id="modal-form-produto" class="..."></div>
-  <div id="modal-form-complemento" class="..."></div>
+  <div id="modal-retificar-caixa" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm"></div>
+  <div id="modal-detalhes-cliente" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm"></div>
+  <div id="modal-form-produto" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm"></div>
+  <div id="modal-form-complemento" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm"></div>
   <div id="area-cupom-termico" class="hidden print:block"></div>
 
   <script>
@@ -369,8 +368,110 @@
     var intervaloCampainha = null;
     var somAlertaPedido = new Audio('campainha.mp3');
     var abaAtual = 'dashboard';
-    
-    // (Todas as funções lógicas e scripts do painel continuam idênticos e integrados)
+
+    function emitirBipeDelivery() {
+      if (!somAtivo) return;
+      try { somAlertaPedido.currentTime = 0; somAlertaPedido.play().catch(function() {}); } catch (e) {}
+    }
+
+    function iniciarAlarmeSonoro() {
+      if (intervaloCampainha) return;
+      emitirBipeDelivery();
+      intervaloCampainha = setInterval(function() { emitirBipeDelivery(); }, 3500);
+    }
+
+    function pararAlarmeSonoro() {
+      if (intervaloCampainha) { clearInterval(intervaloCampainha); intervaloCampainha = null; }
+    }
+
+    function alternarSom() {
+      somAtivo = !somAtivo;
+      var icone = document.getElementById('icone-som');
+      var txt = document.getElementById('texto-som');
+      if (icone) icone.className = somAtivo ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+      if (txt) txt.innerText = somAtivo ? 'Som Ativo' : 'Mudo';
+      if (!somAtivo) pararAlarmeSonoro(); else emitirBipeDelivery();
+    }
+
+    function toggleSidebarMobile() {
+      var sb = document.getElementById('sidebar-menu');
+      var ov = document.getElementById('sidebar-overlay');
+      if (sb.classList.contains('-translate-x-full')) {
+        sb.classList.remove('-translate-x-full'); ov.classList.remove('hidden');
+      } else {
+        sb.classList.add('-translate-x-full'); ov.classList.add('hidden');
+      }
+    }
+
+    function tentarEntrar() {
+      var campo = document.getElementById('campo-senha');
+      var erro = document.getElementById('erro-senha');
+      if (!campo) return;
+      if (campo.value.trim() === SENHA_MESTRA) {
+        sessionStorage.setItem('admin_acaizeiro_auth', 'true');
+        liberarAcesso();
+      } else {
+        erro.classList.remove('hidden');
+        campo.value = "";
+      }
+    }
+
+    function liberarAcesso() {
+      document.getElementById('tela-login').classList.add('hidden');
+      document.getElementById('painel-conteudo').classList.remove('hidden');
+      inicializarConfigDashboard();
+      mudarAba('dashboard');
+      carregarPedidos();
+      carregarModuloEstoque();
+      setInterval(carregarPedidos, 12000);
+    }
+
+    function verificarAutenticacao() {
+      if (sessionStorage.getItem('admin_acaizeiro_auth') === 'true') liberarAcesso();
+    }
+
+    function sairPainel() {
+      sessionStorage.removeItem('admin_acaizeiro_auth');
+      location.reload();
+    }
+
+    var SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
+    var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+    var client = null;
+
+    function initClient() {
+      if (!client && window.supabase && window.supabase.createClient) {
+        client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+      return client;
+    }
+
+    function mudarAba(aba) {
+      abaAtual = aba;
+      var sb = document.getElementById('sidebar-menu');
+      var ov = document.getElementById('sidebar-overlay');
+      if (sb && !sb.classList.contains('-translate-x-full') && window.innerWidth < 1024) {
+        sb.classList.add('-translate-x-full'); ov.classList.add('hidden');
+      }
+      ['dashboard', 'pedidos', 'relatorios', 'stock', 'precificacao', 'financeiro', 'caixa', 'estoque', 'clientes', 'entregas', 'config', 'desempenho', 'rentabilidade'].forEach(function(a) {
+        var el = document.getElementById('aba-' + a);
+        if (el) el.classList.add('hidden');
+      });
+      document.querySelectorAll('.nav-item').forEach(function(btn) {
+        btn.classList.remove('bg-[#411564]', 'text-white', 'shadow');
+      });
+      var btnAtivo = document.getElementById('nav-btn-' + aba);
+      if (btnAtivo) btnAtivo.classList.add('bg-[#411564]', 'text-white', 'shadow');
+
+      var ativa = document.getElementById('aba-' + aba);
+      if (ativa) ativa.classList.remove('hidden');
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+      var campo = document.getElementById('campo-senha');
+      if (campo) campo.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); tentarEntrar(); } });
+      verificarAutenticacao();
+    });
   </script>
 </body>
 </html>
