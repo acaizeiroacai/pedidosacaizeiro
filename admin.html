@@ -90,7 +90,8 @@
   <!-- Tela de Login -->
   <div id="tela-login" class="fixed inset-0 bg-[#411564] z-50 flex items-center justify-center p-4">
     <div class="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-xs text-center space-y-4">
-      <div class="w-16 h-16 rounded-full bg-black mx-auto flex items-center justify-center overflow-hidden border-2 border-purple-300">
+      <!-- LOGOTIPO DA TELA DE LOGIN (arquivo logo1.png). Cor do fundo do círculo: bg-white -->
+      <div class="w-16 h-16 rounded-full bg-white mx-auto flex items-center justify-center overflow-hidden border-2 border-purple-300">
         <img src="logo1.png" alt="Açaizeiro" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.src='PURO.png';">
       </div>
       <div>
@@ -119,7 +120,8 @@
       <div class="overflow-y-auto flex-1">
         <div class="p-4 bg-[#411564] flex items-center justify-between border-b border-purple-800/60">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-black flex items-center justify-center overflow-hidden border border-purple-300 flex-shrink-0">
+            <!-- LOGOTIPO DO MENU LATERAL (arquivo LOGO2.png). Cor do fundo do círculo: bg-white -->
+            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden border border-purple-300 flex-shrink-0">
               <img src="LOGO2.png" alt="Açaizeiro" class="w-full h-full object-contain p-0.5" onerror="this.onerror=null; this.src='PURO.png';">
             </div>
             <div>
@@ -1130,6 +1132,21 @@
             <button onclick="selecionarPeriodoEntregas('hoje')" data-ent-periodo="hoje" class="btn-periodo-ent px-3 py-1.5 rounded-xl text-xs font-bold bg-[#411564] text-white cursor-pointer">Hoje</button>
             <button onclick="selecionarPeriodoEntregas('7dias')" data-ent-periodo="7dias" class="btn-periodo-ent px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">7 Dias</button>
             <button onclick="selecionarPeriodoEntregas('mes_atual')" data-ent-periodo="mes_atual" class="btn-periodo-ent px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">Este Mês</button>
+          </div>
+        </div>
+
+        <!-- Liga/desliga entregas no site -->
+        <div id="box-status-entregas" class="p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50/40 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <p class="text-xs font-extrabold text-gray-900 uppercase flex items-center gap-1.5"><i class="fa-solid fa-truck-fast text-[#411564]"></i> Entregas no site</p>
+            <p id="txt-desc-status-entregas" class="text-[11px] text-gray-500">Os clientes podem escolher Entrega ou Retirada.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="txt-status-entregas" class="text-xs font-black text-emerald-600">Entregas ativas</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="cfg-entregas-ativas" onchange="alternarEntregasAtivas()" class="sr-only peer" checked>
+              <div class="w-11 h-6 bg-rose-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+            </label>
           </div>
         </div>
 
@@ -4186,6 +4203,7 @@ async function carregarModuloEntregas() {
   var sb = initClient();
   if (!sb) return;
   var ini = inicioPeriodoEntregas();
+  carregarStatusEntregas().catch(function () {});
   var res = await Promise.all([
     sb.from('entregadores').select('*').order('nome'),
     sb.from('pedidos').select('*').in('status', ['Em preparo', 'Saiu para entrega']).order('id'),
@@ -4360,6 +4378,43 @@ async function desativarEntregador(id) {
   var res = await initClient().from('entregadores').update({ ativo: false }).eq('id', id);
   if (res.error) { mostrarErro('Erro ao remover', res.error); return; }
   carregarModuloEntregas();
+}
+
+/* ---------------------------------------------------------------------
+ * LIGAR / DESLIGAR ENTREGAS NO SITE
+ * ------------------------------------------------------------------- */
+function aplicarVisualStatusEntregas(ativas) {
+  $('cfg-entregas-ativas').checked = ativas;
+  $('txt-status-entregas').innerText = ativas ? 'Entregas ativas' : 'Somente retirada';
+  $('txt-status-entregas').className = 'text-xs font-black ' + (ativas ? 'text-emerald-600' : 'text-rose-600');
+  $('txt-desc-status-entregas').innerText = ativas
+    ? 'Os clientes podem escolher Entrega ou Retirada.'
+    : 'O site mostra "Apenas retirada, sem opção de entregas no momento" e só aceita Retirada.';
+  $('box-status-entregas').className = 'p-4 rounded-2xl border-2 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 ' +
+    (ativas ? 'border-emerald-200 bg-emerald-50/40' : 'border-rose-300 bg-rose-50/60');
+}
+
+async function carregarStatusEntregas() {
+  var res = await initClient().from('configuracoes_loja').select('entregas_ativas').eq('id', 1).maybeSingle();
+  if (res.error) {
+    if (/entregas_ativas/.test(res.error.message)) toast('Rode o arquivo supabase/02_entregas_ativas.sql para ativar a opção de desligar entregas.', 'aviso');
+    return;
+  }
+  aplicarVisualStatusEntregas(!(res.data && res.data.entregas_ativas === false));
+}
+
+async function alternarEntregasAtivas() {
+  var chk = $('cfg-entregas-ativas');
+  var ativar = chk.checked;
+  var msg = ativar ? 'Reativar as entregas no site?' : 'Desativar as entregas?\n\nO site passará a mostrar "Apenas retirada, sem opção de entregas no momento".';
+  if (!confirm(msg)) { chk.checked = !ativar; return; }
+  chk.disabled = true;
+  try {
+    var res = await initClient().from('configuracoes_loja').upsert({ id: 1, entregas_ativas: ativar });
+    if (res.error) { chk.checked = !ativar; mostrarErro('Erro ao alterar entregas', res.error); return; }
+    aplicarVisualStatusEntregas(ativar);
+    toast(ativar ? 'Entregas reativadas no site.' : 'Entregas desativadas: o site agora aceita só retirada.', ativar ? 'ok' : 'aviso');
+  } finally { chk.disabled = false; }
 }
 
   </script>
