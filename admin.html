@@ -1265,6 +1265,23 @@
       <!-- ABA 8: CONFIGURAÇÕES DA LOJA   -->
       <!-- ========================================================= -->
       <section id="aba-config" class="max-w-3xl w-full mx-auto p-4 hidden space-y-6">
+        <!-- Notificações de novos pedidos (push) -->
+        <div id="card-notificacoes" class="bg-white p-5 rounded-2xl shadow-sm border-2 border-purple-200 space-y-3">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-base font-extrabold text-[#411564] flex items-center gap-2"><i class="fa-solid fa-bell"></i> Avisos de novos pedidos neste aparelho</h2>
+              <p class="text-xs text-gray-500">Receba uma notificação com som assim que chegar um pedido, mesmo com o painel fechado ou o celular bloqueado.</p>
+            </div>
+            <span id="notif-status-badge" class="text-[10px] font-black px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 whitespace-nowrap">Verificando...</span>
+          </div>
+          <p id="notif-status-texto" class="text-xs text-gray-600"></p>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" id="btn-notif-ativar" onclick="ativarNotificacoesPush(false)" class="bg-[#411564] hover:bg-purple-900 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow cursor-pointer"><i class="fa-solid fa-bell mr-1"></i> Ativar neste aparelho</button>
+            <button type="button" id="btn-notif-teste" onclick="enviarNotificacaoTeste()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow cursor-pointer"><i class="fa-solid fa-paper-plane mr-1"></i> Enviar notificação de teste</button>
+            <button type="button" id="btn-notif-desativar" onclick="desativarNotificacoesPush()" class="hidden bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 py-2.5 rounded-xl text-xs cursor-pointer">Desativar neste aparelho</button>
+          </div>
+        </div>
+
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-5">
           <div class="border-b pb-3">
             <h2 class="text-lg font-extrabold text-[#411564] flex items-center gap-2"><i class="fa-solid fa-gear"></i> Configurações da Loja & Pagamentos</h2>
@@ -1568,6 +1585,9 @@
 // de segurança (RLS) criadas pelo arquivo supabase/01_configuracao_completa.sql.
 var SUPABASE_URL = "https://sfxvbnxswuvkpssnryjk.supabase.co";
 var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHZibnhzd3V2a3Bzc25yeWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MjE5OTMsImV4cCI6MjEwOTE5Nzk5M30.lCnXsUM9vzUmDOytZOMNJsOYqkc-pX0zvuVLGHfpkBE";
+
+// Chave PÚBLICA das notificações push (a privada fica só na Edge Function)
+var VAPID_PUBLIC_KEY = "BMz9qUIwLRulGeNopjT9Izr-Ldc9KQUvL_XkOnlFCNl8-CWHDTwdGz_Bv76JTFo3f6qi9htBuAOP2S6x_Xv99Os";
 
 var client = null;
 var usuarioAtual = null;
@@ -2028,7 +2048,7 @@ function atualizarVisibilidadeBotaoAlertas() {
 async function ativarAlertas() {
   desbloquearSom();
   if ('Notification' in window && Notification.permission === 'default') {
-    try { await Notification.requestPermission(); } catch (e) {}
+    await ativarNotificacoesPush(true);
   }
   pedirTelaLigada();
   atualizarVisibilidadeBotaoAlertas();
@@ -2088,6 +2108,156 @@ function atualizarIndicadorConexao() {
 }
 window.addEventListener('online', function () { atualizarIndicadorConexao(); toast('Conexão restabelecida.', 'ok'); atualizarTelaAtual(); if (typeof carregarPedidos === 'function') carregarPedidos(); });
 window.addEventListener('offline', function () { atualizarIndicadorConexao(); toast('Sem internet: os dados não serão atualizados até voltar.', 'aviso'); });
+
+/* ---------------------------------------------------------------------
+ * NOTIFICAÇÕES PUSH (chegam mesmo com o painel fechado)
+ * ------------------------------------------------------------------- */
+function suportaPush() {
+  return ('serviceWorker' in navigator) && ('PushManager' in window) && ('Notification' in window);
+}
+function ehIphone() { return /iPhone|iPad|iPod/i.test(navigator.userAgent); }
+function estaInstalado() { return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+
+function chaveParaBytes(b64) {
+  var s = b64.replace(/-/g, '+').replace(/_/g, '/');
+  while (s.length % 4) s += '=';
+  var bin = atob(s), out = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+async function obterRegistroSW() {
+  if (!('serviceWorker' in navigator)) return null;
+  var reg = await navigator.serviceWorker.getRegistration('./admin.html');
+  if (!reg) {
+    try { reg = await navigator.serviceWorker.register('sw-admin.js', { scope: './admin.html' }); } catch (e) { return null; }
+  }
+  if (!reg.active) {
+    await new Promise(function (ok) {
+      var sw = reg.installing || reg.waiting;
+      if (!sw) return ok();
+      sw.addEventListener('statechange', function () { if (sw.state === 'activated') ok(); });
+      setTimeout(ok, 8000);
+    });
+  }
+  return reg;
+}
+
+async function salvarInscricaoPush(inscricao) {
+  var j = inscricao.toJSON();
+  var res = await initClient().from('push_inscricoes').upsert({
+    endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth,
+    user_id: usuarioAtual ? usuarioAtual.id : null,
+    dispositivo: (navigator.userAgent || '').slice(0, 200),
+    atualizado_em: new Date().toISOString()
+  }, { onConflict: 'endpoint' });
+  if (res.error) throw res.error;
+}
+
+async function ativarNotificacoesPush(silencioso) {
+  if (!suportaPush()) {
+    if (!silencioso) toast(ehIphone() && !estaInstalado()
+      ? 'No iPhone, primeiro adicione o painel à Tela de Início (Compartilhar → Adicionar à Tela de Início) e abra por lá.'
+      : 'Este navegador não suporta notificações. Use o Chrome.', 'aviso');
+    atualizarCardNotificacoes();
+    return false;
+  }
+  try {
+    var permissao = Notification.permission;
+    if (permissao === 'default') permissao = await Notification.requestPermission();
+    if (permissao !== 'granted') {
+      if (!silencioso) toast('As notificações estão bloqueadas. Libere em: cadeado ao lado do endereço → Notificações → Permitir.', 'aviso');
+      atualizarCardNotificacoes();
+      return false;
+    }
+    var reg = await obterRegistroSW();
+    if (!reg) throw new Error('service worker não disponível (confira se o arquivo sw-admin.js está no servidor)');
+    var insc = await reg.pushManager.getSubscription();
+    var chave = chaveParaBytes(VAPID_PUBLIC_KEY);
+    // se a inscrição antiga usa outra chave, refaz
+    if (insc && insc.options && insc.options.applicationServerKey) {
+      var atual = new Uint8Array(insc.options.applicationServerKey);
+      if (atual.length !== chave.length || atual.some(function (b, i) { return b !== chave[i]; })) { await insc.unsubscribe(); insc = null; }
+    }
+    if (!insc) insc = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: chave });
+    await salvarInscricaoPush(insc);
+    if (!silencioso) toast('✓ Notificações ativadas neste aparelho. Toque em "Enviar notificação de teste" para conferir.', 'ok');
+    atualizarCardNotificacoes();
+    return true;
+  } catch (e) {
+    if (/push_inscricoes/.test(String(e && e.message))) {
+      if (!silencioso) toast('Falta rodar o arquivo supabase/03_notificacoes_push.sql no Supabase.', 'aviso');
+    } else if (!silencioso) mostrarErro('Não foi possível ativar as notificações', e);
+    atualizarCardNotificacoes();
+    return false;
+  }
+}
+
+async function desativarNotificacoesPush() {
+  try {
+    var reg = await obterRegistroSW();
+    var insc = reg && await reg.pushManager.getSubscription();
+    if (insc) {
+      await initClient().from('push_inscricoes').delete().eq('endpoint', insc.endpoint);
+      await insc.unsubscribe();
+    }
+    toast('Notificações desativadas neste aparelho.', 'info');
+  } catch (e) { mostrarErro('Erro ao desativar', e); }
+  atualizarCardNotificacoes();
+}
+
+async function enviarNotificacaoTeste() {
+  var btn = $('btn-notif-teste');
+  setBotaoCarregando(btn, true);
+  try {
+    var res = await initClient().functions.invoke('notificar-pedido', { body: { teste: true } });
+    if (res.error) {
+      var msg = String(res.error.message || res.error);
+      if (/not found|404|Failed to send/i.test(msg)) throw new Error('a Edge Function "notificar-pedido" ainda não foi criada no Supabase (passo 2 do LEIA-ME).');
+      throw res.error;
+    }
+    var d = res.data || {};
+    if (!d.aparelhos) toast('Nenhum aparelho cadastrado. Toque em "Ativar neste aparelho" primeiro.', 'aviso');
+    else toast('Teste enviado para ' + d.enviados + ' de ' + d.aparelhos + ' aparelho(s). A notificação deve chegar em alguns segundos.' + (d.falhas ? ' (' + d.falhas + ' falha(s))' : ''), d.enviados ? 'ok' : 'aviso');
+  } catch (e) { mostrarErro('Teste não enviado', e); }
+  finally { setBotaoCarregando(btn, false); }
+}
+
+async function atualizarCardNotificacoes() {
+  var badge = $('notif-status-badge'), texto = $('notif-status-texto');
+  if (!badge) return;
+  var bAtivar = $('btn-notif-ativar'), bTeste = $('btn-notif-teste'), bDesativar = $('btn-notif-desativar');
+  var definir = function (classe, rotulo, msg, ativo) {
+    badge.className = 'text-[10px] font-black px-2.5 py-1 rounded-full whitespace-nowrap ' + classe;
+    badge.innerText = rotulo; texto.innerText = msg;
+    bAtivar.classList.toggle('hidden', ativo); bTeste.classList.toggle('hidden', !ativo); bDesativar.classList.toggle('hidden', !ativo);
+  };
+  if (!suportaPush()) {
+    definir('bg-amber-100 text-amber-800', 'Indisponível', ehIphone() && !estaInstalado()
+      ? 'No iPhone as notificações só funcionam com o painel instalado: Safari → Compartilhar → Adicionar à Tela de Início. Depois abra pelo ícone.'
+      : 'Este navegador não suporta notificações. No celular, use o Chrome.', false);
+    return;
+  }
+  if (Notification.permission === 'denied') {
+    definir('bg-rose-100 text-rose-800', 'Bloqueado', 'As notificações foram bloqueadas. Libere em: cadeado ao lado do endereço (ou Configurações do app) → Notificações → Permitir. Depois toque em "Ativar neste aparelho".', false);
+    bAtivar.classList.remove('hidden');
+    return;
+  }
+  var insc = null;
+  try { var reg = await navigator.serviceWorker.getRegistration('./admin.html'); insc = reg && await reg.pushManager.getSubscription(); } catch (e) {}
+  if (insc && Notification.permission === 'granted') {
+    definir('bg-emerald-100 text-emerald-800', 'Ativado', 'Este aparelho recebe avisos de novos pedidos. Para um som mais alto, veja a dica no LEIA-ME.', true);
+  } else {
+    definir('bg-gray-100 text-gray-600', 'Desativado', 'Toque em "Ativar neste aparelho" e permita as notificações. Faça isso em cada celular ou computador que deve tocar.', false);
+  }
+}
+
+// O service worker avisa quando chega um push: atualiza os pedidos na hora
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', function (ev) {
+    if (ev.data && ev.data.tipo === 'novo-pedido' && painelLiberado && typeof carregarPedidos === 'function') carregarPedidos();
+  });
+}
 
   </script>
   <script>
@@ -2961,6 +3131,7 @@ function atualizarTextoToggleStatus() {
 }
 
 async function carregarConfiguracoesLoja() {
+  atualizarCardNotificacoes();
   var sb = initClient();
   if (!sb) return;
   var res = await sb.from('configuracoes_loja').select('*').eq('id', 1).maybeSingle();
@@ -4441,11 +4612,13 @@ function liberarAcesso() {
   if (abaAtual !== 'estoque') carregarModuloEstoque().catch(function () {});
 
   assinarTempoReal();
-  // reserva: atualiza a cada 15 s mesmo se o tempo real cair
-  _intervaloPedidos = setInterval(function () { if (navigator.onLine) carregarPedidos(); }, 15000);
+  // reserva: atualiza a cada 10 s mesmo se o tempo real cair
+  _intervaloPedidos = setInterval(function () { if (navigator.onLine) carregarPedidos(); }, 10000);
 
   pedirTelaLigada();
   atualizarVisibilidadeBotaoAlertas();
+  // mantém a inscrição de notificações sempre válida neste aparelho
+  if (suportaPush() && Notification.permission === 'granted') ativarNotificacoesPush(true);
 }
 
 document.addEventListener('visibilitychange', function () {

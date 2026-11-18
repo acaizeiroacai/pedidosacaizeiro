@@ -6,7 +6,7 @@
  *
  * Ao publicar uma nova versão do painel, aumente o número abaixo.
  * ===================================================================== */
-const VERSAO = 'acaizeiro-admin-v5';
+const VERSAO = 'acaizeiro-admin-v6';
 const CACHE_APP = VERSAO + '-app';
 const CACHE_CDN = VERSAO + '-cdn';
 
@@ -101,14 +101,25 @@ self.addEventListener('notificationclick', (event) => {
   })());
 });
 
-// Preparado para notificações push vindas do servidor (Web Push)
+// Notificação push vinda do servidor (novo pedido), mesmo com o painel fechado
 self.addEventListener('push', (event) => {
   let dados = {};
   try { dados = event.data ? event.data.json() : {}; } catch (e) { dados = { titulo: event.data && event.data.text() }; }
-  event.waitUntil(self.registration.showNotification(dados.titulo || 'Novo pedido!', {
-    body: dados.corpo || 'Abra o painel para ver.',
-    icon: 'admin-icone-192.png', badge: 'admin-icone-192.png',
-    tag: dados.tag || 'pedido', renotify: true, requireInteraction: true, vibrate: [300, 100, 300],
-    data: { url: './admin.html#pedidos' }
-  }));
+  event.waitUntil((async () => {
+    await self.registration.showNotification(dados.titulo || '🔔 Novo pedido!', {
+      body: dados.corpo || 'Abra o painel para aceitar.',
+      icon: 'admin-icone-192.png',
+      badge: 'admin-icone-192.png',
+      tag: dados.tag || 'pedido',
+      renotify: true,
+      requireInteraction: true,           // fica na tela até você tocar
+      silent: false,
+      vibrate: [500, 200, 500, 200, 500, 200, 800],
+      timestamp: Date.now(),
+      data: { url: './admin.html#pedidos' }
+    });
+    // se o painel estiver aberto, atualiza a lista e toca a campainha na hora
+    const janelas = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    janelas.forEach((c) => c.postMessage({ tipo: 'novo-pedido' }));
+  })());
 });
