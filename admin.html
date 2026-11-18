@@ -82,8 +82,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Açaizeiro Admin">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="admin-icone-192.png">
+  <link rel="apple-touch-icon" href="admin-icone-192.png">
 </head>
 <body class="bg-gray-100 text-gray-800 antialiased min-h-screen">
 
@@ -2042,8 +2042,8 @@ async function notificarNovoPedido(pedido) {
   var corpo = (pedido.cliente_nome || 'Cliente') + ' — ' + brl(pedido.total) + (pedido.forma_pagamento ? ' (' + pedido.forma_pagamento + ')' : '');
   try {
     var reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
-    if (reg) reg.showNotification(titulo, { body: corpo, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag: 'pedido-' + pedido.id, renotify: true, requireInteraction: true, vibrate: [300, 100, 300], data: { url: 'admin.html#pedidos' } });
-    else new Notification(titulo, { body: corpo, icon: 'icons/icon-192.png' });
+    if (reg) reg.showNotification(titulo, { body: corpo, icon: 'admin-icone-192.png', badge: 'admin-icone-192.png', tag: 'pedido-' + pedido.id, renotify: true, requireInteraction: true, vibrate: [300, 100, 300], data: { url: 'admin.html#pedidos' } });
+    else new Notification(titulo, { body: corpo, icon: 'admin-icone-192.png' });
   } catch (e) {}
 }
 

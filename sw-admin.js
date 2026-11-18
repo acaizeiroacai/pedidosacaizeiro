@@ -6,14 +6,14 @@
  *
  * Ao publicar uma nova versão do painel, aumente o número abaixo.
  * ===================================================================== */
-const VERSAO = 'acaizeiro-admin-v3';
+const VERSAO = 'acaizeiro-admin-v4';
 const CACHE_APP = VERSAO + '-app';
 const CACHE_CDN = VERSAO + '-cdn';
 
 const ARQUIVOS_APP = [
   './admin.html',
   './manifest-admin.json',
-  './icons/icon-192.png', './icons/icon-512.png'
+  './admin-icone-192.png', './admin-icone-512.png'
 ];
 // Arquivos opcionais (se não existirem no servidor, a instalação continua)
 const ARQUIVOS_OPCIONAIS = ['./campainha.mp3', './LOGO2.png', './logo1.png', './PURO.png'];
@@ -107,7 +107,7 @@ self.addEventListener('push', (event) => {
   try { dados = event.data ? event.data.json() : {}; } catch (e) { dados = { titulo: event.data && event.data.text() }; }
   event.waitUntil(self.registration.showNotification(dados.titulo || 'Novo pedido!', {
     body: dados.corpo || 'Abra o painel para ver.',
-    icon: 'icons/icon-192.png', badge: 'icons/icon-192.png',
+    icon: 'admin-icone-192.png', badge: 'admin-icone-192.png',
     tag: dados.tag || 'pedido', renotify: true, requireInteraction: true, vibrate: [300, 100, 300],
     data: { url: './admin.html#pedidos' }
   }));

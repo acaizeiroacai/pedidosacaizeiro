@@ -12,13 +12,13 @@
   "theme_color": "#2e0d49",
   "categories": ["business", "food"],
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "admin-icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "admin-icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "admin-icone-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "Pedidos", "url": "./admin.html#pedidos", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Entregas", "url": "./admin.html#entregas", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Fechamento de caixa", "url": "./admin.html#caixa", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Pedidos", "url": "./admin.html#pedidos", "icons": [{ "src": "admin-icone-192.png", "sizes": "192x192" }] },
+    { "name": "Entregas", "url": "./admin.html#entregas", "icons": [{ "src": "admin-icone-192.png", "sizes": "192x192" }] },
+    { "name": "Fechamento de caixa", "url": "./admin.html#caixa", "icons": [{ "src": "admin-icone-192.png", "sizes": "192x192" }] }
   ]
 }
