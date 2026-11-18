@@ -6,7 +6,7 @@
  *
  * Ao publicar uma nova versão do painel, aumente o número abaixo.
  * ===================================================================== */
-const VERSAO = 'acaizeiro-admin-v6';
+const VERSAO = 'acaizeiro-admin-v7';
 const CACHE_APP = VERSAO + '-app';
 const CACHE_CDN = VERSAO + '-cdn';
 

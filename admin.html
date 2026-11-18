@@ -1827,6 +1827,13 @@ async function tentarEntrar(e) {
     }
     usuarioAtual = res.data.user;
     $('campo-senha').value = '';
+    if (painelLiberado) {
+      $('tela-login').classList.add('hidden');
+      $('login-status').innerText = '';
+      if (typeof carregarPedidos === 'function') carregarPedidos();
+      atualizarTelaAtual();
+      return;
+    }
     liberarAcesso();
   } catch (err) {
     mostrarErroLogin('Não foi possível entrar: ' + (err.message || err));
@@ -1841,30 +1848,135 @@ async function usuarioEhAdmin() {
   return !res.error && res.data === true;
 }
 
+var saindoPorPedido = false;     // true só quando o usuário clica em "Sair"
+var _verificandoSessao = false;
+
+// Lê a sessão que o Supabase guardou no aparelho (sem precisar de internet)
+function sessaoSalvaNoAparelho() {
+  try {
+    var ref = SUPABASE_URL.replace(/^https:\/\//, '').split('.')[0];
+    var bruto = localStorage.getItem('sb-' + ref + '-auth-token');
+    if (!bruto) return null;
+    var s = JSON.parse(bruto);
+    if (s && s.currentSession) s = s.currentSession;
+    return s && s.refresh_token && s.user ? s : null;
+  } catch (e) { return null; }
+}
+
+function mostrarAvisoConexao(texto) {
+  var el = $('aviso-sessao');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'aviso-sessao';
+    el.style.cssText = 'position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:90;background:#fef3c7;color:#78350f;border:1px solid #f59e0b;font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;box-shadow:0 4px 12px rgba(0,0,0,.15)';
+    document.body.appendChild(el);
+  }
+  el.textContent = texto;
+  el.style.display = texto ? 'block' : 'none';
+}
+
+function ehErroDeRede(err) {
+  var m = String((err && (err.message || err.name)) || err || '');
+  return /fetch|network|tempo esgotado|timeout|Load failed|AuthRetryableFetchError|Failed/i.test(m) || !navigator.onLine;
+}
+
 async function verificarAutenticacao() {
   var status = $('login-status');
+  var salva = sessaoSalvaNoAparelho();
+
+  // Já existe login salvo neste aparelho: abre o painel NA HORA e confirma em segundo plano
+  if (salva) {
+    usuarioAtual = salva.user;
+    liberarAcesso();
+    confirmarSessaoEmSegundoPlano(0);
+    return;
+  }
+
   var sb = initClient();
   if (!sb) {
     if (status) status.innerText = 'Sem conexão com o servidor. Verifique a internet.';
     setTimeout(verificarAutenticacao, 3000);
     return;
   }
-  try {
-    var res = await comTempoLimite(sb.auth.getSession(), 10000, 'tempo esgotado');
-    var sessao = res.data && res.data.session;
-    if (sessao && await comTempoLimite(usuarioEhAdmin(), 10000, 'tempo esgotado')) {
-      usuarioAtual = sessao.user;
-      liberarAcesso();
-      return;
-    }
-  } catch (e) { console.warn(e); }
   if (status) status.innerText = '';
   var campo = $('campo-email');
   if (campo) campo.focus();
 }
 
+// Confere com o Supabase se o login continua válido. Sem internet: tenta de novo,
+// SEM deslogar. Só pede login de novo se o Supabase disser que a sessão acabou.
+async function confirmarSessaoEmSegundoPlano(tentativa) {
+  if (_verificandoSessao || saindoPorPedido) return;
+  _verificandoSessao = true;
+  var tentarDeNovo = function () {
+    _verificandoSessao = false;
+    mostrarAvisoConexao('Reconectando...');
+    setTimeout(function () { confirmarSessaoEmSegundoPlano(tentativa + 1); }, Math.min(30000, 3000 + tentativa * 2000));
+  };
+  try {
+    var sb = initClient();
+    if (!sb) return tentarDeNovo();
+    var res = await comTempoLimite(sb.auth.getSession(), 25000, 'tempo esgotado');
+    if (res.error) return ehErroDeRede(res.error) ? tentarDeNovo() : sessaoPerdida();
+    var sessao = res.data && res.data.session;
+    if (!sessao) return sessaoSalvaNoAparelho() ? tentarDeNovo() : sessaoPerdida();
+    usuarioAtual = sessao.user;
+
+    var adm = await comTempoLimite(sb.rpc('is_admin'), 25000, 'tempo esgotado');
+    if (adm.error) {
+      if (ehErroDeRede(adm.error)) return tentarDeNovo();
+      if (/JWT|token|expired/i.test(adm.error.message)) {
+        var ref = await sb.auth.refreshSession();
+        if (ref.error) return ehErroDeRede(ref.error) ? tentarDeNovo() : sessaoPerdida();
+        return tentarDeNovo();
+      }
+      console.warn('is_admin:', adm.error);
+      return tentarDeNovo();
+    }
+    if (adm.data !== true) { // logado, mas não é administrador
+      saindoPorPedido = true;
+      await sb.auth.signOut();
+      location.reload();
+      return;
+    }
+    _verificandoSessao = false;
+    mostrarAvisoConexao('');
+  } catch (e) {
+    if (ehErroDeRede(e)) return tentarDeNovo();
+    console.warn(e);
+    tentarDeNovo();
+  }
+}
+
+// A sessão foi realmente encerrada no servidor: mostra o login POR CIMA do painel,
+// sem recarregar (nada do que está na tela se perde).
+function sessaoPerdida() {
+  _verificandoSessao = false;
+  mostrarAvisoConexao('');
+  if (saindoPorPedido) return;
+  var login = $('tela-login');
+  if (!login || !login.classList.contains('hidden')) return;
+  login.classList.remove('hidden');
+  login.style.zIndex = '80';
+  var st = $('login-status');
+  if (st) st.innerText = 'Sua sessão expirou. Entre novamente para continuar.';
+  var email = $('campo-email');
+  if (email && usuarioAtual && usuarioAtual.email) email.value = usuarioAtual.email;
+  var senha = $('campo-senha');
+  if (senha) senha.focus();
+}
+
 async function sairPainel() {
+  if (!confirm('Sair do painel neste aparelho?\n\nVocê deixará de receber os avisos de novos pedidos aqui até entrar de novo.')) return;
+  saindoPorPedido = true;
   var sb = initClient();
+  try {
+    if (typeof desativarNotificacoesPush === 'function' && suportaPush()) {
+      var reg = await navigator.serviceWorker.getRegistration('./admin.html');
+      var insc = reg && await reg.pushManager.getSubscription();
+      if (insc && sb) await sb.from('push_inscricoes').delete().eq('endpoint', insc.endpoint);
+    }
+  } catch (e) {}
   try { if (sb) await sb.auth.signOut(); } catch (e) {}
   location.reload();
 }
@@ -4625,6 +4737,7 @@ document.addEventListener('visibilitychange', function () {
   if (document.visibilityState === 'visible' && painelLiberado) {
     carregarPedidos();
     pedirTelaLigada();
+    confirmarSessaoEmSegundoPlano(0); // ao voltar para o app, renova o login em silêncio
   }
 });
 
@@ -4648,7 +4761,11 @@ window.addEventListener('DOMContentLoaded', function () {
   var sb = initClient();
   if (sb) {
     sb.auth.onAuthStateChange(function (evento) {
-      if (evento === 'SIGNED_OUT' && painelLiberado) location.reload();
+      // Não desloga sozinho: só confere de novo. O login só some se você clicar em "Sair"
+      // ou se o Supabase confirmar que a sessão acabou.
+      if (evento === 'SIGNED_OUT' && painelLiberado && !saindoPorPedido) {
+        setTimeout(function () { sessaoSalvaNoAparelho() ? confirmarSessaoEmSegundoPlano(0) : sessaoPerdida(); }, 1500);
+      }
     });
   }
 
