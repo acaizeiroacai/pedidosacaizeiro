@@ -74,6 +74,7 @@
     body { padding-bottom: env(safe-area-inset-bottom); }
     #toast-area { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; gap: 8px; width: min(92vw, 420px); pointer-events: none; }
     #toast-area > div { pointer-events: auto; }
+    .gerando-pdf .col-acoes { display: none !important; }
   </style>
   <!-- Configurações de PWA -->
   <link rel="manifest" href="manifest-admin.json">
@@ -448,7 +449,7 @@
               <table class="w-full text-left text-xs text-gray-600">
                 <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100">
                   <tr>
-                    <th class="p-3">#ID</th><th class="p-3">Data / Hora</th><th class="p-3">Cliente</th><th class="p-3">Pagamento</th><th class="p-3">Status</th><th class="p-3 text-right">Valor</th>
+                    <th class="p-3">#ID</th><th class="p-3">Data / Hora</th><th class="p-3">Cliente</th><th class="p-3">Pagamento</th><th class="p-3">Status</th><th class="p-3 text-right">Valor</th><th class="p-3 text-center col-acoes">Excluir</th>
                   </tr>
                 </thead>
                 <tbody id="tabela-relatorios-corpo" class="divide-y divide-gray-100 font-medium">
@@ -456,6 +457,22 @@
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <button onclick="alternarPedidosExcluidos()" class="w-full p-4 flex items-center justify-between text-sm font-bold text-gray-700 hover:bg-gray-50 cursor-pointer">
+            <span><i class="fa-solid fa-trash-can-arrow-up text-rose-500 mr-1.5"></i> Pedidos excluídos (histórico)</span>
+            <i class="fa-solid fa-chevron-down text-xs text-gray-400"></i>
+          </button>
+          <div id="box-pedidos-excluidos" class="hidden border-t border-gray-100 overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-600">
+              <thead class="bg-rose-50/60 text-rose-800 font-bold uppercase text-[10px] tracking-wider">
+                <tr><th class="p-3">Pedido</th><th class="p-3">Feito em</th><th class="p-3">Cliente</th><th class="p-3 text-right">Valor</th><th class="p-3">Excluído em / por</th><th class="p-3 text-center">Estoque</th></tr>
+              </thead>
+              <tbody id="tabela-pedidos-excluidos" class="divide-y divide-gray-100"></tbody>
+            </table>
+            <p class="p-3 text-[10px] text-gray-400">Estes pedidos não entram em nenhum relatório. A lista serve só para consulta.</p>
           </div>
         </div>
       </section>
@@ -2963,7 +2980,8 @@ function renderizarPedidos() {
 
     return '<div class="bg-white rounded-2xl p-4 shadow-sm border ' + (aguardando ? 'border-amber-400 ring-2 ring-amber-300' : 'border-gray-200') + ' flex flex-col justify-between"><div>' +
       '<div class="flex justify-between items-start mb-2 gap-2"><div class="min-w-0"><span class="text-xs font-black bg-purple-100 text-purple-900 px-2 py-0.5 rounded-md">#' + esc(p.id) + '</span><span class="text-[11px] text-gray-400 ml-1.5">' + esc(hora) + '</span><h3 class="font-extrabold text-gray-900 text-base leading-tight mt-1 break-words">' + esc(p.cliente_nome || 'Cliente') + '</h3></div>' +
-      '<div class="flex items-center gap-1.5 flex-shrink-0"><button onclick="imprimirPedido(' + Number(p.id) + ')" title="Imprimir comanda" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"><i class="fa-solid fa-print"></i></button><span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border ' + classeBadgeStatus(p.status) + '">' + esc(p.status || '-') + '</span></div></div>' +
+      '<div class="flex items-center gap-1.5 flex-shrink-0"><button onclick="imprimirPedido(' + Number(p.id) + ')" title="Imprimir comanda" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"><i class="fa-solid fa-print"></i></button>' +
+      '<button' + dis + ' onclick="excluirPedido(' + Number(p.id) + ')" title="Excluir pedido" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"><i class="fa-solid fa-trash"></i></button><span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border ' + classeBadgeStatus(p.status) + '">' + esc(p.status || '-') + '</span></div></div>' +
       contato +
       '<p class="text-xs text-gray-600 mb-2 flex items-start gap-1"><i class="fa-solid fa-location-dot mt-0.5 text-gray-400"></i><span class="break-words">' + esc(p.cliente_endereco || 'Não informado') + '</span></p>' +
       '<div class="bg-gray-50 p-2.5 rounded-xl my-2 max-h-36 overflow-y-auto">' + (itensHtml || '<p class="text-xs text-gray-400">Sem itens</p>') + '</div>' +
@@ -3058,7 +3076,7 @@ async function carregarRelatorios() {
   var sb = initClient();
   if (!sb) return;
   var tabela = $('tabela-relatorios-corpo');
-  tabela.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Processando faturamento do mês...</td></tr>';
+  tabela.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-gray-400">Processando faturamento do mês...</td></tr>';
   try {
     var agora = new Date();
     var resultados = await Promise.all([
@@ -3089,16 +3107,17 @@ async function carregarRelatorios() {
     $('rel-lucro-nota').innerText = 'O custo das fichas já inclui o rateio fixo de cada produto. Não entram aqui as taxas de entrega (' + brl(taxaEntregaMes) + ' no mês) nem as despesas lançadas no Financeiro: o resultado final da loja está em Financeiro → DRE.' +
       (lucro.qtdSemFicha ? ' Produtos sem ficha técnica entram com a margem presumida de ' + lucro.margemSemFicha + '%.' : '');
 
-    if (!todos.length) { tabela.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Nenhum pedido registrado neste mês.</td></tr>'; return; }
+    if (!todos.length) { tabela.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-gray-400">Nenhum pedido registrado neste mês.</td></tr>'; return; }
     tabela.innerHTML = todos.map(function (p) {
       var cor = 'text-gray-600 bg-gray-100';
       if (p.status === 'Concluído') cor = 'text-green-700 bg-green-50 border border-green-200';
       else if (p.status === 'Recusado' || p.status === 'Cancelado') cor = 'text-rose-700 bg-rose-50 border border-rose-200';
       else if (p.status === 'Em preparo' || p.status === 'Saiu para entrega') cor = 'text-purple-700 bg-purple-50 border border-purple-200';
-      return '<tr class="hover:bg-gray-50/80 transition"><td class="p-3 font-bold text-purple-900">#' + esc(p.id) + '</td><td class="p-3 whitespace-nowrap">' + formatarDataHora(p.created_at) + '</td><td class="p-3 font-semibold text-gray-800">' + esc(p.cliente_nome || 'Cliente') + '</td><td class="p-3">' + esc(p.forma_pagamento || '-') + '</td><td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ' + cor + '">' + esc(p.status) + '</span></td><td class="p-3 text-right font-black text-gray-900">' + brl(p.total) + '</td></tr>';
+      return '<tr class="hover:bg-gray-50/80 transition"><td class="p-3 font-bold text-purple-900">#' + esc(p.id) + '</td><td class="p-3 whitespace-nowrap">' + formatarDataHora(p.created_at) + '</td><td class="p-3 font-semibold text-gray-800">' + esc(p.cliente_nome || 'Cliente') + '</td><td class="p-3">' + esc(p.forma_pagamento || '-') + '</td><td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ' + cor + '">' + esc(p.status) + '</span></td><td class="p-3 text-right font-black text-gray-900">' + brl(p.total) + '</td>' +
+        '<td class="p-3 text-center col-acoes"><button onclick="excluirPedido(' + Number(p.id) + ')" title="Excluir pedido" class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"><i class="fa-solid fa-trash"></i></button></td></tr>';
     }).join('');
   } catch (e) {
-    tabela.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-red-500">Erro ao carregar relatório.</td></tr>';
+    tabela.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-red-500">Erro ao carregar relatório.</td></tr>';
     throw e;
   }
 }
@@ -3108,6 +3127,7 @@ function baixarRelatorioPDF() {
   var elemento = $('area-impressao-pdf'), cab = $('cabecalho-pdf'), btn = $('btn-baixar-pdf');
   $('pdf-data-emissao').innerText = 'Emissão em: ' + new Date().toLocaleString('pt-BR');
   cab.classList.remove('hidden');
+  elemento.classList.add('gerando-pdf');
   setBotaoCarregando(btn, true);
   var hoje = new Date();
   html2pdf().set({
@@ -3117,6 +3137,7 @@ function baixarRelatorioPDF() {
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['avoid-all', 'css'] }
   }).from(elemento).save().catch(function (e) { mostrarErro('Erro ao gerar PDF', e); }).then(function () {
     cab.classList.add('hidden');
+    elemento.classList.remove('gerando-pdf');
     setBotaoCarregando(btn, false);
   });
 }
@@ -3169,6 +3190,80 @@ async function solicitarLimpezaMes() {
   } catch (e) { mostrarErro('Erro ao apagar', e); }
   carregarRelatorios();
   carregarPedidos();
+}
+
+/* ---------------------------------------------------------------------
+ * EXCLUIR PEDIDO
+ * O pedido some de todo o painel; uma cópia fica em "Pedidos excluídos".
+ * ------------------------------------------------------------------- */
+function acharPedidoEmQualquerLista(id) {
+  var listas = [listaGlobalPedidos, _pedidosRelatorioCache];
+  if (typeof _pedidosEntregasCache !== 'undefined') listas.push(_pedidosEntregasCache);
+  for (var i = 0; i < listas.length; i++) {
+    var p = (listas[i] || []).find(function (x) { return x.id === id; });
+    if (p) return p;
+  }
+  return null;
+}
+
+async function excluirPedido(id) {
+  if (_pedidosEmProcessamento[id]) return;
+  var p = acharPedidoEmQualquerLista(id);
+  var desc = '#' + id + (p ? ' — ' + (p.cliente_nome || 'Cliente') + ' — ' + brl(p.total) + ' (' + (p.status || '-') + ')' : '');
+  if (!confirm('🗑️ Excluir o pedido ' + desc + '?\n\nEle sai do painel, dos relatórios de vendas, do Dashboard, do Financeiro e da lista de Clientes.\nUma cópia fica guardada em Relatórios → "Pedidos excluídos".\n\nEsta ação não pode ser desfeita.')) return;
+
+  var devolver = false;
+  if (p && p.status === 'Concluído') {
+    devolver = confirm('Este pedido estava CONCLUÍDO, então os ingredientes já foram descontados do estoque.\n\nDevolver os ingredientes ao estoque?\n\nOK = Sim, devolver (o pedido não foi feito)\nCancelar = Não devolver (o produto foi feito ou desperdiçado)');
+  }
+
+  _pedidosEmProcessamento[id] = true;
+  renderizarPedidos();
+  try {
+    var res = await initClient().rpc('excluir_pedido', { p_pedido_id: id, p_devolver_estoque: devolver });
+    if (res.error) {
+      if (/excluir_pedido/.test(res.error.message) && /function|schema/i.test(res.error.message)) throw new Error('falta rodar o arquivo supabase/04_excluir_pedidos.sql no Supabase');
+      throw res.error;
+    }
+    listaGlobalPedidos = listaGlobalPedidos.filter(function (x) { return x.id !== id; });
+    _pedidosRelatorioCache = _pedidosRelatorioCache.filter(function (x) { return x.id !== id; });
+    var dev = res.data && res.data.insumos_devolvidos;
+    toast('Pedido #' + id + ' excluído.' + (dev ? ' ' + dev + ' ingrediente(s) devolvido(s) ao estoque.' : ''), 'ok');
+    if (dev && typeof carregarModuloEstoque === 'function') carregarModuloEstoque().catch(function () {});
+  } catch (e) {
+    mostrarErro('Não foi possível excluir o pedido #' + id, e);
+  } finally {
+    delete _pedidosEmProcessamento[id];
+    renderizarPedidos();
+    if (abaAtual !== 'pedidos') atualizarTelaAtual();
+    var box = $('box-pedidos-excluidos');
+    if (box && !box.classList.contains('hidden')) carregarPedidosExcluidos();
+  }
+}
+
+function alternarPedidosExcluidos() {
+  var box = $('box-pedidos-excluidos');
+  var abrir = box.classList.contains('hidden');
+  box.classList.toggle('hidden', !abrir);
+  if (abrir) carregarPedidosExcluidos();
+}
+
+async function carregarPedidosExcluidos() {
+  var corpo = $('tabela-pedidos-excluidos');
+  corpo.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">Carregando...</td></tr>';
+  var res = await initClient().from('pedidos_excluidos').select('*').order('excluido_em', { ascending: false }).limit(100);
+  if (res.error) {
+    corpo.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-rose-500">' + esc(/pedidos_excluidos/.test(res.error.message) ? 'Falta rodar o arquivo 04_excluir_pedidos.sql no Supabase.' : res.error.message) + '</td></tr>';
+    return;
+  }
+  var lista = res.data || [];
+  corpo.innerHTML = lista.length ? lista.map(function (e) {
+    var d = e.dados || {};
+    return '<tr class="hover:bg-gray-50"><td class="p-3 font-bold text-gray-700">#' + esc(e.pedido_id) + '</td><td class="p-3 whitespace-nowrap">' + formatarDataHora(d.created_at, true) + '</td>' +
+      '<td class="p-3">' + esc(d.cliente_nome || '-') + '<div class="text-[10px] text-gray-400">' + esc(d.status || '') + ' · ' + esc(d.forma_pagamento || '') + '</div></td><td class="p-3 text-right font-bold">' + brl(d.total) + '</td>' +
+      '<td class="p-3 whitespace-nowrap">' + formatarDataHora(e.excluido_em, true) + '<div class="text-[10px] text-gray-400">' + esc(e.excluido_por || '') + '</div></td>' +
+      '<td class="p-3 text-center">' + (e.devolveu_estoque ? '<span class="text-[10px] font-bold text-emerald-700">Devolvido</span>' : '<span class="text-[10px] text-gray-400">—</span>') + '</td></tr>';
+  }).join('') : '<tr><td colspan="6" class="p-4 text-center text-gray-400">Nenhum pedido excluído.</td></tr>';
 }
 
   </script>
@@ -3555,7 +3650,7 @@ function renderizarHistoricoMovimentacoesEstoque() {
     var ins = listaInsumosEstoque.find(function (x) { return Number(x.id) === Number(m.insumo_id); });
     var un = ins ? ins.unidade : '';
     var cor = 'bg-gray-100 text-gray-700';
-    if (m.tipo_movimentacao === 'Entrada') cor = 'bg-emerald-100 text-emerald-800';
+    if (m.tipo_movimentacao === 'Entrada' || m.tipo_movimentacao === 'Estorno Exclusão') cor = 'bg-emerald-100 text-emerald-800';
     else if (m.tipo_movimentacao === 'Consumo Produção') cor = 'bg-purple-100 text-purple-800';
     else if (m.tipo_movimentacao === 'Perda / Desperdício' || m.tipo_movimentacao === 'Saída Manual') cor = 'bg-rose-100 text-rose-800';
     var ref = m.pedido_id ? ' <span class="text-[10px] font-bold text-purple-800">[Pedido #' + esc(m.pedido_id) + ']</span>' : '';

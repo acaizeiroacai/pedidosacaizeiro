@@ -1220,10 +1220,21 @@
       var isPix = pedidoAtual.formaPagamento === 'Pix';
 
       if (window.intervaloAceite) clearInterval(window.intervaloAceite);
+      var semResposta = 0;
       window.intervaloAceite = setInterval(async function () {
         try {
           var status = await consultarStatusPedido();
-          if (!status) return;
+          if (!status) {
+            // pedido não existe mais (a loja excluiu)
+            if (++semResposta >= 2) {
+              clearInterval(window.intervaloAceite);
+              modalEspera.style.display = "none";
+              try { localStorage.removeItem('acaizeiro_pedido_atual'); } catch (e) {}
+              alert("O pedido #" + pedidoAtual.id + " foi cancelado pela loja. Sua sacola continua salva, se quiser tentar de novo.");
+            }
+            return;
+          }
+          semResposta = 0;
           if (isPix && status === "Aguardando Pagamento Pix") {
             clearInterval(window.intervaloAceite);
             modalEspera.style.display = "none";
@@ -1382,9 +1393,19 @@
 
     function escutarConfirmacaoPix() {
       if (window.intervaloPix) clearInterval(window.intervaloPix);
+      var semRespostaPix = 0;
       window.intervaloPix = setInterval(async function () {
         try {
           var status = await consultarStatusPedido();
+          if (!status) {
+            if (++semRespostaPix >= 2) {
+              pararPix();
+              document.getElementById("modalPix").style.display = "none";
+              alert("O pedido #" + pedidoAtual.id + " foi cancelado pela loja. Se você já pagou, fale com a loja pelo WhatsApp.");
+            }
+            return;
+          }
+          semRespostaPix = 0;
           if (STATUS_ACEITO.indexOf(status) !== -1) {
             pararPix();
             limparSacolaAposPedido();
