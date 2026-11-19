@@ -46,10 +46,14 @@
         <div id="indicador-status-loja" class="text-xs text-purple-200 flex items-center gap-1.5 font-medium">
           <span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span> Aberto para Pedidos
         </div>
+        <!-- Saudação no celular (abaixo do status) -->
+        <button type="button" onclick="abrirPainelConta()" class="saudacao-topo sm:hidden block text-left text-[13px] font-bold text-white mt-0.5 truncate max-w-[190px] cursor-pointer"></button>
       </div>
-      <button onclick="abrirPainelConta()" class="ml-auto relative bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-2xl px-3 py-2 flex flex-col items-center gap-0.5 transition active:scale-95 cursor-pointer max-w-[96px]" aria-label="Minha conta">
-        <i id="icone-conta-topo" class="fa-solid fa-circle-user text-lg"></i>
-        <span id="rotulo-conta-topo" class="text-[10px] font-bold leading-none truncate max-w-full">Entrar</span>
+      <!-- Saudação no computador (à direita) -->
+      <button type="button" onclick="abrirPainelConta()" class="saudacao-topo hidden sm:block ml-auto text-[15px] font-bold text-white truncate max-w-[220px] cursor-pointer"></button>
+      <!-- Botão de menu (três traços) -->
+      <button onclick="abrirPainelConta()" class="ml-auto sm:ml-0 relative w-12 h-12 flex-shrink-0 bg-white/10 hover:bg-white/20 border border-white/25 text-white rounded-2xl flex items-center justify-center transition active:scale-95 cursor-pointer" aria-label="Abrir menu">
+        <i class="fa-solid fa-bars text-xl"></i>
         <span id="badge-meus-pedidos" class="hidden absolute -top-1.5 -right-1.5 bg-amber-400 text-[#2e0d49] text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow">0</span>
       </button>
     </div>
@@ -1908,7 +1912,21 @@
 
     function aplicarContaNaTela() {
       var c = contaAtual();
-      document.getElementById('rotulo-conta-topo').textContent = c ? (c.nome || 'Conta').split(' ')[0] : 'Entrar';
+      document.querySelectorAll('.saudacao-topo').forEach(function (el) {
+        el.innerHTML = '';
+        if (c) {
+          el.appendChild(document.createTextNode('Olá, '));
+          var nome = document.createElement('span');
+          nome.style.color = '#fcd34d';
+          nome.textContent = (c.nome || '').split(' ')[0];
+          el.appendChild(nome);
+          el.appendChild(document.createTextNode('!'));
+          el.title = 'Abrir minha conta';
+        } else {
+          el.innerHTML = '<span class="text-purple-200 font-semibold">Olá!</span> <u class="text-purple-100">Entre na sua conta</u>';
+          el.title = 'Entrar ou criar conta';
+        }
+      });
       document.getElementById('conta-deslogado').classList.toggle('hidden', !!c);
       document.getElementById('conta-logado').classList.toggle('hidden', !c);
       document.getElementById('conta-titulo').textContent = c ? 'Olá, ' + (c.nome || '').split(' ')[0] + '!' : 'Minha conta';
