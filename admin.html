@@ -258,7 +258,7 @@
             <button onclick="selecionarPeriodoDashboard('personalizado')" data-periodo="personalizado" class="btn-periodo-dash px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">Personalizado</button>
           </div>
           <div class="flex items-center gap-2 bg-purple-50/80 px-3 py-1.5 rounded-xl border border-purple-100">
-            <label for="dash-margem-padrao" class="text-[11px] font-bold text-[#411564] whitespace-nowrap">Margem Presumida (%):</label>
+            <label for="dash-margem-padrao" class="text-[11px] font-bold text-[#411564] whitespace-nowrap" title="Usada só para estimar o lucro de produtos que ainda não têm ficha técnica">Margem p/ produtos sem ficha (%):</label>
             <input type="number" id="dash-margem-padrao" min="1" max="95" step="1" value="35" onchange="alterarMargemPadraoDashboard()" class="w-16 bg-white border border-purple-200 rounded-lg px-2 py-1 text-xs font-black text-center text-[#411564] outline-purple-600">
           </div>
         </div>
@@ -302,11 +302,12 @@
           </div>
           <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
-              <p class="text-xs font-bold text-gray-500 uppercase">Lucro estimado (margem presumida)</p>
+              <p class="text-xs font-bold text-gray-500 uppercase" title="Valor vendido − custo das fichas técnicas − taxas e impostos">Lucro dos produtos</p>
               <span class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-coins"></i></span>
             </div>
             <p class="text-2xl font-black text-emerald-600 mt-2" id="dash-val-lucro">R$ 0,00</p>
-            <p class="text-[11px] text-gray-500 mt-1" id="dash-comp-lucro">Estimativa com margem presumida de 35% (não representa lucro líquido real)</p>
+            <p class="text-[11px] text-gray-500 mt-1" id="dash-comp-lucro">Calculando...</p>
+            <p class="text-[10px] text-gray-400 mt-0.5 leading-snug" id="dash-origem-lucro"></p>
           </div>
           <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
@@ -412,7 +413,7 @@
             <p class="text-xs text-gray-500 font-medium">Relatório Oficial de Fechamento de Vendas</p>
             <p class="text-[11px] text-gray-400 mt-1" id="pdf-data-emissao"></p>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
               <p class="text-xs text-gray-500 font-semibold uppercase">Faturamento Concluído</p>
               <p class="text-2xl font-black text-emerald-600 mt-1" id="relatorio-total-faturado">R$ 0,00</p>
@@ -428,6 +429,18 @@
               <p class="text-2xl font-black text-blue-600 mt-1" id="relatorio-ticket-medio">R$ 0,00</p>
               <span class="text-[11px] text-gray-400">Média por pedido</span>
             </div>
+            <div class="bg-white p-4 rounded-2xl border-2 border-emerald-200 shadow-sm">
+              <p class="text-xs text-gray-500 font-semibold uppercase" title="Valor vendido − custo das fichas técnicas − taxas e impostos">Lucro dos Produtos</p>
+              <p class="text-2xl font-black text-emerald-600 mt-1" id="relatorio-lucro">R$ 0,00</p>
+              <span class="text-[11px] text-gray-500 leading-snug block" id="relatorio-lucro-origem">Pelas fichas técnicas</span>
+            </div>
+          </div>
+          <div id="relatorio-detalhe-lucro" class="hidden bg-white rounded-2xl border border-gray-200 shadow-sm p-4 text-xs text-gray-600 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div><p class="text-[10px] font-bold uppercase text-gray-400">Vendido em produtos</p><p class="font-black text-gray-900 text-sm" id="rel-lucro-receita">-</p></div>
+            <div><p class="text-[10px] font-bold uppercase text-gray-400">(−) Custo das fichas</p><p class="font-black text-rose-600 text-sm" id="rel-lucro-custo">-</p></div>
+            <div><p class="text-[10px] font-bold uppercase text-gray-400">(−) Taxas e impostos</p><p class="font-black text-rose-600 text-sm" id="rel-lucro-taxas">-</p></div>
+            <div><p class="text-[10px] font-bold uppercase text-gray-400">(=) Lucro dos produtos</p><p class="font-black text-emerald-700 text-sm" id="rel-lucro-total">-</p></div>
+            <p class="col-span-full text-[10px] text-gray-400" id="rel-lucro-nota"></p>
           </div>
           <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
             <div class="p-4 border-b border-gray-100 font-bold text-sm text-gray-800">Listagem Geral de Pedidos do Mês</div>
@@ -1347,35 +1360,78 @@
       <!-- ========================================================= -->
       <!-- ABA: DESEMPENHO DOS PRODUTOS -->
       <!-- ========================================================= -->
-      <section id="aba-desempenho" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-6">
-        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <h2 class="text-base font-extrabold text-[#411564] flex items-center gap-2"><i class="fa-solid fa-ranking-star"></i> Desempenho Detalhado dos Produtos</h2>
-            <p class="text-xs text-gray-500">Análise de volume, receita gerada e participação percentual de cada item do cardápio.</p>
+      <section id="aba-desempenho" class="max-w-6xl w-full mx-auto p-4 sm:p-6 hidden space-y-5">
+        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h2 class="text-base font-extrabold text-[#411564] flex items-center gap-2"><i class="fa-solid fa-ranking-star"></i> Desempenho e Lucro dos Produtos</h2>
+              <p class="text-xs text-gray-500">Quanto cada produto vendeu e quanto de lucro ele realmente deixou, pelas fichas técnicas.</p>
+            </div>
+            <button onclick="carregarModuloDesempenho()" class="bg-purple-50 hover:bg-purple-100 text-[#411564] font-bold px-3.5 py-2 rounded-xl text-xs cursor-pointer"><i class="fa-solid fa-rotate-right mr-1"></i> Atualizar Dados</button>
           </div>
-          <button onclick="carregarModuloDesempenho()" class="bg-purple-50 hover:bg-purple-100 text-[#411564] font-bold px-3.5 py-2 rounded-xl text-xs cursor-pointer"><i class="fa-solid fa-rotate-right mr-1"></i> Atualizar Dados</button>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div class="lg:col-span-12 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs text-gray-600">
-                <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100">
-                  <tr>
-                    <th class="p-3">#</th>
-                    <th class="p-3">Produto / Item</th>
-                    <th class="p-3">Categoria</th>
-                    <th class="p-3 text-center">Qtd. Vendida</th>
-                    <th class="p-3 text-right">Faturamento Total</th>
-                    <th class="p-3 text-right">% do Faturamento</th>
-                  </tr>
-                </thead>
-                <tbody id="tabela-desempenho-produtos" class="divide-y divide-gray-100 font-medium">
-                  <tr><td colspan="6" class="p-6 text-center text-gray-400">A carregar desempenho...</td></tr>
-                </tbody>
-              </table>
+          <div class="flex flex-wrap items-center gap-2">
+            <button class="btn-periodo-desemp px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 cursor-pointer" data-desemp="hoje" onclick="selecionarPeriodoDesempenho('hoje')">Hoje</button>
+            <button class="btn-periodo-desemp px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 cursor-pointer" data-desemp="7dias" onclick="selecionarPeriodoDesempenho('7dias')">Últimos 7 dias</button>
+            <button class="btn-periodo-desemp px-3 py-1.5 rounded-xl text-xs font-bold bg-[#411564] text-white cursor-pointer" data-desemp="mes_atual" onclick="selecionarPeriodoDesempenho('mes_atual')">Este mês</button>
+            <button class="btn-periodo-desemp px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 cursor-pointer" data-desemp="mes_anterior" onclick="selecionarPeriodoDesempenho('mes_anterior')">Mês anterior</button>
+            <button class="btn-periodo-desemp px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 cursor-pointer" data-desemp="tudo" onclick="selecionarPeriodoDesempenho('tudo')">Todo o período</button>
+            <div class="ml-auto flex items-center gap-1.5">
+              <label for="desemp-ordenar" class="text-[11px] font-bold text-gray-500">Ordenar por:</label>
+              <select id="desemp-ordenar" onchange="renderizarTabelaDesempenho()" class="border border-gray-300 rounded-lg px-2 py-1.5 text-xs bg-white outline-purple-600">
+                <option value="lucro">Maior lucro</option>
+                <option value="receita">Maior faturamento</option>
+                <option value="qtd">Mais vendidos</option>
+                <option value="margem">Maior margem</option>
+              </select>
             </div>
           </div>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[10px] font-bold text-gray-500 uppercase">Faturamento dos produtos</p>
+            <p class="text-xl font-black text-gray-900 mt-1" id="desemp-card-receita">R$ 0,00</p>
+            <p class="text-[10px] text-gray-400">Sem taxas de entrega</p>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border-2 border-emerald-200 shadow-sm">
+            <p class="text-[10px] font-bold text-gray-500 uppercase">Lucro dos produtos</p>
+            <p class="text-xl font-black text-emerald-600 mt-1" id="desemp-card-lucro">R$ 0,00</p>
+            <p class="text-[10px] text-gray-400" id="desemp-card-margem">Margem média: -</p>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[10px] font-bold text-gray-500 uppercase">Produto mais lucrativo</p>
+            <p class="text-sm font-black text-[#411564] mt-1 truncate" id="desemp-card-top">-</p>
+            <p class="text-[10px] text-gray-400" id="desemp-card-top-valor"></p>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[10px] font-bold text-gray-500 uppercase">Vendidos sem ficha técnica</p>
+            <p class="text-xl font-black text-amber-600 mt-1" id="desemp-card-semficha">0</p>
+            <p class="text-[10px] text-gray-400">Lucro desses é só estimado</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-600">
+              <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider border-b border-purple-100">
+                <tr>
+                  <th class="p-3">#</th>
+                  <th class="p-3">Produto / Item</th>
+                  <th class="p-3">Categoria</th>
+                  <th class="p-3 text-center">Qtd. Vendida</th>
+                  <th class="p-3 text-right">Faturamento</th>
+                  <th class="p-3 text-right">Custo + Taxas</th>
+                  <th class="p-3 text-right">Lucro Total</th>
+                  <th class="p-3 text-center">Margem</th>
+                  <th class="p-3 text-right">% do Lucro</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-desempenho-produtos" class="divide-y divide-gray-100 font-medium">
+                <tr><td colspan="9" class="p-6 text-center text-gray-400">A carregar desempenho...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="p-3 text-[10px] text-gray-400 border-t border-gray-100">Lucro = valor vendido − custo da ficha técnica (ingredientes + embalagens + rateio fixo) − taxas e impostos da ficha. Complementos pagos entram no valor vendido do copo. Produtos sem ficha aparecem como "Sem ficha" e entram no total com a margem presumida do Dashboard.</p>
         </div>
       </section>
 
@@ -2491,11 +2547,15 @@ async function carregarDashboard() {
   if (!r) return;
   carregarPedidosOperacaoTempoReal().catch(function () {});
 
-  var todos = await buscarTodos(function () {
-    return sb.from('pedidos').select('id, created_at, total, status, forma_pagamento, itens')
-      .gte('created_at', r.antInicio.toISOString()).lte('created_at', r.fim.toISOString())
-      .order('created_at', { ascending: true });
-  });
+  var resultados = await Promise.all([
+    buscarTodos(function () {
+      return sb.from('pedidos').select('id, created_at, total, status, forma_pagamento, itens')
+        .gte('created_at', r.antInicio.toISOString()).lte('created_at', r.fim.toISOString())
+        .order('created_at', { ascending: true });
+    }),
+    carregarBaseCustos().catch(function (e) { console.warn('Custos indisponíveis:', e); return null; })
+  ]);
+  var todos = resultados[0];
   var atuais = [], anteriores = [];
   todos.forEach(function (p) {
     var t = new Date(p.created_at).getTime();
@@ -2543,8 +2603,12 @@ function renderizarMetricasDashboard() {
   $('dash-comp-pedidos').innerHTML = formatarVariacaoHtml(qtd, qtdAnt, labelComp);
   $('dash-val-ticket').innerText = brl(ticket);
   $('dash-comp-ticket').innerHTML = formatarVariacaoHtml(ticket, ticketAnt, labelComp);
-  $('dash-val-lucro').innerText = brl(fat * margemPct / 100);
-  $('dash-comp-lucro').innerText = 'Estimativa com margem presumida de ' + margemPct + '% (o resultado real está em Financeiro)';
+  var lucro = calcularLucroDasVendas(concl, baseCustos, margemPct);
+  var lucroAnt = calcularLucroDasVendas(conclAnt, baseCustos, margemPct);
+  $('dash-val-lucro').innerText = brl(lucro.lucroTotal);
+  $('dash-val-lucro').className = 'text-2xl font-black mt-2 ' + (lucro.lucroTotal >= 0 ? 'text-emerald-600' : 'text-rose-600');
+  $('dash-comp-lucro').innerHTML = formatarVariacaoHtml(lucro.lucroTotal, lucroAnt.lucroTotal, labelComp);
+  $('dash-origem-lucro').innerText = textoOrigemLucro(lucro);
 
   var cards = [
     ['Aguardando Aceite', c.aguardando, 'bg-amber-50 text-amber-800 border-amber-200'],
@@ -2668,45 +2732,104 @@ function renderizarGraficosDashboard(concluidos, validos) {
 }
 
 /* ---------------------------------------------------------------------
- * DESEMPENHO DOS PRODUTOS (todas as vendas concluídas)
+ * DESEMPENHO E LUCRO DOS PRODUTOS
  * ------------------------------------------------------------------- */
+var periodoDesempenhoAtual = 'mes_atual';
+var _lucroDesempenho = null;
+
+function selecionarPeriodoDesempenho(periodo) {
+  periodoDesempenhoAtual = periodo;
+  document.querySelectorAll('.btn-periodo-desemp').forEach(function (b) {
+    b.className = b.getAttribute('data-desemp') === periodo
+      ? 'btn-periodo-desemp px-3 py-1.5 rounded-xl text-xs font-bold bg-[#411564] text-white cursor-pointer'
+      : 'btn-periodo-desemp px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer';
+  });
+  carregarModuloDesempenho();
+}
+
+function intervaloDesempenho() {
+  var agora = new Date();
+  if (periodoDesempenhoAtual === 'hoje') return [inicioDoDia(agora), fimDoDia(agora)];
+  if (periodoDesempenhoAtual === '7dias') { var d = inicioDoDia(agora); d.setDate(d.getDate() - 6); return [d, fimDoDia(agora)]; }
+  if (periodoDesempenhoAtual === 'mes_anterior') { var m = new Date(agora.getFullYear(), agora.getMonth() - 1, 1); return [m, fimDoMes(m)]; }
+  if (periodoDesempenhoAtual === 'tudo') return null;
+  return [inicioDoMes(agora), fimDoMes(agora)];
+}
+
 async function carregarModuloDesempenho() {
   var sb = initClient();
   if (!sb) return;
   var tbody = $('tabela-desempenho-produtos');
-  tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Analisando histórico de vendas...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-gray-400">Calculando vendas e lucro...</td></tr>';
+  var faixa = intervaloDesempenho();
   try {
     var dados = await Promise.all([
-      buscarTodos(function () { return sb.from('pedidos').select('id, itens').eq('status', 'Concluído').order('id'); }),
-      sb.from('CARDAPIO ACAIZEIRO').select('id, nome, categoria')
+      buscarTodos(function () {
+        var q = sb.from('pedidos').select('id, itens, total').eq('status', 'Concluído');
+        if (faixa) q = q.gte('created_at', faixa[0].toISOString()).lte('created_at', faixa[1].toISOString());
+        return q.order('id');
+      }),
+      carregarBaseCustos()
     ]);
-    var pedidos = dados[0], produtos = (dados[1].data || []);
-    var mapa = {}, receitaTotal = 0;
-    pedidos.forEach(function (p) {
-      itensDoPedido(p).forEach(function (i) {
-        var prod = resolverProdutoDoItem(i, produtos);
-        var nome = (prod && prod.nome) || i.nome || 'Item';
-        var q = Number(i.quantidade || 1);
-        var rec = Number(i.preco_unitario || i.preco || 0) * q;
-        if (!mapa[nome]) mapa[nome] = { nome: nome, categoria: (prod && prod.categoria) || 'Sem categoria', qtd: 0, receita: 0 };
-        mapa[nome].qtd += q;
-        mapa[nome].receita += rec;
-        receitaTotal += rec;
-      });
-    });
-    var lista = Object.values(mapa).sort(function (a, b) { return b.receita - a.receita; });
-    if (!lista.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Nenhuma venda concluída encontrada.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = lista.map(function (it, idx) {
-      var pct = receitaTotal > 0 ? it.receita / receitaTotal * 100 : 0;
-      return '<tr class="hover:bg-gray-50"><td class="p-3 font-bold text-[#411564]">#' + (idx + 1) + '</td><td class="p-3 font-bold text-gray-900">' + esc(it.nome) + '</td><td class="p-3 text-gray-500">' + esc(it.categoria) + '</td><td class="p-3 text-center font-bold">' + numBR(it.qtd, 0) + ' un.</td><td class="p-3 text-right font-black text-emerald-600">' + brl(it.receita) + '</td><td class="p-3 text-right"><div class="flex items-center justify-end gap-2"><div class="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-[#411564]" style="width:' + Math.min(100, pct).toFixed(1) + '%"></div></div><span class="font-bold text-purple-900">' + pctBR(pct) + '</span></div></td></tr>';
-    }).join('') + '<tr class="bg-purple-50/50"><td colspan="4" class="p-3 text-[11px] text-gray-500">Percentual calculado sobre a receita dos itens (sem taxa de entrega).</td><td class="p-3 text-right font-black text-[#411564]">' + brl(receitaTotal) + '</td><td class="p-3 text-right font-bold">100%</td></tr>';
+    _lucroDesempenho = calcularLucroDasVendas(dados[0], baseCustos);
+    renderizarTabelaDesempenho();
   } catch (e) {
-    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-rose-500">Erro ao processar desempenho.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-rose-500">Erro ao processar desempenho.</td></tr>';
     throw e;
   }
+}
+
+function renderizarTabelaDesempenho() {
+  var r = _lucroDesempenho, tbody = $('tabela-desempenho-produtos');
+  if (!r) return;
+  var lista = Object.values(r.produtos);
+  lista.forEach(function (it) {
+    it.lucroUsado = it.temFicha ? it.lucro : it.receita * r.margemSemFicha / 100;
+    it.margem = it.receita > 0 ? it.lucroUsado / it.receita * 100 : 0;
+  });
+
+  $('desemp-card-receita').innerText = brl(r.receitaItens);
+  $('desemp-card-lucro').innerText = brl(r.lucroTotal);
+  $('desemp-card-lucro').className = 'text-xl font-black mt-1 ' + (r.lucroTotal >= 0 ? 'text-emerald-600' : 'text-rose-600');
+  $('desemp-card-margem').innerText = r.receitaItens > 0 ? 'Margem média: ' + pctBR(r.margemTotal) + (r.qtdSemFicha ? ' (com estimativas)' : '') : 'Sem vendas no período';
+  var comFicha = lista.filter(function (i) { return i.temFicha; }).sort(function (a, b) { return b.lucro - a.lucro; });
+  $('desemp-card-top').innerText = comFicha.length ? comFicha[0].nome : '-';
+  $('desemp-card-top-valor').innerText = comFicha.length ? brl(comFicha[0].lucro) + ' de lucro (' + numBR(comFicha[0].qtd, 0) + ' un.)' : 'Crie as fichas técnicas';
+  var semFicha = lista.filter(function (i) { return !i.temFicha; });
+  $('desemp-card-semficha').innerText = semFicha.length + (semFicha.length === 1 ? ' produto' : ' produtos');
+
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-gray-400">Nenhuma venda concluída neste período.</td></tr>';
+    return;
+  }
+  var ordem = $('desemp-ordenar').value;
+  lista.sort(function (a, b) {
+    if (ordem === 'receita') return b.receita - a.receita;
+    if (ordem === 'qtd') return b.qtd - a.qtd;
+    if (ordem === 'margem') return (b.temFicha - a.temFicha) || (b.margem - a.margem);
+    return (b.temFicha - a.temFicha) || (b.lucroUsado - a.lucroUsado);
+  });
+  var lucroBase = lista.reduce(function (s, i) { return s + Math.max(0, i.lucroUsado); }, 0);
+
+  tbody.innerHTML = lista.map(function (it, idx) {
+    var acaoFicha = it.produtoId ? ' <button onclick="abrirFichaDoProduto(' + Number(it.produtoId) + ')" class="text-[10px] font-bold text-purple-700 hover:underline cursor-pointer">criar ficha</button>' : '';
+    var colLucro, colCusto, colMargem;
+    if (it.temFicha) {
+      colCusto = '<td class="p-3 text-right text-gray-500">' + brl(it.custo) + '</td>';
+      colLucro = '<td class="p-3 text-right font-black ' + (it.lucro >= 0 ? 'text-emerald-600' : 'text-rose-600') + '">' + brl(it.lucro) + '</td>';
+      colMargem = '<td class="p-3 text-center font-bold ' + (it.margem >= 0 ? 'text-[#411564]' : 'text-rose-600') + '">' + pctBR(it.margem) + '</td>';
+    } else {
+      colCusto = '<td class="p-3 text-right text-gray-300">—</td>';
+      colLucro = '<td class="p-3 text-right"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Sem ficha</span>' + acaoFicha + '<div class="text-[10px] text-gray-400">≈ ' + brl(it.lucroUsado) + ' estimado</div></td>';
+      colMargem = '<td class="p-3 text-center text-gray-400">≈ ' + r.margemSemFicha + '%</td>';
+    }
+    var pct = lucroBase > 0 ? Math.max(0, it.lucroUsado) / lucroBase * 100 : 0;
+    return '<tr class="hover:bg-gray-50"><td class="p-3 font-bold text-[#411564]">#' + (idx + 1) + '</td><td class="p-3 font-bold text-gray-900">' + esc(it.nome) + '</td><td class="p-3 text-gray-500">' + esc(it.categoria) + '</td>' +
+      '<td class="p-3 text-center font-bold">' + numBR(it.qtd, 0) + ' un.</td><td class="p-3 text-right font-bold text-gray-900">' + brl(it.receita) + '</td>' + colCusto + colLucro + colMargem +
+      '<td class="p-3 text-right"><div class="flex items-center justify-end gap-2"><div class="w-14 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500" style="width:' + Math.min(100, pct).toFixed(1) + '%"></div></div><span class="font-bold text-gray-700">' + pctBR(pct) + '</span></div></td></tr>';
+  }).join('') +
+    '<tr class="bg-purple-50/60 font-black"><td colspan="3" class="p-3 text-[#411564]">TOTAL</td><td class="p-3 text-center">' + numBR(lista.reduce(function (s, i) { return s + i.qtd; }, 0), 0) + ' un.</td><td class="p-3 text-right">' + brl(r.receitaItens) + '</td><td class="p-3 text-right text-gray-500">' + brl(r.custoFichas + r.taxasFichas) + (r.qtdSemFicha ? '*' : '') + '</td><td class="p-3 text-right ' + (r.lucroTotal >= 0 ? 'text-emerald-700' : 'text-rose-600') + '">' + brl(r.lucroTotal) + '</td><td class="p-3 text-center">' + pctBR(r.margemTotal) + '</td><td class="p-3 text-right">100%</td></tr>' +
+    (r.qtdSemFicha ? '<tr><td colspan="9" class="p-2 text-[10px] text-gray-400">* Custo só dos produtos com ficha. O lucro total inclui ' + brl(r.lucroEstimadoSemFicha) + ' estimado para produtos sem ficha (margem de ' + r.margemSemFicha + '%).</td></tr>' : '');
 }
 
   </script>
@@ -2938,15 +3061,33 @@ async function carregarRelatorios() {
   tabela.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Processando faturamento do mês...</td></tr>';
   try {
     var agora = new Date();
-    var todos = await buscarTodos(function () {
-      return sb.from('pedidos').select('*').gte('created_at', inicioDoMes(agora).toISOString()).lte('created_at', fimDoMes(agora).toISOString()).order('id', { ascending: false });
-    });
+    var resultados = await Promise.all([
+      buscarTodos(function () {
+        return sb.from('pedidos').select('*').gte('created_at', inicioDoMes(agora).toISOString()).lte('created_at', fimDoMes(agora).toISOString()).order('id', { ascending: false });
+      }),
+      carregarBaseCustos().catch(function (e) { console.warn('Custos indisponíveis:', e); return null; })
+    ]);
+    var todos = resultados[0];
     _pedidosRelatorioCache = todos;
     var concl = todos.filter(function (p) { return p.status === 'Concluído'; });
     var total = concl.reduce(function (a, p) { return a + Number(p.total || 0); }, 0);
     $('relatorio-total-faturado').innerText = brl(total);
     $('relatorio-qtd-pedidos').innerText = concl.length;
     $('relatorio-ticket-medio').innerText = brl(concl.length ? total / concl.length : 0);
+
+    var lucro = calcularLucroDasVendas(concl, baseCustos);
+    $('relatorio-lucro').innerText = brl(lucro.lucroTotal);
+    $('relatorio-lucro').className = 'text-2xl font-black mt-1 ' + (lucro.lucroTotal >= 0 ? 'text-emerald-600' : 'text-rose-600');
+    $('relatorio-lucro-origem').innerText = textoOrigemLucro(lucro);
+    var det = $('relatorio-detalhe-lucro');
+    det.classList.toggle('hidden', lucro.receitaItens <= 0);
+    $('rel-lucro-receita').innerText = brl(lucro.receitaItens);
+    $('rel-lucro-custo').innerText = brl(lucro.custoFichas + (lucro.receitaSemFicha - lucro.lucroEstimadoSemFicha));
+    $('rel-lucro-taxas').innerText = brl(lucro.taxasFichas);
+    $('rel-lucro-total').innerText = brl(lucro.lucroTotal);
+    var taxaEntregaMes = Math.max(0, total - lucro.receitaItens);
+    $('rel-lucro-nota').innerText = 'O custo das fichas já inclui o rateio fixo de cada produto. Não entram aqui as taxas de entrega (' + brl(taxaEntregaMes) + ' no mês) nem as despesas lançadas no Financeiro: o resultado final da loja está em Financeiro → DRE.' +
+      (lucro.qtdSemFicha ? ' Produtos sem ficha técnica entram com a margem presumida de ' + lucro.margemSemFicha + '%.' : '');
 
     if (!todos.length) { tabela.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Nenhum pedido registrado neste mês.</td></tr>'; return; }
     tabela.innerHTML = todos.map(function (p) {
@@ -3867,6 +4008,67 @@ async function carregarModuloRentabilidadeAvancada() {
       '<td class="p-3 text-right font-black ' + (l.lucro >= 0 ? 'text-emerald-600' : 'text-rose-600') + '">' + brl(l.lucro) + '</td><td class="p-3 text-center font-extrabold text-[#411564]">' + pctBR(l.margem) + '</td>' +
       '<td class="p-3 text-center">' + BADGES_RENT[l.status] + '<div class="text-[10px] text-gray-400 mt-0.5">CMV ' + pctBR(l.cmvPct) + ' (limite ' + limite + '%)</div></td></tr>';
   }).join('') + '<tr><td colspan="6" class="p-3 text-[11px] text-gray-500 bg-purple-50/40">Lucro = preço − custo da ficha (ingredientes + embalagens + rateio fixo) − taxas e impostos. Custos recalculados com o preço atual de cada insumo.</td></tr>';
+}
+
+/* ---------------------------------------------------------------------
+ * LUCRO DAS VENDAS (usado no Dashboard, Relatórios e Desempenho)
+ * Lucro de cada item = valor vendido − custo da ficha (ingredientes +
+ * embalagens + rateio fixo) − taxas/impostos da ficha.
+ * Itens SEM ficha técnica: estimados com a margem presumida (e sinalizados).
+ * ------------------------------------------------------------------- */
+function margemParaProdutosSemFicha() {
+  var v = parseFloat(localStorage.getItem('acaizeiro_margem_padrao'));
+  return v >= 1 && v <= 95 ? v : 35;
+}
+
+function calcularLucroDasVendas(pedidos, base, margemSemFicha) {
+  base = base || baseCustos;
+  if (margemSemFicha === undefined) margemSemFicha = margemParaProdutosSemFicha();
+  var custos = mapaCustosPorProduto(base);
+  var r = {
+    receitaItens: 0, custoFichas: 0, taxasFichas: 0, lucroFichas: 0,
+    receitaSemFicha: 0, qtdSemFicha: 0, nomesSemFicha: {}, lucroEstimadoSemFicha: 0,
+    lucroTotal: 0, margemSemFicha: margemSemFicha, produtos: {}
+  };
+  (pedidos || []).forEach(function (p) {
+    itensDoPedido(p).forEach(function (i) {
+      var q = Number(i.quantidade || 1);
+      var prod = resolverProdutoDoItem(i, base.produtos);
+      var nome = (prod && prod.nome) || i.nome || 'Item';
+      var receita = Number(i.preco_unitario || i.preco || (prod && prod.preco) || 0) * q;
+      var c = prod && custos[prod.id];
+      if (!r.produtos[nome]) r.produtos[nome] = { nome: nome, produtoId: prod ? prod.id : null, categoria: (prod && prod.categoria) || 'Sem categoria', qtd: 0, receita: 0, custo: 0, lucro: 0, temFicha: !!c };
+      var linha = r.produtos[nome];
+      linha.qtd += q;
+      linha.receita += receita;
+      r.receitaItens += receita;
+      if (c) {
+        var custo = c.custoTotal * q, taxas = receita * c.taxaPct / 100;
+        linha.custo += custo + taxas;
+        linha.lucro += receita - custo - taxas;
+        r.custoFichas += custo; r.taxasFichas += taxas;
+        r.lucroFichas += receita - custo - taxas;
+      } else {
+        linha.temFicha = false;
+        r.receitaSemFicha += receita;
+        r.qtdSemFicha += q;
+        r.nomesSemFicha[nome] = true;
+      }
+    });
+  });
+  r.lucroEstimadoSemFicha = r.receitaSemFicha * margemSemFicha / 100;
+  r.lucroTotal = r.lucroFichas + r.lucroEstimadoSemFicha;
+  r.margemTotal = r.receitaItens > 0 ? r.lucroTotal / r.receitaItens * 100 : 0;
+  return r;
+}
+
+// Texto explicativo curto para mostrar abaixo dos valores de lucro
+function textoOrigemLucro(r) {
+  if (r.receitaItens <= 0) return 'Sem vendas concluídas no período.';
+  var nomes = Object.keys(r.nomesSemFicha);
+  if (!nomes.length) return 'Margem de ' + pctBR(r.margemTotal) + ' · calculado pelas fichas técnicas';
+  if (r.receitaSemFicha >= r.receitaItens - 0.005) return 'Estimado: nenhum produto vendido tem ficha técnica (margem presumida de ' + r.margemSemFicha + '%)';
+  return 'Margem de ' + pctBR(r.margemTotal) + ' · inclui ' + brl(r.lucroEstimadoSemFicha) + ' estimado para ' + nomes.length + ' produto(s) sem ficha (' + r.margemSemFicha + '%)';
 }
 
   </script>
