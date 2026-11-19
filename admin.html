@@ -2913,6 +2913,11 @@ function filtrarStatus(s) {
   renderizarPedidos();
 }
 
+function pedidoEhRetirada(p) {
+  var e = String(p.cliente_endereco || '').trim().toLowerCase();
+  return p.tipo_recebimento === 'Retirada' || !e || e.indexOf('retirada') === 0;
+}
+
 function classeBadgeStatus(status) {
   if (STATUS_AGUARDANDO.indexOf(status) !== -1) return 'bg-amber-100 text-amber-800 border-amber-300 animate-pulse font-black';
   if (status === 'Aguardando Pagamento Pix') return 'bg-blue-100 text-blue-800 border-blue-200';
@@ -2968,7 +2973,7 @@ function renderizarPedidos() {
       botoes = '<div class="text-center text-[11px] text-gray-400 font-semibold py-1">Pedido finalizado</div>';
     } else {
       botoes = '<div class="grid grid-cols-3 gap-1.5">' +
-        ['Em preparo|Preparo|purple', 'Saiu para entrega|A Caminho|indigo', 'Concluído|Concluído|green'].map(function (s) {
+        ['Em preparo|Preparo|purple', 'Saiu para entrega|' + (pedidoEhRetirada(p) ? 'Pronto p/ retirar' : 'A Caminho') + '|indigo', 'Concluído|' + (pedidoEhRetirada(p) ? 'Retirado' : 'Entregue') + '|green'].map(function (s) {
           var partes = s.split('|'), ativo = p.status === partes[0];
           return '<button' + dis + ' onclick="mudarStatus(' + Number(p.id) + ', \'' + partes[0] + '\')" class="bg-' + partes[2] + '-50 hover:bg-' + partes[2] + '-100 text-' + partes[2] + '-700 text-[11px] font-bold py-1.5 rounded-lg border border-' + partes[2] + '-200 transition active:scale-95 cursor-pointer' + (ativo ? ' ring-2 ring-' + partes[2] + '-400' : '') + '">' + partes[1] + '</button>';
         }).join('') + '</div>';

@@ -47,6 +47,11 @@
           <span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span> Aberto para Pedidos
         </div>
       </div>
+      <button onclick="abrirMeusPedidos()" class="ml-auto relative bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-2xl px-3 py-2 flex flex-col items-center gap-0.5 transition active:scale-95 cursor-pointer" aria-label="Meus pedidos">
+        <i class="fa-solid fa-receipt text-lg"></i>
+        <span class="text-[10px] font-bold leading-none">Meus pedidos</span>
+        <span id="badge-meus-pedidos" class="hidden absolute -top-1.5 -right-1.5 bg-amber-400 text-[#2e0d49] text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow">0</span>
+      </button>
     </div>
   </header>
 
@@ -57,6 +62,41 @@
 
   <!-- Lista de Itens -->
   <main class="max-w-xl mx-auto p-4 space-y-3" id="lista-produtos"></main>
+
+  <!-- Acompanhamento rápido do pedido em andamento -->
+  <button id="barra-acompanhamento" onclick="abrirMeusPedidos()" class="hidden fixed left-0 right-0 z-30 cursor-pointer" style="bottom: 84px;">
+    <div class="max-w-xl mx-auto px-3">
+      <div class="bg-[#2e0d49] text-white rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 border border-purple-400/40">
+        <span id="barra-acomp-icone" class="w-9 h-9 rounded-full bg-amber-400 text-[#2e0d49] flex items-center justify-center text-base flex-shrink-0"><i class="fa-solid fa-clock"></i></span>
+        <span class="flex-1 text-left min-w-0">
+          <span id="barra-acomp-titulo" class="block text-[11px] text-purple-200 font-bold">Pedido #0</span>
+          <span id="barra-acomp-status" class="block text-sm font-extrabold truncate">Aguardando</span>
+        </span>
+        <span class="text-xs font-bold text-amber-300 whitespace-nowrap">Acompanhar <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+      </div>
+    </div>
+  </button>
+
+  <!-- TELA: Meus pedidos -->
+  <div id="modal-meus-pedidos" class="hidden fixed inset-0 z-50 bg-[#fcfaff] overflow-y-auto">
+    <div class="sticky top-0 bg-[#411564] text-white z-10 shadow-md">
+      <div class="max-w-xl mx-auto px-4 py-3.5 flex items-center gap-3">
+        <button onclick="fecharMeusPedidos()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center cursor-pointer" aria-label="Voltar"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="flex-1">
+          <h2 class="text-lg font-extrabold leading-tight">Meus pedidos</h2>
+          <p id="meus-pedidos-cliente" class="text-[11px] text-purple-200"></p>
+        </div>
+        <button onclick="atualizarMeusPedidos(true)" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center cursor-pointer" aria-label="Atualizar"><i id="icone-atualizar-meus" class="fa-solid fa-rotate-right"></i></button>
+      </div>
+    </div>
+    <div class="max-w-xl mx-auto p-4 space-y-4 pb-10">
+      <div id="lista-meus-pedidos" class="space-y-4"></div>
+      <div class="pt-4 border-t border-purple-100 text-center space-y-2">
+        <p class="text-[11px] text-gray-500 leading-relaxed">Seus pedidos, nome, WhatsApp e endereço ficam salvos <strong>só neste aparelho</strong>, para você não precisar digitar de novo.</p>
+        <button onclick="encerrarSessaoCliente()" class="inline-flex items-center gap-2 text-rose-600 hover:bg-rose-50 border border-rose-200 font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer"><i class="fa-solid fa-right-from-bracket"></i> Sair e apagar meus dados deste aparelho</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Barra Fixa Inferior -->
   <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-purple-100 p-3.5 shadow-2xl z-30">
@@ -509,7 +549,7 @@
         <h3 style="color: #16a34a; margin: 0 0 8px 0; font-weight: 800; font-size: 20px;">Pagamento Confirmado!</h3>
         <p style="color: #555; font-size: 14px; margin: 0 0 24px 0;">O seu pedido já seguiu para a cozinha e está em preparo.</p>
         <button onclick="concluirFluxoPix()" style="width: 100%; padding: 14px; background: #16a34a; color: #fff; font-weight: bold; border: none; border-radius: 12px; cursor: pointer;">
-          <i class="fa-brands fa-whatsapp"></i> Enviar comprovante no WhatsApp
+          <i class="fa-solid fa-location-arrow"></i> Acompanhar meu pedido
         </button>
       </div>
 
@@ -1157,6 +1197,7 @@
         var r = res.data;
         pedidoAtual = { id: r.id, token: r.token, total: Number(r.total), formaPagamento: pagamento, nome: nome };
         try { localStorage.setItem('acaizeiro_pedido_atual', JSON.stringify({ id: r.id, token: r.token, quando: Date.now() })); } catch (e) {}
+        salvarMeuPedido(r.id, r.token);
         fecharModalCheckout();
 
         // Mensagem de WhatsApp com os valores CONFIRMADOS pelo banco
@@ -1243,8 +1284,8 @@
             clearInterval(window.intervaloAceite);
             modalEspera.style.display = "none";
             limparSacolaAposPedido();
-            alert("Seu pedido #" + pedidoAtual.id + " foi aceito pela cozinha e está em preparo!");
-            abrirWhatsAppDoPedido("ACEITO PELA COZINHA (Em preparo)");
+            avisoRapido("✓ Pedido #" + pedidoAtual.id + " aceito! Seu açaí já está sendo preparado.");
+            abrirMeusPedidos();
           } else if (status === "Recusado" || status === "Cancelado") {
             clearInterval(window.intervaloAceite);
             modalEspera.style.display = "none";
@@ -1460,8 +1501,233 @@
     function concluirFluxoPix() {
       document.getElementById("modalPix").style.display = "none";
       limparSacolaAposPedido();
-      abrirWhatsAppDoPedido("PAGO VIA PIX (Aprovado)");
+      abrirMeusPedidos();
     }
+
+    /* =================================================================
+     * MEUS PEDIDOS — acompanhamento em tempo real
+     * O aparelho guarda o número + código secreto de cada pedido feito aqui.
+     * ================================================================= */
+    var CHAVE_MEUS_PEDIDOS = 'acaizeiro_meus_pedidos';
+    var STATUS_ATIVOS_CLIENTE = ['Aguardando Aceite da Loja', 'Recebido', 'Aguardando Pagamento Pix', 'Em preparo', 'Aceito', 'Saiu para entrega'];
+    var meusPedidosCache = [];
+    var ultimoStatusVisto = {};
+    var _timerAcompanhamento = null, _buscandoMeus = false, _faltandoNoServidor = {};
+
+    function lerMeusPedidosLocal() {
+      try { var l = JSON.parse(localStorage.getItem(CHAVE_MEUS_PEDIDOS) || '[]'); return Array.isArray(l) ? l : []; } catch (e) { return []; }
+    }
+    function gravarMeusPedidosLocal(lista) {
+      try { localStorage.setItem(CHAVE_MEUS_PEDIDOS, JSON.stringify(lista.slice(0, 30))); } catch (e) {}
+    }
+    function salvarMeuPedido(id, token) {
+      var lista = lerMeusPedidosLocal().filter(function (p) { return p.id !== id; });
+      lista.unshift({ id: id, token: token, criado: Date.now() });
+      gravarMeusPedidosLocal(lista);
+      agendarAcompanhamento(1500);
+    }
+
+    function ehRetiradaCliente(p) { return p.tipo_recebimento === 'Retirada' || /^retirada/i.test(p.cliente_endereco || ''); }
+
+    // Texto amigável, cor e etapa (0 a 3) de cada status
+    function infoStatus(p) {
+      var ret = ehRetiradaCliente(p), s = p.status;
+      if (s === 'Aguardando Aceite da Loja' || s === 'Recebido') return { etapa: 0, texto: 'Aguardando a loja aceitar', icone: 'fa-clock', cor: 'bg-amber-100 text-amber-800' };
+      if (s === 'Aguardando Pagamento Pix') return { etapa: 0, texto: 'Aguardando seu pagamento Pix', icone: 'fa-qrcode', cor: 'bg-blue-100 text-blue-800' };
+      if (s === 'Em preparo' || s === 'Aceito') return { etapa: 1, texto: 'Seu açaí está sendo preparado', icone: 'fa-blender', cor: 'bg-purple-100 text-purple-800' };
+      if (s === 'Saiu para entrega') return ret
+        ? { etapa: 2, texto: 'Pronto para retirada! Pode vir buscar', icone: 'fa-bag-shopping', cor: 'bg-indigo-100 text-indigo-800' }
+        : { etapa: 2, texto: 'Saiu para entrega', icone: 'fa-motorcycle', cor: 'bg-indigo-100 text-indigo-800' };
+      if (s === 'Concluído') return { etapa: 3, texto: ret ? 'Retirado. Bom apetite!' : 'Entregue. Bom apetite!', icone: 'fa-circle-check', cor: 'bg-emerald-100 text-emerald-800' };
+      if (s === 'Recusado') return { etapa: -1, texto: 'A loja não pôde aceitar este pedido', icone: 'fa-circle-xmark', cor: 'bg-rose-100 text-rose-800' };
+      if (s === 'Cancelado') return { etapa: -1, texto: 'Pedido cancelado', icone: 'fa-ban', cor: 'bg-gray-200 text-gray-700' };
+      return { etapa: 0, texto: s || '-', icone: 'fa-clock', cor: 'bg-gray-100 text-gray-700' };
+    }
+
+    function linhaDoTempo(p, info) {
+      var ret = ehRetiradaCliente(p);
+      var etapas = ret
+        ? [['fa-paper-plane', 'Enviado'], ['fa-blender', 'Em preparo'], ['fa-bag-shopping', 'Pronto p/ retirar'], ['fa-circle-check', 'Retirado']]
+        : [['fa-paper-plane', 'Enviado'], ['fa-blender', 'Em preparo'], ['fa-motorcycle', 'Saiu p/ entrega'], ['fa-circle-check', 'Entregue']];
+      if (info.etapa < 0) return '';
+      var html = '<div class="flex items-start justify-between mt-3 relative">';
+      etapas.forEach(function (e, i) {
+        var feito = i <= info.etapa, atual = i === info.etapa && info.etapa < 3;
+        html += '<div class="flex flex-col items-center flex-1 relative z-10">' +
+          '<span class="w-9 h-9 rounded-full flex items-center justify-center text-sm ' + (feito ? 'bg-[#411564] text-white' : 'bg-gray-200 text-gray-400') + (atual ? ' ring-4 ring-purple-200 animate-pulse' : '') + '"><i class="fa-solid ' + e[0] + '"></i></span>' +
+          '<span class="text-[10px] mt-1 text-center leading-tight ' + (feito ? 'text-[#411564] font-extrabold' : 'text-gray-400 font-semibold') + '">' + e[1] + '</span></div>';
+        if (i < etapas.length - 1) html += '<div class="h-1 flex-1 mt-4 -mx-4 rounded ' + (i < info.etapa ? 'bg-[#411564]' : 'bg-gray-200') + '"></div>';
+      });
+      return html + '</div>';
+    }
+
+    function horaCurta(iso) { return iso ? new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''; }
+    function dataCurta(iso) {
+      if (!iso) return '';
+      var d = new Date(iso), hoje = new Date();
+      var mesmoDia = d.toDateString() === hoje.toDateString();
+      return (mesmoDia ? 'Hoje' : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })) + ' às ' + horaCurta(iso);
+    }
+
+    function renderizarMeusPedidos() {
+      var box = document.getElementById('lista-meus-pedidos');
+      var nome = '', tel = '';
+      try { nome = localStorage.getItem('acaizeiro_cli_nome') || ''; tel = localStorage.getItem('acaizeiro_cli_tel') || ''; } catch (e) {}
+      document.getElementById('meus-pedidos-cliente').textContent = nome ? ('Olá, ' + nome.split(' ')[0] + (tel ? ' · ' + tel : '')) : 'Acompanhe aqui o andamento dos seus pedidos';
+      if (!lerMeusPedidosLocal().length) {
+        box.innerHTML = '<div class="text-center py-14 px-6"><div class="w-16 h-16 rounded-full bg-purple-100 text-[#411564] text-2xl flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-receipt"></i></div><p class="font-extrabold text-gray-800">Você ainda não fez pedidos neste aparelho</p><p class="text-xs text-gray-500 mt-1">Quando fizer um pedido, ele aparece aqui com o andamento em tempo real.</p><button onclick="fecharMeusPedidos()" class="mt-4 bg-[#411564] text-white font-bold text-sm px-5 py-2.5 rounded-xl cursor-pointer">Ver cardápio</button></div>';
+        return;
+      }
+      if (!meusPedidosCache.length) { box.innerHTML = '<p class="text-center text-sm text-gray-400 py-10"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Carregando seus pedidos...</p>'; return; }
+
+      var ativos = meusPedidosCache.filter(function (p) { return STATUS_ATIVOS_CLIENTE.indexOf(p.status) !== -1; });
+      var anteriores = meusPedidosCache.filter(function (p) { return STATUS_ATIVOS_CLIENTE.indexOf(p.status) === -1; });
+      var cartao = function (p, destaque) {
+        var info = infoStatus(p);
+        var itens = (Array.isArray(p.itens) ? p.itens : []).map(function (i) {
+          var comps = Array.isArray(i.complementos) && i.complementos.length ? ' <span class="text-purple-700">+ ' + esc(i.complementos.map(function (c) { return typeof c === 'string' ? c : (c.nome || ''); }).join(', ')) + '</span>' : '';
+          return '<li>' + esc(i.quantidade || 1) + 'x ' + esc(i.nome || 'Item') + comps + '</li>';
+        }).join('');
+        var botoes = '';
+        if (p.status === 'Aguardando Pagamento Pix') botoes += '<button onclick="pagarPixDoPedido(' + Number(p.id) + ')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl cursor-pointer"><i class="fa-solid fa-qrcode mr-1"></i> Pagar com Pix</button>';
+        if (['Aguardando Aceite da Loja', 'Recebido', 'Aguardando Pagamento Pix'].indexOf(p.status) !== -1) botoes += '<button onclick="cancelarMeuPedido(' + Number(p.id) + ')" class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 font-bold text-xs px-3 py-2.5 rounded-xl cursor-pointer">Cancelar</button>';
+        botoes += '<a href="https://wa.me/' + esc(config.whatsapp) + '?text=' + encodeURIComponent('Olá! Gostaria de falar sobre o meu pedido #' + p.id + '.') + '" target="_blank" rel="noopener" class="' + (botoes ? '' : 'flex-1 ') + 'text-center bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-50 font-bold text-xs px-3 py-2.5 rounded-xl"><i class="fa-brands fa-whatsapp mr-1"></i> Falar com a loja</a>';
+        var detalheTempo = p.status === 'Saiu para entrega' && p.despachado_em ? ' · desde ' + horaCurta(p.despachado_em) : (p.status === 'Concluído' && p.concluido_em ? ' · ' + horaCurta(p.concluido_em) : '');
+        return '<div class="bg-white rounded-2xl border ' + (destaque ? 'border-purple-300 shadow-md' : 'border-gray-200 shadow-sm') + ' p-4">' +
+          '<div class="flex items-start justify-between gap-2"><div><span class="text-xs font-black bg-purple-100 text-purple-900 px-2 py-0.5 rounded-md">#' + esc(p.id) + '</span> <span class="text-[11px] text-gray-400">' + esc(dataCurta(p.created_at)) + '</span>' +
+          '<p class="text-[11px] text-gray-500 mt-1"><i class="fa-solid ' + (ehRetiradaCliente(p) ? 'fa-store' : 'fa-location-dot') + ' mr-1"></i>' + (ehRetiradaCliente(p) ? 'Retirada na loja' : esc(p.cliente_endereco || 'Entrega')) + '</p></div>' +
+          '<span class="text-base font-black text-[#411564] whitespace-nowrap">' + brl(p.total) + '</span></div>' +
+          '<div class="mt-3 rounded-xl px-3 py-2.5 flex items-center gap-2 ' + info.cor + '"><i class="fa-solid ' + info.icone + '"></i><span class="text-sm font-extrabold">' + esc(info.texto) + '</span><span class="text-[11px] opacity-70">' + esc(detalheTempo) + '</span></div>' +
+          (destaque ? linhaDoTempo(p, info) : '') +
+          '<details class="mt-3"><summary class="text-[11px] font-bold text-gray-500 cursor-pointer">Ver itens · ' + esc(p.forma_pagamento || '') + '</summary><ul class="text-xs text-gray-700 mt-2 space-y-1 list-disc pl-5">' + itens + '</ul>' +
+          (Number(p.taxa_entrega) > 0 ? '<p class="text-[11px] text-gray-500 mt-1.5">Taxa de entrega: ' + brl(p.taxa_entrega) + '</p>' : '') + '</details>' +
+          '<div class="flex gap-2 mt-3">' + botoes + '</div></div>';
+      };
+      box.innerHTML =
+        (ativos.length ? '<p class="text-xs font-extrabold text-[#411564] uppercase tracking-wide">Em andamento</p>' + ativos.map(function (p) { return cartao(p, true); }).join('') : '') +
+        (anteriores.length ? '<p class="text-xs font-extrabold text-gray-500 uppercase tracking-wide pt-2">Pedidos anteriores</p>' + anteriores.map(function (p) { return cartao(p, false); }).join('') : '');
+    }
+
+    function atualizarBarraAcompanhamento() {
+      var ativos = meusPedidosCache.filter(function (p) { return STATUS_ATIVOS_CLIENTE.indexOf(p.status) !== -1; });
+      var badge = document.getElementById('badge-meus-pedidos');
+      badge.textContent = ativos.length;
+      badge.classList.toggle('hidden', ativos.length === 0);
+      var barra = document.getElementById('barra-acompanhamento');
+      var telaAberta = !document.getElementById('modal-meus-pedidos').classList.contains('hidden');
+      if (!ativos.length || telaAberta) { barra.classList.add('hidden'); return; }
+      var p = ativos[0], info = infoStatus(p);
+      document.getElementById('barra-acomp-titulo').textContent = 'Pedido #' + p.id + (ativos.length > 1 ? ' (+' + (ativos.length - 1) + ')' : '');
+      document.getElementById('barra-acomp-status').textContent = info.texto;
+      document.getElementById('barra-acomp-icone').innerHTML = '<i class="fa-solid ' + info.icone + '"></i>';
+      barra.classList.remove('hidden');
+    }
+
+    async function atualizarMeusPedidos(manual) {
+      var lista = lerMeusPedidosLocal();
+      if (!lista.length) { meusPedidosCache = []; atualizarBarraAcompanhamento(); renderizarMeusPedidos(); return; }
+      var sb = initClient();
+      if (!sb || _buscandoMeus) return;
+      _buscandoMeus = true;
+      var icone = document.getElementById('icone-atualizar-meus');
+      if (manual && icone) icone.classList.add('animate-spin');
+      try {
+        var res = await sb.rpc('meus_pedidos', { p_pedidos: lista.map(function (p) { return { id: p.id, token: p.token }; }) });
+        if (res.error) throw res.error;
+        var dados = res.data || [];
+        // avisa quando o status muda
+        dados.forEach(function (p) {
+          var antes = ultimoStatusVisto[p.id];
+          if (antes && antes !== p.status) {
+            avisoRapido('Pedido #' + p.id + ': ' + infoStatus(p).texto);
+            try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
+          }
+          ultimoStatusVisto[p.id] = p.status;
+        });
+        // pedido que a loja excluiu: some da lista depois de 2 consultas sem resposta
+        var devolvidos = {};
+        dados.forEach(function (p) { devolvidos[p.id] = true; });
+        var mudouLista = false;
+        lista = lista.filter(function (p) {
+          if (devolvidos[p.id]) { delete _faltandoNoServidor[p.id]; return true; }
+          _faltandoNoServidor[p.id] = (_faltandoNoServidor[p.id] || 0) + 1;
+          if (_faltandoNoServidor[p.id] >= 2 && Date.now() - (p.criado || 0) > 60000) { mudouLista = true; return false; }
+          return true;
+        });
+        if (mudouLista) gravarMeusPedidosLocal(lista);
+        meusPedidosCache = dados;
+      } catch (e) {
+        console.warn('Meus pedidos:', e);
+        if (manual) avisoRapido(/meus_pedidos/.test(String(e.message)) ? 'Acompanhamento em atualização. Tente mais tarde.' : 'Sem conexão. Tentando de novo...');
+      } finally {
+        _buscandoMeus = false;
+        if (icone) icone.classList.remove('animate-spin');
+        atualizarBarraAcompanhamento();
+        if (!document.getElementById('modal-meus-pedidos').classList.contains('hidden')) renderizarMeusPedidos();
+        agendarAcompanhamento();
+      }
+    }
+
+    // Consulta a cada 8 s se há pedido em andamento; senão, a cada 60 s
+    function agendarAcompanhamento(ms) {
+      clearTimeout(_timerAcompanhamento);
+      var ativo = meusPedidosCache.some(function (p) { return STATUS_ATIVOS_CLIENTE.indexOf(p.status) !== -1; });
+      if (!lerMeusPedidosLocal().length) return;
+      _timerAcompanhamento = setTimeout(function () { if (!document.hidden) atualizarMeusPedidos(); else agendarAcompanhamento(); }, ms || (ativo ? 8000 : 60000));
+    }
+
+    function abrirMeusPedidos() {
+      document.getElementById('modal-checkout').classList.add('hidden');
+      document.getElementById('modal-meus-pedidos').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      renderizarMeusPedidos();
+      atualizarBarraAcompanhamento();
+      atualizarMeusPedidos();
+    }
+    function fecharMeusPedidos() {
+      document.getElementById('modal-meus-pedidos').classList.add('hidden');
+      document.body.style.overflow = '';
+      atualizarBarraAcompanhamento();
+    }
+
+    function pedidoLocal(id) { return lerMeusPedidosLocal().find(function (p) { return p.id === id; }); }
+
+    function pagarPixDoPedido(id) {
+      var loc = pedidoLocal(id), p = meusPedidosCache.find(function (x) { return x.id === id; });
+      if (!loc || !p) return;
+      pedidoAtual = { id: id, token: loc.token, total: Number(p.total), formaPagamento: 'Pix', nome: p.cliente_nome };
+      fecharMeusPedidos();
+      processarPagamentoPix();
+    }
+
+    async function cancelarMeuPedido(id) {
+      var loc = pedidoLocal(id);
+      if (!loc || !confirm('Cancelar o pedido #' + id + '?\n\nSe você já pagou via Pix, não cancele: fale com a loja.')) return;
+      try {
+        var res = await initClient().rpc('cancelar_pedido', { p_id: id, p_token: loc.token });
+        if (res.error) throw res.error;
+        avisoRapido(res.data ? 'Pedido #' + id + ' cancelado.' : 'Não foi possível cancelar: a loja já começou a preparar.');
+      } catch (e) { avisoRapido('Sem conexão. Tente novamente.'); }
+      atualizarMeusPedidos(true);
+    }
+
+    function encerrarSessaoCliente() {
+      var ativos = meusPedidosCache.filter(function (p) { return STATUS_ATIVOS_CLIENTE.indexOf(p.status) !== -1; });
+      var msg = 'Sair e apagar seus dados deste aparelho?\n\nVamos apagar: nome, WhatsApp, endereço salvo e a lista de pedidos.';
+      if (ativos.length) msg += '\n\n⚠️ Você tem ' + ativos.length + ' pedido(s) em andamento e NÃO poderá mais acompanhá-lo(s) por aqui.';
+      if (!confirm(msg)) return;
+      ['acaizeiro_cli_nome', 'acaizeiro_cli_tel', 'acaizeiro_cli_end', CHAVE_MEUS_PEDIDOS, 'acaizeiro_pedido_atual'].forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+      meusPedidosCache = []; ultimoStatusVisto = {};
+      estadoCheckout.enderecoSalvo = null;
+      ['cliente-nome', 'cliente-telefone', 'cliente-obs'].forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ''; });
+      var card = document.getElementById('card-endereco-salvo'); if (card) card.classList.add('hidden');
+      var lbl = document.getElementById('label-btn-endereco'); if (lbl) lbl.innerText = 'Adicionar novo endereço';
+      clearTimeout(_timerAcompanhamento);
+      fecharMeusPedidos();
+      avisoRapido('Pronto! Seus dados foram apagados deste aparelho.');
+    }
+
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && lerMeusPedidosLocal().length) atualizarMeusPedidos(); });
 
     /* ---------- carregamento do cardápio ---------- */
     async function carregarCardapio() {
@@ -1530,6 +1796,7 @@
       document.getElementById('lista-produtos').innerHTML = '<p class="text-center py-8 text-gray-400 text-sm">Carregando cardápio...</p>';
       carregarConfiguracaoLoja();
       carregarCardapio();
+      atualizarMeusPedidos(); // retoma o acompanhamento dos pedidos deste aparelho
       // a configuração (aberta/fechada, entregas) é conferida de novo a cada 2 minutos
       setInterval(carregarConfiguracaoLoja, 120000);
       if ('serviceWorker' in navigator) {
