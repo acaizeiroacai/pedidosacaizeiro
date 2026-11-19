@@ -2,7 +2,7 @@
  * Permite instalar o site como app. Sempre busca a versão nova na internet;
  * usa a cópia guardada só se estiver sem conexão. Dados (Supabase) nunca ficam em cache.
  * Ao publicar uma nova versão, aumente o número abaixo. */
-const VERSAO = 'acaizeiro-site-v3';
+const VERSAO = 'acaizeiro-site-v4';
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSAO).then((c) => Promise.all(['./', './index.html', './PURO.png', './LOGO2.png', './logo1.png'].map((u) => c.add(u).catch(() => {})))).then(() => self.skipWaiting()));
 });

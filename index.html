@@ -47,9 +47,9 @@
           <span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span> Aberto para Pedidos
         </div>
       </div>
-      <button onclick="abrirMeusPedidos()" class="ml-auto relative bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-2xl px-3 py-2 flex flex-col items-center gap-0.5 transition active:scale-95 cursor-pointer" aria-label="Meus pedidos">
-        <i class="fa-solid fa-receipt text-lg"></i>
-        <span class="text-[10px] font-bold leading-none">Meus pedidos</span>
+      <button onclick="abrirPainelConta()" class="ml-auto relative bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-2xl px-3 py-2 flex flex-col items-center gap-0.5 transition active:scale-95 cursor-pointer max-w-[96px]" aria-label="Minha conta">
+        <i id="icone-conta-topo" class="fa-solid fa-circle-user text-lg"></i>
+        <span id="rotulo-conta-topo" class="text-[10px] font-bold leading-none truncate max-w-full">Entrar</span>
         <span id="badge-meus-pedidos" class="hidden absolute -top-1.5 -right-1.5 bg-amber-400 text-[#2e0d49] text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow">0</span>
       </button>
     </div>
@@ -77,6 +77,114 @@
     </div>
   </button>
 
+  <!-- MENU LATERAL: Minha conta -->
+  <div id="painel-conta" class="hidden fixed inset-0 z-[70]">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" onclick="fecharPainelConta()"></div>
+    <aside class="absolute top-0 right-0 h-full w-[88%] max-w-sm bg-[#fcfaff] shadow-2xl flex flex-col">
+      <div class="bg-[#411564] text-white px-4 pt-5 pb-4 flex items-start gap-3">
+        <span class="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center text-xl flex-shrink-0"><i class="fa-solid fa-circle-user"></i></span>
+        <div class="flex-1 min-w-0">
+          <p id="conta-titulo" class="font-extrabold text-base leading-tight truncate">Minha conta</p>
+          <p id="conta-subtitulo" class="text-[11px] text-purple-200 truncate">Entre para salvar seus dados</p>
+        </div>
+        <button onclick="fecharPainelConta()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center cursor-pointer" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-3">
+        <!-- Não logado -->
+        <div id="conta-deslogado" class="space-y-3">
+          <!-- passo 1: identificar -->
+          <form id="conta-passo-id" onsubmit="contaContinuar(event)" class="bg-white rounded-2xl border border-purple-100 p-4 space-y-3 shadow-sm">
+            <p class="text-sm font-extrabold text-gray-900">Entrar ou criar conta</p>
+            <p class="text-[11px] text-gray-500">Seus dados ficam salvos para os próximos pedidos e você acompanha seu histórico em qualquer celular.</p>
+            <input id="conta-identificador" type="text" autocomplete="username" placeholder="Seu celular com DDD ou apelido" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-purple-600">
+            <button type="submit" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-bold py-3 rounded-xl text-sm cursor-pointer">Continuar</button>
+          </form>
+          <!-- passo 2: PIN -->
+          <form id="conta-passo-pin" onsubmit="contaEntrar(event)" class="hidden bg-white rounded-2xl border border-purple-100 p-4 space-y-3 shadow-sm">
+            <p class="text-sm font-extrabold text-gray-900" id="conta-saudacao-pin">Olá!</p>
+            <p class="text-[11px] text-gray-500">Digite o seu PIN de 4 números.</p>
+            <input id="conta-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="current-password" placeholder="••••" class="w-full border border-gray-300 rounded-xl p-3 text-center text-2xl tracking-[0.6em] font-black outline-purple-600">
+            <button type="submit" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-bold py-3 rounded-xl text-sm cursor-pointer">Entrar</button>
+            <div class="flex justify-between text-[11px] font-bold">
+              <button type="button" onclick="contaVoltarInicio()" class="text-gray-500 cursor-pointer">← Voltar</button>
+              <button type="button" onclick="contaEsqueciPin()" class="text-purple-700 cursor-pointer">Esqueci meu PIN</button>
+            </div>
+          </form>
+          <!-- passo 3: cadastro -->
+          <form id="conta-passo-cadastro" onsubmit="contaCriar(event)" class="hidden bg-white rounded-2xl border border-purple-100 p-4 space-y-2.5 shadow-sm">
+            <p class="text-sm font-extrabold text-gray-900">Criar minha conta</p>
+            <p class="text-[11px] text-gray-500">Leva 30 segundos. Na próxima vez, é só digitar seu celular e o PIN.</p>
+            <label class="block text-[11px] font-bold text-gray-600">Nome *<input id="cad-nome" type="text" autocomplete="name" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-sm font-normal outline-purple-600"></label>
+            <label class="block text-[11px] font-bold text-gray-600">Celular (WhatsApp) *<input id="cad-celular" type="tel" autocomplete="tel" placeholder="(16) 99999-9999" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-sm font-normal outline-purple-600"></label>
+            <label class="block text-[11px] font-bold text-gray-600">Apelido para entrar <span class="font-normal text-gray-400">(opcional)</span><input id="cad-apelido" type="text" autocapitalize="none" placeholder="ex: rafa.acai" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-sm font-normal outline-purple-600"></label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="block text-[11px] font-bold text-gray-600">Crie um PIN *<input id="cad-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="new-password" placeholder="4 números" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-center text-lg tracking-[0.4em] font-black outline-purple-600"></label>
+              <label class="block text-[11px] font-bold text-gray-600">Repita o PIN *<input id="cad-pin2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="new-password" placeholder="4 números" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-center text-lg tracking-[0.4em] font-black outline-purple-600"></label>
+            </div>
+            <p class="text-[10px] text-gray-400">Guarde seu PIN: ele protege seu endereço. Se esquecer, a loja redefine para você.</p>
+            <button type="submit" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-bold py-3 rounded-xl text-sm cursor-pointer">Criar conta</button>
+            <button type="button" onclick="contaVoltarInicio()" class="w-full text-[11px] font-bold text-gray-500 cursor-pointer">← Voltar</button>
+          </form>
+          <p id="conta-erro" class="hidden text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-3"></p>
+          <button onclick="abrirMeusPedidos()" class="w-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-bold py-3 rounded-xl text-xs cursor-pointer"><i class="fa-solid fa-receipt mr-1.5"></i> Ver pedidos feitos neste aparelho</button>
+        </div>
+
+        <!-- Logado -->
+        <div id="conta-logado" class="hidden space-y-3">
+          <button onclick="abrirMeusPedidos()" class="w-full bg-white rounded-2xl border border-purple-100 p-4 flex items-center gap-3 shadow-sm hover:border-purple-300 cursor-pointer text-left">
+            <span class="w-10 h-10 rounded-xl bg-purple-100 text-[#411564] flex items-center justify-center"><i class="fa-solid fa-receipt"></i></span>
+            <span class="flex-1"><span class="block text-sm font-extrabold text-gray-900">Meus pedidos</span><span id="conta-resumo-pedidos" class="block text-[11px] text-gray-500">Acompanhe e veja o histórico do mês</span></span>
+            <i class="fa-solid fa-chevron-right text-gray-300"></i>
+          </button>
+
+          <details id="conta-sec-dados" class="bg-white rounded-2xl border border-purple-100 shadow-sm group">
+            <summary class="p-4 flex items-center gap-3 cursor-pointer list-none">
+              <span class="w-10 h-10 rounded-xl bg-purple-100 text-[#411564] flex items-center justify-center"><i class="fa-solid fa-id-card"></i></span>
+              <span class="flex-1"><span class="block text-sm font-extrabold text-gray-900">Meus dados</span><span class="block text-[11px] text-gray-500">Nome, celular e endereço de entrega</span></span>
+              <i class="fa-solid fa-chevron-down text-gray-300 group-open:rotate-180 transition"></i>
+            </summary>
+            <form onsubmit="contaSalvarDados(event)" class="px-4 pb-4 space-y-2.5">
+              <label class="block text-[11px] font-bold text-gray-600">Nome<input id="dados-nome" type="text" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-sm font-normal outline-purple-600"></label>
+              <div class="grid grid-cols-2 gap-2">
+                <label class="block text-[11px] font-bold text-gray-600">Celular<input id="dados-celular" type="tel" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-sm font-normal outline-purple-600"></label>
+                <label class="block text-[11px] font-bold text-gray-600">Apelido<input id="dados-apelido" type="text" autocapitalize="none" placeholder="opcional" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-sm font-normal outline-purple-600"></label>
+              </div>
+              <p class="text-[11px] font-extrabold text-[#411564] pt-1">Endereço de entrega</p>
+              <label class="block text-[11px] font-bold text-gray-600">Rua<input id="dados-rua" type="text" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-sm font-normal outline-purple-600"></label>
+              <div class="grid grid-cols-3 gap-2">
+                <label class="block text-[11px] font-bold text-gray-600">Número<input id="dados-numero" type="text" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-sm font-normal outline-purple-600"></label>
+                <label class="col-span-2 block text-[11px] font-bold text-gray-600">Bairro<input id="dados-bairro" type="text" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-sm font-normal outline-purple-600"></label>
+              </div>
+              <label class="block text-[11px] font-bold text-gray-600">Complemento<input id="dados-comp" type="text" placeholder="Ex: Casa 2, Apto 31" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-sm font-normal outline-purple-600"></label>
+              <label class="block text-[11px] font-bold text-gray-600">Ponto de referência<input id="dados-referencia" type="text" placeholder="Ex: em frente à padaria" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-sm font-normal outline-purple-600"></label>
+              <button type="submit" id="btn-salvar-dados-conta" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-bold py-2.5 rounded-xl text-sm cursor-pointer">Salvar meus dados</button>
+            </form>
+          </details>
+
+          <details class="bg-white rounded-2xl border border-purple-100 shadow-sm group">
+            <summary class="p-4 flex items-center gap-3 cursor-pointer list-none">
+              <span class="w-10 h-10 rounded-xl bg-purple-100 text-[#411564] flex items-center justify-center"><i class="fa-solid fa-key"></i></span>
+              <span class="flex-1"><span class="block text-sm font-extrabold text-gray-900">Trocar PIN</span><span class="block text-[11px] text-gray-500">Seu código de 4 números</span></span>
+              <i class="fa-solid fa-chevron-down text-gray-300 group-open:rotate-180 transition"></i>
+            </summary>
+            <form onsubmit="contaTrocarPin(event)" class="px-4 pb-4 space-y-2.5">
+              <div class="grid grid-cols-3 gap-2">
+                <label class="block text-[11px] font-bold text-gray-600">PIN atual<input id="pin-atual" type="password" inputmode="numeric" maxlength="4" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-center font-black outline-purple-600"></label>
+                <label class="block text-[11px] font-bold text-gray-600">Novo PIN<input id="pin-novo" type="password" inputmode="numeric" maxlength="4" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-center font-black outline-purple-600"></label>
+                <label class="block text-[11px] font-bold text-gray-600">Repita<input id="pin-novo2" type="password" inputmode="numeric" maxlength="4" class="mt-1 w-full border border-gray-300 rounded-xl p-2.5 text-center font-black outline-purple-600"></label>
+              </div>
+              <button type="submit" class="w-full bg-[#411564] hover:bg-purple-900 text-white font-bold py-2.5 rounded-xl text-sm cursor-pointer">Trocar PIN</button>
+            </form>
+          </details>
+
+          <button onclick="contaSair()" class="w-full bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold py-3 rounded-xl text-sm cursor-pointer"><i class="fa-solid fa-right-from-bracket mr-1.5"></i> Sair da conta</button>
+          <p class="text-[10px] text-gray-400 text-center">Ao sair, seus dados e pedidos continuam salvos na sua conta.</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
   <!-- TELA: Meus pedidos -->
   <div id="modal-meus-pedidos" class="hidden fixed inset-0 z-50 bg-[#fcfaff] overflow-y-auto">
     <div class="sticky top-0 bg-[#411564] text-white z-10 shadow-md">
@@ -91,10 +199,7 @@
     </div>
     <div class="max-w-xl mx-auto p-4 space-y-4 pb-10">
       <div id="lista-meus-pedidos" class="space-y-4"></div>
-      <div class="pt-4 border-t border-purple-100 text-center space-y-2">
-        <p class="text-[11px] text-gray-500 leading-relaxed">Seus pedidos, nome, WhatsApp e endereço ficam salvos <strong>só neste aparelho</strong>, para você não precisar digitar de novo.</p>
-        <button onclick="encerrarSessaoCliente()" class="inline-flex items-center gap-2 text-rose-600 hover:bg-rose-50 border border-rose-200 font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer"><i class="fa-solid fa-right-from-bracket"></i> Sair e apagar meus dados deste aparelho</button>
-      </div>
+      <div id="rodape-meus-pedidos" class="pt-4 border-t border-purple-100 text-center space-y-2"></div>
     </div>
   </div>
 
@@ -291,9 +396,13 @@
                   <input type="text" id="input-end-bairro" placeholder="digite o bairro" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Complemento / Ref.</label>
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Complemento</label>
                   <input type="text" id="input-end-comp" placeholder="Ex: Casa, Fundos..." class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
                 </div>
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-gray-600 mb-1">Ponto de referência</label>
+                <input type="text" id="input-end-ref" placeholder="Ex: em frente à padaria, portão azul" class="w-full bg-white border border-gray-300 rounded-xl p-2 text-xs outline-purple-600">
               </div>
               <button type="button" onclick="salvarEnderecoLocal()" class="w-full bg-[#411564] text-white font-bold py-2 rounded-xl text-xs shadow cursor-pointer">
                 Confirmar Endereço
@@ -304,6 +413,7 @@
           <!-- Dados do Cliente -->
           <div class="space-y-2.5 pt-2 border-t border-gray-100">
             <p class="text-xs font-bold text-gray-700">Seus dados para contato</p>
+            <button type="button" id="atalho-entrar-checkout" onclick="abrirPainelConta()" class="w-full text-left bg-purple-50 border border-purple-200 rounded-xl px-3 py-2 text-[11px] text-[#411564] font-bold cursor-pointer"><i class="fa-solid fa-circle-user mr-1"></i> Já tem conta? <u>Entre</u> e seus dados são preenchidos sozinhos.</button>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
                 <label class="block text-[11px] font-bold text-gray-600 mb-1">Seu Nome *</label>
@@ -724,6 +834,17 @@
     }
 
     function carregarDadosSalvosCliente() {
+      var c = contaAtual();
+      if (c) {
+        if (!document.getElementById('cliente-nome').value) document.getElementById('cliente-nome').value = c.nome || '';
+        if (!document.getElementById('cliente-telefone').value) document.getElementById('cliente-telefone').value = formatarCelular(c.celular);
+        if (!estadoCheckout.enderecoSalvo && c.endereco && c.endereco.rua) {
+          estadoCheckout.enderecoSalvo = c.endereco;
+          exibirCartaoEnderecoSalvo();
+        }
+      }
+      var atalho = document.getElementById('atalho-entrar-checkout');
+      if (atalho) atalho.classList.toggle('hidden', !!c);
       try {
         var nomeSalvo = localStorage.getItem('acaizeiro_cli_nome');
         var telSalvo = localStorage.getItem('acaizeiro_cli_tel');
@@ -1062,6 +1183,7 @@
         document.getElementById('input-end-numero').value = e.numero || '';
         document.getElementById('input-end-bairro').value = e.bairro || '';
         document.getElementById('input-end-comp').value = e.comp || '';
+        document.getElementById('input-end-ref').value = e.referencia || '';
       }
       document.getElementById('input-end-rua').focus();
     }
@@ -1071,8 +1193,10 @@
       var numero = document.getElementById('input-end-numero').value.trim();
       var bairro = document.getElementById('input-end-bairro').value.trim();
       var comp = document.getElementById('input-end-comp').value.trim();
+      var referencia = document.getElementById('input-end-ref').value.trim();
       if (!rua || !numero || !bairro) { alert("Preencha Rua, Número e Bairro para continuar."); return; }
-      estadoCheckout.enderecoSalvo = { rua: rua, numero: numero, bairro: bairro, comp: comp };
+      estadoCheckout.enderecoSalvo = { rua: rua, numero: numero, bairro: bairro, comp: comp, referencia: referencia };
+      if (contaAtual()) contaGuardarEndereco(estadoCheckout.enderecoSalvo); // salva na conta para os próximos pedidos
       try { localStorage.setItem('acaizeiro_cli_end', JSON.stringify(estadoCheckout.enderecoSalvo)); } catch (e) {}
       document.getElementById('form-inline-endereco').classList.add('hidden');
       exibirCartaoEnderecoSalvo();
@@ -1084,7 +1208,7 @@
       document.getElementById('card-endereco-salvo').classList.remove('hidden');
       document.getElementById('label-btn-endereco').innerText = "Alterar endereço";
       document.getElementById('end-salvo-rua').innerText = end.rua + ", " + end.numero + (end.comp ? " (" + end.comp + ")" : "");
-      document.getElementById('end-salvo-bairro').innerText = end.bairro + " - Ibitinga/SP";
+      document.getElementById('end-salvo-bairro').innerText = end.bairro + " - Ibitinga/SP" + (end.referencia ? " · Ref: " + end.referencia : "");
     }
 
     function selecionarPagamento(valor, label) {
@@ -1111,7 +1235,7 @@
     function enderecoFormatadoAtual() {
       var e = estadoCheckout.enderecoSalvo;
       if (estadoCheckout.tipoRecebimento !== 'Entrega' || !e) return "Retirada na Loja";
-      return e.rua + ", " + e.numero + (e.comp ? " (" + e.comp + ")" : "") + " - " + e.bairro;
+      return e.rua + ", " + e.numero + (e.comp ? " (" + e.comp + ")" : "") + " - " + e.bairro + (e.referencia ? " | Ref: " + e.referencia : "");
     }
 
     function preencherResumoFinal() {
@@ -1177,6 +1301,7 @@
         var res = await sb.rpc('criar_pedido', { p_dados: {
           cliente_nome: nome,
           cliente_telefone: tel,
+          token_conta: contaToken() || null,
           tipo_recebimento: estadoCheckout.tipoRecebimento,
           endereco: enderecoFormatado,
           forma_pagamento: pagamento,
@@ -1574,8 +1699,13 @@
       var nome = '', tel = '';
       try { nome = localStorage.getItem('acaizeiro_cli_nome') || ''; tel = localStorage.getItem('acaizeiro_cli_tel') || ''; } catch (e) {}
       document.getElementById('meus-pedidos-cliente').textContent = nome ? ('Olá, ' + nome.split(' ')[0] + (tel ? ' · ' + tel : '')) : 'Acompanhe aqui o andamento dos seus pedidos';
-      if (!lerMeusPedidosLocal().length) {
-        box.innerHTML = '<div class="text-center py-14 px-6"><div class="w-16 h-16 rounded-full bg-purple-100 text-[#411564] text-2xl flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-receipt"></i></div><p class="font-extrabold text-gray-800">Você ainda não fez pedidos neste aparelho</p><p class="text-xs text-gray-500 mt-1">Quando fizer um pedido, ele aparece aqui com o andamento em tempo real.</p><button onclick="fecharMeusPedidos()" class="mt-4 bg-[#411564] text-white font-bold text-sm px-5 py-2.5 rounded-xl cursor-pointer">Ver cardápio</button></div>';
+      var rodape = document.getElementById('rodape-meus-pedidos');
+      rodape.innerHTML = contaAtual()
+        ? '<p class="text-[11px] text-gray-500"><i class="fa-solid fa-circle-info mr-1"></i>Mostrando os pedidos da sua conta dos <strong>últimos 30 dias</strong>.</p>'
+        : '<p class="text-[11px] text-gray-500 leading-relaxed">Você está vendo os pedidos feitos <strong>neste aparelho</strong>.</p><button onclick="abrirPainelConta()" class="inline-flex items-center gap-2 bg-[#411564] text-white font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer"><i class="fa-solid fa-circle-user"></i> Entrar ou criar conta</button><p class="text-[10px] text-gray-400">Com a conta, seus dados e pedidos ficam salvos em qualquer celular.</p>';
+      if (!lerMeusPedidosLocal().length && !(contaAtual() && meusPedidosCache.length)) {
+        if (contaAtual() && _buscandoMeus) { box.innerHTML = '<p class="text-center text-sm text-gray-400 py-10"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Carregando seus pedidos...</p>'; return; }
+        box.innerHTML = '<div class="text-center py-14 px-6"><div class="w-16 h-16 rounded-full bg-purple-100 text-[#411564] text-2xl flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-receipt"></i></div><p class="font-extrabold text-gray-800">' + (contaAtual() ? 'Nenhum pedido nos últimos 30 dias' : 'Você ainda não fez pedidos neste aparelho') + '</p><p class="text-xs text-gray-500 mt-1">Quando fizer um pedido, ele aparece aqui com o andamento em tempo real.</p><button onclick="fecharMeusPedidos()" class="mt-4 bg-[#411564] text-white font-bold text-sm px-5 py-2.5 rounded-xl cursor-pointer">Ver cardápio</button></div>';
         return;
       }
       if (!meusPedidosCache.length) { box.innerHTML = '<p class="text-center text-sm text-gray-400 py-10"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Carregando seus pedidos...</p>'; return; }
@@ -1625,16 +1755,24 @@
 
     async function atualizarMeusPedidos(manual) {
       var lista = lerMeusPedidosLocal();
-      if (!lista.length) { meusPedidosCache = []; atualizarBarraAcompanhamento(); renderizarMeusPedidos(); return; }
+      if (!lista.length && !contaToken()) { meusPedidosCache = []; atualizarBarraAcompanhamento(); renderizarMeusPedidos(); return; }
       var sb = initClient();
       if (!sb || _buscandoMeus) return;
       _buscandoMeus = true;
       var icone = document.getElementById('icone-atualizar-meus');
       if (manual && icone) icone.classList.add('animate-spin');
       try {
-        var res = await sb.rpc('meus_pedidos', { p_pedidos: lista.map(function (p) { return { id: p.id, token: p.token }; }) });
-        if (res.error) throw res.error;
-        var dados = res.data || [];
+        var chamadas = [lista.length ? sb.rpc('meus_pedidos', { p_pedidos: lista.map(function (p) { return { id: p.id, token: p.token }; }) }) : Promise.resolve({ data: [] })];
+        if (contaToken()) chamadas.push(sb.rpc('conta_pedidos', { p_token: contaToken() }));
+        var respostas = await Promise.all(chamadas);
+        if (respostas[0].error) throw respostas[0].error;
+        var porId = {};
+        (respostas[0].data || []).forEach(function (p) { porId[p.id] = p; });
+        if (respostas[1]) {
+          if (respostas[1].error) { if (/SESSAO_EXPIRADA/.test(respostas[1].error.message)) contaSessaoExpirada(); }
+          else (respostas[1].data || []).forEach(function (p) { porId[p.id] = p; });
+        }
+        var dados = Object.keys(porId).map(function (k) { return porId[k]; }).sort(function (a, b) { return b.id - a.id; });
         // avisa quando o status muda
         dados.forEach(function (p) {
           var antes = ultimoStatusVisto[p.id];
@@ -1672,7 +1810,7 @@
     function agendarAcompanhamento(ms) {
       clearTimeout(_timerAcompanhamento);
       var ativo = meusPedidosCache.some(function (p) { return STATUS_ATIVOS_CLIENTE.indexOf(p.status) !== -1; });
-      if (!lerMeusPedidosLocal().length) return;
+      if (!lerMeusPedidosLocal().length && !contaToken()) return;
       _timerAcompanhamento = setTimeout(function () { if (!document.hidden) atualizarMeusPedidos(); else agendarAcompanhamento(); }, ms || (ativo ? 8000 : 60000));
     }
 
@@ -1690,7 +1828,12 @@
       atualizarBarraAcompanhamento();
     }
 
-    function pedidoLocal(id) { return lerMeusPedidosLocal().find(function (p) { return p.id === id; }); }
+    function pedidoLocal(id) {
+      var loc = lerMeusPedidosLocal().find(function (p) { return p.id === id; });
+      if (loc) return loc;
+      var daConta = meusPedidosCache.find(function (p) { return p.id === id && p.token; });
+      return daConta ? { id: id, token: daConta.token } : null;
+    }
 
     function pagarPixDoPedido(id) {
       var loc = pedidoLocal(id), p = meusPedidosCache.find(function (x) { return x.id === id; });
@@ -1711,11 +1854,223 @@
       atualizarMeusPedidos(true);
     }
 
-    function encerrarSessaoCliente() {
-      var ativos = meusPedidosCache.filter(function (p) { return STATUS_ATIVOS_CLIENTE.indexOf(p.status) !== -1; });
-      var msg = 'Sair e apagar seus dados deste aparelho?\n\nVamos apagar: nome, WhatsApp, endereço salvo e a lista de pedidos.';
-      if (ativos.length) msg += '\n\n⚠️ Você tem ' + ativos.length + ' pedido(s) em andamento e NÃO poderá mais acompanhá-lo(s) por aqui.';
-      if (!confirm(msg)) return;
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && (lerMeusPedidosLocal().length || contaToken())) atualizarMeusPedidos(); });
+
+    /* =================================================================
+     * MINHA CONTA — celular (ou apelido) + PIN de 4 números
+     * ================================================================= */
+    var CHAVE_CONTA = 'acaizeiro_conta';
+    var _contaIdentificador = '';
+
+    function lerConta() { try { return JSON.parse(localStorage.getItem(CHAVE_CONTA) || 'null'); } catch (e) { return null; } }
+    function gravarConta(dados) { try { dados ? localStorage.setItem(CHAVE_CONTA, JSON.stringify(dados)) : localStorage.removeItem(CHAVE_CONTA); } catch (e) {} }
+    function contaAtual() { var c = lerConta(); return c && c.token ? c.conta : null; }
+    function contaToken() { var c = lerConta(); return c && c.token ? c.token : null; }
+
+    function formatarCelular(c) {
+      var d = somenteDigitos(c);
+      if (d.length === 11) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+      if (d.length === 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+      return c || '';
+    }
+
+    var ERROS_CONTA = {
+      CELULAR_JA_CADASTRADO: 'Este celular já tem uma conta. Volte e entre com o seu PIN.',
+      APELIDO_EM_USO: 'Este apelido já é usado por outro cliente. Escolha outro (ou deixe em branco).',
+      APELIDO_INVALIDO: 'Apelido: de 3 a 20 caracteres, só letras minúsculas, números, ponto ou _ (sem espaços).',
+      CELULAR_INVALIDO: 'Informe o celular com DDD. Ex: (16) 99999-9999',
+      NOME_INVALIDO: 'Informe seu nome.',
+      PIN_INVALIDO: 'O PIN deve ter exatamente 4 números.',
+      PIN_INCORRETO: 'PIN incorreto.',
+      CONTA_NAO_ENCONTRADA: 'Não encontramos uma conta com esse apelido. Digite seu celular para entrar ou criar uma conta.',
+      SESSAO_EXPIRADA: 'Sua sessão expirou. Entre de novo.'
+    };
+    function traduzirErroConta(err) {
+      var m = String((err && err.message) || err || '');
+      var b = m.match(/CONTA_BLOQUEADA:?\s*(\d+)?/);
+      if (b) return 'Muitas tentativas erradas. Tente de novo em ' + (b[1] || 15) + ' minutos, ou toque em "Esqueci meu PIN".';
+      for (var k in ERROS_CONTA) if (m.indexOf(k) !== -1) return ERROS_CONTA[k];
+      if (/Failed to fetch|NetworkError/i.test(m)) return 'Sem conexão. Verifique a internet.';
+      if (/conta_|function/i.test(m)) return 'As contas estão em atualização na loja. Tente mais tarde.';
+      return 'Não foi possível concluir. Tente novamente.';
+    }
+    function mostrarErroConta(msg) {
+      var el = document.getElementById('conta-erro');
+      el.textContent = msg || '';
+      el.classList.toggle('hidden', !msg);
+    }
+    function mostrarPassoConta(passo) {
+      ['conta-passo-id', 'conta-passo-pin', 'conta-passo-cadastro'].forEach(function (id) { document.getElementById(id).classList.toggle('hidden', id !== passo); });
+      mostrarErroConta('');
+      var foco = { 'conta-passo-id': 'conta-identificador', 'conta-passo-pin': 'conta-pin', 'conta-passo-cadastro': 'cad-nome' }[passo];
+      setTimeout(function () { var el = document.getElementById(foco); if (el) el.focus(); }, 60);
+    }
+
+    function aplicarContaNaTela() {
+      var c = contaAtual();
+      document.getElementById('rotulo-conta-topo').textContent = c ? (c.nome || 'Conta').split(' ')[0] : 'Entrar';
+      document.getElementById('conta-deslogado').classList.toggle('hidden', !!c);
+      document.getElementById('conta-logado').classList.toggle('hidden', !c);
+      document.getElementById('conta-titulo').textContent = c ? 'Olá, ' + (c.nome || '').split(' ')[0] + '!' : 'Minha conta';
+      document.getElementById('conta-subtitulo').textContent = c ? formatarCelular(c.celular) + (c.apelido ? ' · @' + c.apelido : '') : 'Entre para salvar seus dados';
+      if (c) {
+        var e = c.endereco || {};
+        document.getElementById('dados-nome').value = c.nome || '';
+        document.getElementById('dados-celular').value = formatarCelular(c.celular);
+        document.getElementById('dados-apelido').value = c.apelido || '';
+        document.getElementById('dados-rua').value = e.rua || '';
+        document.getElementById('dados-numero').value = e.numero || '';
+        document.getElementById('dados-bairro').value = e.bairro || '';
+        document.getElementById('dados-comp').value = e.comp || '';
+        document.getElementById('dados-referencia').value = e.referencia || '';
+      }
+      var atalho = document.getElementById('atalho-entrar-checkout');
+      if (atalho) atalho.classList.toggle('hidden', !!c);
+    }
+
+    function abrirPainelConta() {
+      aplicarContaNaTela();
+      if (!contaAtual()) mostrarPassoConta('conta-passo-id');
+      var ativos = meusPedidosCache.filter(function (p) { return STATUS_ATIVOS_CLIENTE.indexOf(p.status) !== -1; }).length;
+      document.getElementById('conta-resumo-pedidos').textContent = ativos ? ativos + ' pedido(s) em andamento' : 'Acompanhe e veja o histórico do mês';
+      document.getElementById('painel-conta').classList.remove('hidden');
+    }
+    function fecharPainelConta() { document.getElementById('painel-conta').classList.add('hidden'); }
+    function contaVoltarInicio() { mostrarPassoConta('conta-passo-id'); }
+
+    async function contaContinuar(e) {
+      e.preventDefault();
+      var id = document.getElementById('conta-identificador').value.trim();
+      if (!id) { mostrarErroConta('Digite seu celular com DDD ou o seu apelido.'); return; }
+      _contaIdentificador = id;
+      try {
+        var res = await initClient().rpc('conta_verificar', { p_identificador: id });
+        if (res.error) throw res.error;
+        var r = res.data || {};
+        if (r.existe) {
+          document.getElementById('conta-saudacao-pin').textContent = 'Olá, ' + (r.primeiro_nome || 'cliente') + '!';
+          document.getElementById('conta-pin').value = '';
+          mostrarPassoConta('conta-passo-pin');
+        } else if (r.tipo === 'celular') {
+          document.getElementById('cad-celular').value = formatarCelular(id);
+          if (!document.getElementById('cad-nome').value) document.getElementById('cad-nome').value = (localStorage.getItem('acaizeiro_cli_nome') || '');
+          mostrarPassoConta('conta-passo-cadastro');
+        } else {
+          mostrarErroConta(ERROS_CONTA.CONTA_NAO_ENCONTRADA);
+        }
+      } catch (err) { mostrarErroConta(traduzirErroConta(err)); }
+    }
+
+    async function contaEntrar(e) {
+      e.preventDefault();
+      var pin = document.getElementById('conta-pin').value.trim();
+      if (!/^\d{4}$/.test(pin)) { mostrarErroConta(ERROS_CONTA.PIN_INVALIDO); return; }
+      try {
+        var res = await initClient().rpc('conta_entrar', { p_identificador: _contaIdentificador, p_pin: pin });
+        if (res.error) throw res.error;
+        var r = res.data || {};
+        if (r.erro) {
+          document.getElementById('conta-pin').value = '';
+          mostrarErroConta(r.erro === 'CONTA_BLOQUEADA' ? traduzirErroConta('CONTA_BLOQUEADA: 15')
+            : 'PIN incorreto.' + (r.tentativas_restantes ? ' Restam ' + r.tentativas_restantes + ' tentativa(s).' : ''));
+          return;
+        }
+        await contaDepoisDeEntrar(r, 'Bem-vindo de volta, ' + (r.conta.nome || '').split(' ')[0] + '!');
+      } catch (err) { mostrarErroConta(traduzirErroConta(err)); }
+    }
+
+    async function contaCriar(e) {
+      e.preventDefault();
+      var pin = document.getElementById('cad-pin').value.trim(), pin2 = document.getElementById('cad-pin2').value.trim();
+      if (!/^\d{4}$/.test(pin)) { mostrarErroConta(ERROS_CONTA.PIN_INVALIDO); return; }
+      if (pin !== pin2) { mostrarErroConta('Os dois PINs não são iguais.'); return; }
+      if (/^(\d)\1{3}$/.test(pin) || pin === '1234' || pin === '4321') { if (!confirm('Esse PIN é muito fácil de adivinhar. Usar mesmo assim?')) return; }
+      var endereco = estadoCheckout.enderecoSalvo || {};
+      try {
+        var res = await initClient().rpc('conta_criar', {
+          p_celular: document.getElementById('cad-celular').value,
+          p_nome: document.getElementById('cad-nome').value,
+          p_pin: pin,
+          p_apelido: document.getElementById('cad-apelido').value.trim() || null,
+          p_endereco: endereco
+        });
+        if (res.error) throw res.error;
+        await contaDepoisDeEntrar(res.data, 'Conta criada! Seus dados ficam salvos para os próximos pedidos.');
+      } catch (err) { mostrarErroConta(traduzirErroConta(err)); }
+    }
+
+    async function contaDepoisDeEntrar(r, mensagem) {
+      gravarConta({ token: r.token, conta: r.conta });
+      ['conta-pin', 'cad-pin', 'cad-pin2'].forEach(function (id) { document.getElementById(id).value = ''; });
+      // pedidos feitos neste aparelho antes de entrar passam a fazer parte da conta
+      var locais = lerMeusPedidosLocal();
+      if (locais.length) {
+        try { await initClient().rpc('conta_vincular_pedidos', { p_token: r.token, p_pedidos: locais.map(function (p) { return { id: p.id, token: p.token }; }) }); } catch (e) {}
+      }
+      // dados da conta passam a preencher o checkout
+      document.getElementById('cliente-nome').value = '';
+      document.getElementById('cliente-telefone').value = '';
+      if (r.conta.endereco && r.conta.endereco.rua) { estadoCheckout.enderecoSalvo = r.conta.endereco; exibirCartaoEnderecoSalvo(); }
+      try { localStorage.setItem('acaizeiro_cli_nome', r.conta.nome || ''); localStorage.setItem('acaizeiro_cli_tel', formatarCelular(r.conta.celular)); } catch (e) {}
+      aplicarContaNaTela();
+      avisoRapido(mensagem);
+      atualizarMeusPedidos();
+    }
+
+    async function contaSalvarDados(e) {
+      e.preventDefault();
+      var btn = document.getElementById('btn-salvar-dados-conta');
+      btn.disabled = true; btn.textContent = 'Salvando...';
+      try {
+        var endereco = {
+          rua: document.getElementById('dados-rua').value, numero: document.getElementById('dados-numero').value,
+          bairro: document.getElementById('dados-bairro').value, comp: document.getElementById('dados-comp').value,
+          referencia: document.getElementById('dados-referencia').value
+        };
+        var res = await initClient().rpc('conta_salvar_dados', { p_token: contaToken(), p_dados: {
+          nome: document.getElementById('dados-nome').value, celular: document.getElementById('dados-celular').value,
+          apelido: document.getElementById('dados-apelido').value.trim(), endereco: endereco
+        } });
+        if (res.error) throw res.error;
+        gravarConta({ token: contaToken(), conta: res.data });
+        if (res.data.endereco && res.data.endereco.rua) { estadoCheckout.enderecoSalvo = res.data.endereco; exibirCartaoEnderecoSalvo(); }
+        document.getElementById('cliente-nome').value = res.data.nome;
+        document.getElementById('cliente-telefone').value = formatarCelular(res.data.celular);
+        aplicarContaNaTela();
+        document.getElementById('conta-sec-dados').open = false;
+        avisoRapido('✓ Dados salvos!');
+      } catch (err) {
+        if (/SESSAO_EXPIRADA/.test(String(err && err.message))) contaSessaoExpirada();
+        else alert(traduzirErroConta(err));
+      } finally { btn.disabled = false; btn.textContent = 'Salvar meus dados'; }
+    }
+
+    async function contaGuardarEndereco(endereco) {
+      try {
+        var res = await initClient().rpc('conta_salvar_dados', { p_token: contaToken(), p_dados: { endereco: endereco } });
+        if (!res.error) { gravarConta({ token: contaToken(), conta: res.data }); aplicarContaNaTela(); }
+      } catch (e) {}
+    }
+
+    async function contaTrocarPin(e) {
+      e.preventDefault();
+      var atual = document.getElementById('pin-atual').value, novo = document.getElementById('pin-novo').value, novo2 = document.getElementById('pin-novo2').value;
+      if (!/^\d{4}$/.test(novo)) { alert(ERROS_CONTA.PIN_INVALIDO); return; }
+      if (novo !== novo2) { alert('Os dois PINs novos não são iguais.'); return; }
+      try {
+        var res = await initClient().rpc('conta_alterar_pin', { p_token: contaToken(), p_pin_atual: atual, p_pin_novo: novo });
+        if (res.error) throw res.error;
+        ['pin-atual', 'pin-novo', 'pin-novo2'].forEach(function (id) { document.getElementById(id).value = ''; });
+        avisoRapido('✓ PIN alterado. Outros aparelhos foram desconectados.');
+      } catch (err) { alert(traduzirErroConta(err)); }
+    }
+
+    function contaEsqueciPin() {
+      var id = _contaIdentificador || '';
+      window.open('https://wa.me/' + config.whatsapp + '?text=' + encodeURIComponent('Olá! Esqueci o PIN da minha conta no site de pedidos. Meu celular/apelido é: ' + id), '_blank');
+    }
+
+    function limparDadosDoAparelho() {
       ['acaizeiro_cli_nome', 'acaizeiro_cli_tel', 'acaizeiro_cli_end', CHAVE_MEUS_PEDIDOS, 'acaizeiro_pedido_atual'].forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
       meusPedidosCache = []; ultimoStatusVisto = {};
       estadoCheckout.enderecoSalvo = null;
@@ -1723,11 +2078,43 @@
       var card = document.getElementById('card-endereco-salvo'); if (card) card.classList.add('hidden');
       var lbl = document.getElementById('label-btn-endereco'); if (lbl) lbl.innerText = 'Adicionar novo endereço';
       clearTimeout(_timerAcompanhamento);
-      fecharMeusPedidos();
-      avisoRapido('Pronto! Seus dados foram apagados deste aparelho.');
+      atualizarBarraAcompanhamento();
     }
 
-    document.addEventListener('visibilitychange', function () { if (!document.hidden && lerMeusPedidosLocal().length) atualizarMeusPedidos(); });
+    async function contaSair() {
+      if (!confirm('Sair da sua conta neste aparelho?\n\nSeus dados e pedidos continuam salvos na conta: é só entrar de novo com seu celular e PIN.')) return;
+      var token = contaToken();
+      gravarConta(null);
+      try { if (token) await initClient().rpc('conta_sair', { p_token: token }); } catch (e) {}
+      limparDadosDoAparelho();
+      aplicarContaNaTela();
+      fecharPainelConta();
+      avisoRapido('Você saiu da conta.');
+    }
+
+    function contaSessaoExpirada() {
+      if (!contaToken()) return;
+      gravarConta(null);
+      limparDadosDoAparelho();
+      aplicarContaNaTela();
+      avisoRapido('Sua sessão expirou. Entre de novo em "Minha conta".');
+    }
+
+    // Ao abrir o site: confere a conta salva (sem desconectar se estiver sem internet)
+    async function carregarConta() {
+      aplicarContaNaTela();
+      var token = contaToken();
+      if (!token) return;
+      try {
+        var res = await initClient().rpc('conta_dados', { p_token: token });
+        if (res.error) {
+          if (/SESSAO_EXPIRADA/.test(res.error.message)) contaSessaoExpirada();
+          return;
+        }
+        gravarConta({ token: token, conta: res.data });
+        aplicarContaNaTela();
+      } catch (e) { /* sem internet: mantém a conta salva */ }
+    }
 
     /* ---------- carregamento do cardápio ---------- */
     async function carregarCardapio() {
@@ -1796,7 +2183,8 @@
       document.getElementById('lista-produtos').innerHTML = '<p class="text-center py-8 text-gray-400 text-sm">Carregando cardápio...</p>';
       carregarConfiguracaoLoja();
       carregarCardapio();
-      atualizarMeusPedidos(); // retoma o acompanhamento dos pedidos deste aparelho
+      carregarConta();
+      atualizarMeusPedidos(); // retoma o acompanhamento dos pedidos deste aparelho e da conta
       // a configuração (aberta/fechada, entregas) é conferida de novo a cada 2 minutos
       setInterval(carregarConfiguracaoLoja, 120000);
       if ('serviceWorker' in navigator) {

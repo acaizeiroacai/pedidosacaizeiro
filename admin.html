@@ -1143,6 +1143,30 @@
             </table>
           </div>
         </div>
+
+        <!-- Contas cadastradas no site (login com celular + PIN) -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm font-extrabold text-[#411564] flex items-center gap-2"><i class="fa-solid fa-user-lock"></i> Contas cadastradas no site</h3>
+              <p class="text-[11px] text-gray-500">Clientes que criaram conta com celular + PIN. Se alguém esquecer o PIN, use "Redefinir PIN".</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input id="contas-busca" oninput="renderizarContasClientes()" type="text" placeholder="Buscar nome, celular ou apelido" class="border border-gray-300 rounded-xl px-3 py-1.5 text-xs outline-purple-600 w-56">
+              <span id="contas-total" class="text-[11px] font-bold text-gray-500 whitespace-nowrap"></span>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-600">
+              <thead class="bg-purple-50/70 text-[#411564] font-bold uppercase text-[10px] tracking-wider">
+                <tr><th class="p-3">Cliente</th><th class="p-3">Celular</th><th class="p-3">Apelido</th><th class="p-3">Endereço salvo</th><th class="p-3 text-center">Pedidos</th><th class="p-3">Último acesso</th><th class="p-3 text-center">Ações</th></tr>
+              </thead>
+              <tbody id="tabela-contas-clientes" class="divide-y divide-gray-100">
+                <tr><td colspan="7" class="p-6 text-center text-gray-400">Carregando contas...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <!-- ========================================================= -->
@@ -4625,6 +4649,7 @@ async function carregarModuloClientes() {
   $('tabela-clientes-corpo').innerHTML = '<tr><td colspan="8" class="p-6 text-center text-gray-400">Montando base de clientes...</td></tr>';
   _pedidosClientesCache = await buscarTodos(function () { return sb.from('pedidos').select('*').order('id'); });
   montarBaseClientes();
+  carregarContasClientes().catch(function (e) { console.warn(e); });
 }
 
 function montarBaseClientes() {
@@ -4749,6 +4774,85 @@ function abrirModalCliente(idx) {
 }
 
 function fecharModalCliente() { $('modal-detalhes-cliente').classList.add('hidden'); }
+
+/* ---------------------------------------------------------------------
+ * CONTAS CADASTRADAS NO SITE (celular + PIN)
+ * ------------------------------------------------------------------- */
+var listaContasClientes = [];
+
+async function carregarContasClientes() {
+  var corpo = $('tabela-contas-clientes');
+  if (!corpo) return;
+  var res = await initClient().from('clientes_contas')
+    .select('id, created_at, nome, celular, apelido, endereco, ultimo_acesso, falhas_pin, bloqueado_ate')
+    .order('created_at', { ascending: false }).limit(2000);
+  if (res.error) {
+    corpo.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-gray-400">' + (/clientes_contas/.test(res.error.message) ? 'Falta rodar o arquivo supabase/06_contas_clientes.sql no Supabase.' : esc(res.error.message)) + '</td></tr>';
+    return;
+  }
+  listaContasClientes = res.data || [];
+  renderizarContasClientes();
+}
+
+function formatarCelularBR(c) {
+  var d = somenteDigitos(c);
+  if (d.length === 11) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+  if (d.length === 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+  return c || '';
+}
+
+function renderizarContasClientes() {
+  var corpo = $('tabela-contas-clientes');
+  var busca = ($('contas-busca').value || '').trim().toLowerCase(), dig = somenteDigitos(busca);
+  var pedidosPorConta = {};
+  (_pedidosClientesCache || []).forEach(function (p) { if (p.conta_id) pedidosPorConta[p.conta_id] = (pedidosPorConta[p.conta_id] || 0) + 1; });
+  var lista = listaContasClientes.filter(function (c) {
+    if (!busca) return true;
+    return String(c.nome || '').toLowerCase().indexOf(busca) !== -1 || String(c.apelido || '').indexOf(busca) !== -1 || (dig && String(c.celular).indexOf(dig) !== -1);
+  });
+  $('contas-total').innerText = listaContasClientes.length + (listaContasClientes.length === 1 ? ' conta' : ' contas');
+  if (!lista.length) {
+    corpo.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-gray-400">' + (listaContasClientes.length ? 'Nenhuma conta encontrada.' : 'Nenhum cliente criou conta ainda.') + '</td></tr>';
+    return;
+  }
+  corpo.innerHTML = lista.map(function (c) {
+    var e = c.endereco || {};
+    var end = e.rua ? esc(e.rua + ', ' + (e.numero || '') + ' - ' + (e.bairro || '')) + (e.referencia ? '<div class="text-[10px] text-gray-400">Ref: ' + esc(e.referencia) + '</div>' : '') : '<span class="text-gray-300">—</span>';
+    var bloqueada = c.bloqueado_ate && new Date(c.bloqueado_ate) > new Date();
+    var wa = linkWhatsApp(c.celular);
+    return '<tr class="hover:bg-gray-50"><td class="p-3 font-bold text-gray-900">' + esc(c.nome) + (bloqueada ? ' <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">BLOQUEADA</span>' : '') + '<div class="text-[10px] text-gray-400 font-normal">desde ' + new Date(c.created_at).toLocaleDateString('pt-BR') + '</div></td>' +
+      '<td class="p-3 whitespace-nowrap">' + esc(formatarCelularBR(c.celular)) + (wa ? ' <a href="' + esc(wa) + '" target="_blank" rel="noopener" class="text-emerald-600 ml-1"><i class="fa-brands fa-whatsapp"></i></a>' : '') + '</td>' +
+      '<td class="p-3">' + (c.apelido ? '@' + esc(c.apelido) : '<span class="text-gray-300">—</span>') + '</td><td class="p-3">' + end + '</td>' +
+      '<td class="p-3 text-center font-bold">' + (pedidosPorConta[c.id] || 0) + '</td><td class="p-3 whitespace-nowrap">' + (c.ultimo_acesso ? formatarDataHora(c.ultimo_acesso, true) : '-') + '</td>' +
+      '<td class="p-3 text-center whitespace-nowrap"><button onclick="redefinirPinConta(' + Number(c.id) + ')" class="text-[11px] font-bold text-purple-700 hover:underline cursor-pointer">Redefinir PIN</button>' +
+      '<button onclick="excluirContaCliente(' + Number(c.id) + ')" title="Excluir conta" class="ml-2 p-1 text-gray-400 hover:text-rose-600 cursor-pointer"><i class="fa-solid fa-trash"></i></button></td></tr>';
+  }).join('');
+}
+
+async function redefinirPinConta(id) {
+  var c = listaContasClientes.find(function (x) { return x.id === id; });
+  if (!c) return;
+  var sugestao = String(Math.floor(1000 + Math.random() * 9000));
+  var pin = prompt('Novo PIN de 4 números para ' + c.nome + ' (' + formatarCelularBR(c.celular) + '):\n\nConfirme a identidade do cliente antes (ex.: pelo WhatsApp cadastrado).', sugestao);
+  if (pin === null) return;
+  pin = pin.trim();
+  if (!/^\d{4}$/.test(pin)) { toast('O PIN deve ter exatamente 4 números.', 'aviso'); return; }
+  var res = await initClient().rpc('admin_redefinir_pin', { p_conta_id: id, p_pin: pin });
+  if (res.error) { mostrarErro('Erro ao redefinir PIN', res.error); return; }
+  toast('PIN de ' + c.nome + ' redefinido. A conta foi desbloqueada.', 'ok');
+  var wa = linkWhatsApp(c.celular, 'Olá, ' + c.nome.split(' ')[0] + '! Seu novo PIN para entrar no site do Açaizeiro é: ' + pin + '. Você pode trocá-lo em Minha conta → Trocar PIN.');
+  if (wa && confirm('Enviar o novo PIN para o WhatsApp do cliente?')) window.open(wa, '_blank');
+  carregarContasClientes();
+}
+
+async function excluirContaCliente(id) {
+  var c = listaContasClientes.find(function (x) { return x.id === id; });
+  if (!c || !confirm('Excluir a conta de ' + c.nome + ' (' + formatarCelularBR(c.celular) + ')?\n\nO cliente perde o login e os dados salvos (endereço). Os pedidos dele continuam nos relatórios.')) return;
+  var res = await initClient().from('clientes_contas').delete().eq('id', id);
+  if (res.error) { mostrarErro('Erro ao excluir conta', res.error); return; }
+  toast('Conta excluída.', 'ok');
+  carregarContasClientes();
+}
 
   </script>
   <script>
@@ -4891,7 +4995,7 @@ function mensagemRota(p) {
   return '🛵 *ENTREGA — PEDIDO #' + p.id + '*\n\n' +
     '👤 ' + (p.cliente_nome || 'Cliente') + (tel ? '\n📞 ' + tel : '') + '\n' +
     '📍 ' + (p.cliente_endereco || '-') + '\n' +
-    '🗺️ https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.cliente_endereco || '') + '\n\n' +
+    '🗺️ https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(String(p.cliente_endereco || '').split(' | Ref:')[0].replace(/\s*\([^)]*\)/g, '') + ' - Ibitinga SP') + '\n\n' +
     (itens ? itens + '\n\n' : '') + cobranca + (p.observacoes ? '\n\n📝 Obs: ' + p.observacoes : '');
 }
 
