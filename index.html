@@ -1819,6 +1819,7 @@
     }
 
     function abrirMeusPedidos() {
+      fecharPainelConta(); // fecha o menu lateral para a tela de pedidos aparecer na frente
       document.getElementById('modal-checkout').classList.add('hidden');
       document.getElementById('modal-meus-pedidos').classList.remove('hidden');
       document.body.style.overflow = 'hidden';
